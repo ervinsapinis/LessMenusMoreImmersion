@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34701.34
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LessMenusMoreImmersion", "LessMenusMoreImmersion.csproj", "{33585864-114C-4215-92E2-1834711F0D8B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{33585864-114C-4215-92E2-1834711F0D8B}.Debug|x64.ActiveCfg = Debug|x64
+		{33585864-114C-4215-92E2-1834711F0D8B}.Debug|x64.Build.0 = Debug|x64
+		{33585864-114C-4215-92E2-1834711F0D8B}.Release|x64.ActiveCfg = Release|x64
+		{33585864-114C-4215-92E2-1834711F0D8B}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FD8A93D1-590F-4126-BDFD-6916A1559684}
+	EndGlobalSection
+EndGlobal
