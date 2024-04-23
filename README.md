@@ -1,0 +1,1 @@
+ Have you actually ever visited any towns? This very simple mod (for now) will address that bannerlord is less of a menu simulator, and more of an immersive game by addressing and justifying the work of sceners and devs at TW, that simply gets overlooked. The player is able to do almost everything in town, what can be achieved in the menu. 
