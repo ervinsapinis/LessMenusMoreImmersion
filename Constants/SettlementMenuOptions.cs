@@ -12,12 +12,13 @@ namespace LessMenusMoreImmersion.Constants
             //town
             public static readonly string Smithy = "town_smithy";
             //public static readonly string Keep = "town_keep";
+            public static readonly string LordsHallTown = "town_lords_hall";
             public static readonly string Market = "trade";
             public static readonly string Arena = "town_arena";
             public static readonly string TavernDistrict = "town_backstreet";
 
             //castle
-            public static readonly string LordsHall = "castle_lords_hall";
+            public static readonly string LordsHallCastle = "castle_lords_hall";
             //public static readonly string Prison = "castle_prison";
 
             //village
