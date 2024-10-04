@@ -9,20 +9,40 @@ namespace LessMenusMoreImmersion.Constants
     {
         public static class MenuOptions
         {
-            //town
-            public static readonly string Smithy = "town_smithy";
-            //public static readonly string Keep = "town_keep";
-            public static readonly string LordsHallTown = "town_lords_hall";
-            public static readonly string Market = "trade";
-            public static readonly string Arena = "town_arena";
-            public static readonly string TavernDistrict = "town_backstreet";
+            // Town Menu Options
+            //public static readonly string TownStreets = "town_streets";
+            public static readonly string TownKeep = "town_keep";
+            public static readonly string TownArena = "town_arena";
+            public static readonly string TownBackstreet = "town_backstreet";
+            public static readonly string ManageProduction = "manage_production";
+            public static readonly string RecruitVolunteers = "recruit_volunteers";
+            public static readonly string Trade = "trade";
+            public static readonly string TownSmithy = "town_smithy";
+            //public static readonly string TownWait = "town_wait";
+            //public static readonly string TownLeave = "town_leave";
 
-            //castle
-            public static readonly string LordsHallCastle = "castle_lords_hall";
-            //public static readonly string Prison = "castle_prison";
+            // Town Keep Menu Options
+            public static readonly string TownLordsHall = "town_lords_hall";
+            public static readonly string TownLordsHallGoToDungeon = "town_lords_hall_go_to_dungeon";
+            public static readonly string LeaveTroopsToGarrison = "leave_troops_to_garrison";
+            public static readonly string ManageGarrison = "manage_garrison";
+            public static readonly string OpenStash = "open_stash";
+            public static readonly string TownCastleBack = "town_castle_back";
 
-            //village
+            // Castle Menu Options
+            public static readonly string TakeAWalkAroundTheCastle = "take_a_walk_around_the_castle";
+            public static readonly string CastleLordsHall = "castle_lords_hall";
+            public static readonly string CastlePrison = "castle_prison";
+            public static readonly string ManageProductionCastle = "manage_production";
+            //public static readonly string CastleWait = "town_wait";
+            //public static readonly string CastleLeave = "leave";
+
+            // Village Menu Options
+            //public static readonly string VillageCenter = "village_center";
+            //public static readonly string VillageWait = "village_wait";
+            //public static readonly string LeaveVillage = "leave";
         }
+
         public static List<string> AllOptions
         {
             get

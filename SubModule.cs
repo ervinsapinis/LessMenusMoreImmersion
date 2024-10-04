@@ -1,4 +1,5 @@
 ﻿using LessMenusMoreImmersion.Behaviors;
+using LessMenusMoreImmersion.Models;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Core;
 using TaleWorlds.Library;
@@ -26,16 +27,24 @@ namespace LessMenusMoreImmersion
             base.OnBeforeInitialModuleScreenSetAsRoot();
         }
 
-        protected override void OnGameStart(Game game, IGameStarter gameStarter)
+        protected override void OnGameStart(Game game, IGameStarter gameStarterObject)
         {
-            base.OnGameStart(game, gameStarter);
-            if (!(gameStarter is CampaignGameStarter campaignGameStarter))
+            base.OnGameStart(game, gameStarterObject);
+
+            if (game.GameType is Campaign)
             {
-                return;
+                CampaignGameStarter campaignGameStarter = gameStarterObject as CampaignGameStarter;
+                if (campaignGameStarter != null)
+                {
+                    // Add DisableMenuBehavior first
+                    campaignGameStarter.AddBehavior(new DisableMenuBehavior());
+
+                    campaignGameStarter.AddBehavior(new CustomVillageMenuBehavior());
+
+                    // Then add the CustomSettlementAccessModel
+                    campaignGameStarter.AddModel(new CustomSettlementAccessModel());
+                }
             }
-
-            campaignGameStarter.AddBehavior(new DisableMenuBehavior());
-
         }
 
     }
