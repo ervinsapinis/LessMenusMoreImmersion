@@ -1,16 +1,26 @@
-﻿using TaleWorlds.CampaignSystem;
+﻿using LessMenusMoreImmersion.Behaviors;
+using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.GameComponents;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Localization;
-using static TaleWorlds.CampaignSystem.ComponentInterfaces.SettlementAccessModel;
 using TaleWorlds.MountAndBlade;
-using LessMenusMoreImmersion.Behaviors;
 
 namespace LessMenusMoreImmersion.Models
 {
+    /// <summary>
+    /// Custom settlement access model to control player actions based on settlement access.
+    /// </summary>
     public class CustomSettlementAccessModel : DefaultSettlementAccessModel
     {
-        public override bool CanMainHeroDoSettlementAction(Settlement settlement, SettlementAction settlementAction, out bool shouldBeDisabled, out TextObject disabledText)
+        /// <summary>
+        /// Determines whether the main hero can perform a specific action in the settlement.
+        /// </summary>
+        /// <param name="settlement">The settlement.</param>
+        /// <param name="settlementAction">The action to check.</param>
+        /// <param name="shouldBeDisabled">Outputs whether the option should be disabled.</param>
+        /// <param name="disabledText">Outputs the text explaining why the option is disabled.</param>
+        /// <returns>True if the action can be performed; otherwise, false.</returns>
+        public override bool CanMainHeroDoSettlementAction(Settlement settlement, SettlementAction settlementAction, out bool shouldBeDisabled, out TextObject? disabledText)
         {
             var behaviorInstance = Campaign.Current.GetCampaignBehavior<DisableMenuBehavior>();
 
@@ -47,7 +57,7 @@ namespace LessMenusMoreImmersion.Models
                 if (!behaviorInstance.HasAccessToSettlement(settlement))
                 {
                     shouldBeDisabled = true;
-                    disabledText = new TextObject("You don't know the settlement by heart.");
+                    disabledText = new TextObject("{=U7v8W9x0Y}You don't know the settlement by heart.");
                     return false;
                 }
             }
@@ -60,12 +70,12 @@ namespace LessMenusMoreImmersion.Models
                 return true;
             }
 
-            // Handle other actions (e.g., Craft, JoinTournament, WatchTournament, WalkAroundTheArena)
+            // Handle other actions
             // These should be allowed only if access is granted
             if (!behaviorInstance.HasAccessToSettlement(settlement))
             {
                 shouldBeDisabled = true;
-                disabledText = new TextObject("You don't know the settlement by heart.");
+                disabledText = new TextObject("{=U7v8W9x0Y}You don't know the settlement by heart.");
                 return false;
             }
 
@@ -73,7 +83,15 @@ namespace LessMenusMoreImmersion.Models
             return base.CanMainHeroDoSettlementAction(settlement, settlementAction, out shouldBeDisabled, out disabledText);
         }
 
-        public override bool CanMainHeroAccessLocation(Settlement settlement, string locationId, out bool disableOption, out TextObject disabledText)
+        /// <summary>
+        /// Determines whether the main hero can access a specific location in the settlement.
+        /// </summary>
+        /// <param name="settlement">The settlement.</param>
+        /// <param name="locationId">The location ID.</param>
+        /// <param name="disableOption">Outputs whether the option should be disabled.</param>
+        /// <param name="disabledText">Outputs the text explaining why the option is disabled.</param>
+        /// <returns>True if the location can be accessed; otherwise, false.</returns>
+        public override bool CanMainHeroAccessLocation(Settlement settlement, string locationId, out bool disableOption, out TextObject? disabledText)
         {
             var behaviorInstance = Campaign.Current.GetCampaignBehavior<DisableMenuBehavior>();
 
@@ -103,7 +121,7 @@ namespace LessMenusMoreImmersion.Models
                     else
                     {
                         disableOption = true;
-                        disabledText = new TextObject("You don't know the settlement by heart.");
+                        disabledText = new TextObject("{=U7v8W9x0Y}You don't know the settlement by heart.");
                         return false;
                     }
                 }
@@ -113,6 +131,13 @@ namespace LessMenusMoreImmersion.Models
             return base.CanMainHeroAccessLocation(settlement, locationId, out disableOption, out disabledText);
         }
 
+        /// <summary>
+        /// Determines whether the "Request Meeting" option is available in the settlement.
+        /// </summary>
+        /// <param name="settlement">The settlement.</param>
+        /// <param name="disableOption">Outputs whether the option should be disabled.</param>
+        /// <param name="disabledText">Outputs the text explaining why the option is disabled.</param>
+        /// <returns>True if the option is available; otherwise, false.</returns>
         public override bool IsRequestMeetingOptionAvailable(Settlement settlement, out bool disableOption, out TextObject disabledText)
         {
             var behaviorInstance = Campaign.Current.GetCampaignBehavior<DisableMenuBehavior>();
@@ -125,7 +150,7 @@ namespace LessMenusMoreImmersion.Models
             if (!behaviorInstance.HasAccessToSettlement(settlement))
             {
                 disableOption = true;
-                disabledText = new TextObject("You don't know the settlement by heart.");
+                disabledText = new TextObject("{=U7v8W9x0Y}You don't know the settlement by heart.");
                 return false;
             }
 

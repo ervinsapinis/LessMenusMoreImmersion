@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<base xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" type="string">
+	<tags>
+		<tag language="English" />
+	</tags>
+	<strings>
+		<string id="Eji4qI4xg" text="Less menus more immersion loaded successfully." />
+		<string id="JTX6YNsZT" text="Hail {?PLAYER.GENDER}m'lady{?}m'lord{\\?}, I bid thee welcome to our humble hamlet. I organize the trade here. Be thee interested in haggling?" />
+		<string id="MmNpGwNT9" text="Indeed, let's have a look." />
+		<string id="1qSPbCkBo" text="I want you to be ready to trade with me on a moment's notice when you see my banner approaching." />
+		<string id="OeZhSF3K0" text="Not at this time. Take care." />
+		<string id="iZHsKXxU6" text="Very well, let's trade." />
+		<string id="kOPidaq6F" text="Ah, methinks for a humble price of {ARRANGEMENT_COST}{GOLD_ICON}, to pay the boys for running and gathering goods for thee, we shall be keen for such an arrangement. Does {?PLAYER.GENDER}m'lord{?}m'lady{\\?} concur?" />
+		<string id="vt6FfbaMf" text="Yes, that sounds acceptable. [Pay {ARRANGEMENT_COST}{GOLD_ICON}]" />
+		<string id="p12b9Nsi9" text="Splendid! We shall be at your service whenever you need us." />
+		<string id="ojZrYpAXh" text="No, perhaps another time." />
+		<string id="A1b2C3d4E" text="Yes, I am not done yet." />
+		<string id="F5g6H7i8J" text="No. Thank you for your time." />
+		<string id="K9l0M1n2O" text="The trader moves around, maybe you could arrange regular trading with this village." />
+		<string id="P3q4R5s6T" text="You now know your way around {settlement.Name}." />
+		<string id="U7v8W9x0Y" text="You don't know the settlement by heart." />
+		<string id="Z1a2B3c4D" text="You don't have enough gold." />
+		<string id="E5f6G7h8I" text="Ah, I see thou hast already been shown the wonders of {SETTLEMENT_NAME}. There is naught more to see." />
+		<string id="J9k0L1m2N" text="Indeed, I have seen all there is." />
+		<string id="O3p4Q5r6S" text="Ho there, sojourner. Thine puzzled face betrays thine nature. Fear thee not, as for the most modest sum, I shall show thee around {SETTLEMENT_NAME}, we shall leave no boulder unturned until thou knows't this corner of earth as thine own. Be thee interested?" />
+		<string id="T7u8V9w0X" text="Yes, I could use your help. [Pay {COST}{GOLD_ICON}]" />
+		<string id="Y1z2A3b4C" text="Splendid. Let me show thee the ins and outs of our {SETTLEMENT_NAME}." />
+		<string id="D5e6F7g8H" text="By heaven's Grace, what are you on about. Not interested." />
+		<string id="ZOEjOZMO2" text="Local guide" />
+	</strings>
+</base>

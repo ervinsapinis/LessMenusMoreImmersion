@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <NPCCharacters>
-	<NPCCharacter id="local_guide" default_group="Infantry" level="26" name="Local guide" occupation="CaravanGuard" culture="Culture.empire">
+	<NPCCharacter id="local_guide" default_group="Infantry" level="26" name="{=ZOEjOZMO2}Local guide" occupation="CaravanGuard" culture="Culture.empire">
 		<face>
 			<face_key_template value="BodyProperty.fighter_empire"/>
 		</face>

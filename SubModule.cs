@@ -14,7 +14,6 @@ namespace LessMenusMoreImmersion
         protected override void OnSubModuleLoad()
         {
             base.OnSubModuleLoad();
-            InformationManager.DisplayMessage(new InformationMessage("LessMenusMoreImmersion loaded!"));
         }
 
         protected override void OnSubModuleUnloaded()
@@ -36,12 +35,9 @@ namespace LessMenusMoreImmersion
                 CampaignGameStarter campaignGameStarter = gameStarterObject as CampaignGameStarter;
                 if (campaignGameStarter != null)
                 {
-                    // Add DisableMenuBehavior first
                     campaignGameStarter.AddBehavior(new DisableMenuBehavior());
-
                     campaignGameStarter.AddBehavior(new CustomVillageMenuBehavior());
 
-                    // Then add the CustomSettlementAccessModel
                     campaignGameStarter.AddModel(new CustomSettlementAccessModel());
                 }
             }
