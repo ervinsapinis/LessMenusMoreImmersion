@@ -38,353 +38,6 @@ namespace LessMenusMoreImmersion.Behaviors
         }
 
         /// <summary>
-        /// Simple ViewModel discovery tool to see what's actually available
-        /// </summary>
-        [HarmonyPatch(typeof(Campaign), "get_Current")]
-        public static class ViewModelDiscovery
-        {
-            private static bool _hasSearched = false;
-
-            [HarmonyPostfix]
-            public static void Postfix(Campaign __result)
-            {
-                if (!_hasSearched && __result != null)
-                {
-                    _hasSearched = true;
-                    InformationManager.DisplayMessage(new InformationMessage("[LM] Starting ViewModel discovery..."));
-
-                    try
-                    {
-                        var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-                        int vmCount = 0;
-
-                        foreach (var assembly in assemblies)
-                        {
-                            var name = assembly.GetName().Name;
-                            if (name.Contains("SandBox") || name.Contains("ViewModelCollection"))
-                            {
-                                InformationManager.DisplayMessage(new InformationMessage($"[LM] Checking assembly: {name}"));
-                                try
-                                {
-                                    foreach (var type in assembly.GetTypes())
-                                    {
-                                        if (type.Name.Contains("VM") &&
-                                            (type.Name.Contains("Notable") || type.Name.Contains("Character") || type.Name.Contains("Popup")))
-                                        {
-                                            vmCount++;
-                                            InformationManager.DisplayMessage(new InformationMessage($"[LM] Found VM: {type.FullName}"));
-
-                                            // Check for boolean properties
-                                            var boolProps = new List<string>();
-                                            foreach (var prop in type.GetProperties())
-                                            {
-                                                if (prop.PropertyType == typeof(bool))
-                                                {
-                                                    boolProps.Add(prop.Name);
-                                                }
-                                            }
-                                            if (boolProps.Count > 0)
-                                            {
-                                                InformationManager.DisplayMessage(new InformationMessage($"[LM] {type.Name} bool props: {string.Join(", ", boolProps)}"));
-                                            }
-                                        }
-                                    }
-                                }
-                                catch (ReflectionTypeLoadException ex)
-                                {
-                                    InformationManager.DisplayMessage(new InformationMessage($"[LM] ReflectionTypeLoadException in {name}"));
-                                }
-                                catch (Exception ex)
-                                {
-                                    InformationManager.DisplayMessage(new InformationMessage($"[LM] Error scanning {name}: {ex.Message}"));
-                                }
-                            }
-                        }
-
-                        InformationManager.DisplayMessage(new InformationMessage($"[LM] ViewModel discovery complete. Found {vmCount} potential VMs"));
-                    }
-                    catch (Exception ex)
-                    {
-                        InformationManager.DisplayMessage(new InformationMessage($"[LM] ViewModel discovery error: {ex.Message}"));
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Enhanced Harmony patch to hide Talk/Visit buttons on notable portraits when player lacks settlement access.
-        /// Now with comprehensive logging to track what's happening.
-        /// </summary>
-        [HarmonyPatch]
-        public static class PortraitActionBlocker
-        {
-            private static bool _hasLoggedTargetMethod = false;
-            private static int _patchCallCount = 0;
-            private static MethodBase _targetMethod = null;
-
-            /// <summary>
-            /// Prepare method that determines if this patch should be applied.
-            /// Returns false if no suitable target method is found.
-            /// </summary>
-            static bool Prepare()
-            {
-                _targetMethod = FindTargetMethod();
-                bool shouldPatch = _targetMethod != null;
-
-                InformationManager.DisplayMessage(new InformationMessage($"[LM] PortraitActionBlocker.Prepare(): {(shouldPatch ? "SUCCESS - Will apply patch" : "SKIPPED - No suitable target found")}"));
-
-                return shouldPatch;
-            }
-
-            /// <summary>
-            /// Returns the target method found during Prepare phase.
-            /// </summary>
-            static MethodBase TargetMethod()
-            {
-                return _targetMethod;
-            }
-
-            /// <summary>
-            /// Dynamically searches for the RefreshActions method of the notable portrait ViewModel.
-            /// VM class name varies by game version but method name is consistent.
-            /// </summary>
-            static MethodBase FindTargetMethod()
-            {
-                if (!_hasLoggedTargetMethod)
-                {
-                    InformationManager.DisplayMessage(new InformationMessage("[LM] PortraitActionBlocker: Starting TargetMethod search..."));
-                    _hasLoggedTargetMethod = true;
-                }
-
-                // Try different VM class names based on game version
-                var vmTypes = new string[]
-                {
-                    "SandBox.ViewModelCollection.Map.MapSettlementNotableCharacterVM", // 1.2.x+
-                    "SandBox.ViewModelCollection.Map.MapSettlementNotableVM",          // e1.8.x - e1.1.5  
-                    "SandBox.ViewModelCollection.Map.MapCharacterPopupVM"              // <= e1.7.x
-                };
-
-                foreach (var typeName in vmTypes)
-                {
-                    try
-                    {
-                        // Try both Type.GetType and AccessTools.TypeByName
-                        var vmType = Type.GetType(typeName) ?? AccessTools.TypeByName(typeName);
-                        if (vmType != null)
-                        {
-                            InformationManager.DisplayMessage(new InformationMessage($"[LM] Found ViewModel type: {vmType.FullName}"));
-
-                            // Try different method names
-                            var methodNames = new[] { "RefreshInventoryCharacter", "RefreshCharacter", "RefreshActions", "Refresh" };
-                            foreach (var methodName in methodNames)
-                            {
-                                var method = AccessTools.Method(vmType, methodName);
-                                if (method != null)
-                                {
-                                    InformationManager.DisplayMessage(new InformationMessage($"[LM] SUCCESS: Found target method {vmType.Name}.{methodName}"));
-                                    return method;
-                                }
-                            }
-                            InformationManager.DisplayMessage(new InformationMessage($"[LM] Type found but no suitable methods in {vmType.Name}"));
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        InformationManager.DisplayMessage(new InformationMessage($"[LM] Error checking type {typeName}: {ex.Message}"));
-                    }
-                }
-
-                // Fallback: try to find any type with RefreshActions method
-                InformationManager.DisplayMessage(new InformationMessage("[LM] Trying fallback assembly search..."));
-                try
-                {
-                    var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-                    foreach (var assembly in assemblies)
-                    {
-                        if (assembly.FullName.Contains("SandBox"))
-                        {
-                            InformationManager.DisplayMessage(new InformationMessage($"[LM] Searching assembly: {assembly.GetName().Name}"));
-                            try
-                            {
-                                foreach (var type in assembly.GetTypes())
-                                {
-                                    if (type.Name.Contains("Notable") && type.Name.Contains("VM"))
-                                    {
-                                        InformationManager.DisplayMessage(new InformationMessage($"[LM] Found Notable VM: {type.FullName}"));
-                                        var method = AccessTools.Method(type, "RefreshInventoryCharacter") ??
-                                                   AccessTools.Method(type, "RefreshCharacter") ??
-                                                   AccessTools.Method(type, "RefreshActions") ??
-                                                   AccessTools.Method(type, "Refresh");
-                                        if (method != null)
-                                        {
-                                            InformationManager.DisplayMessage(new InformationMessage($"[LM] FALLBACK SUCCESS: Found {type.Name}.{method.Name}"));
-                                            return method;
-                                        }
-                                    }
-                                }
-                            }
-                            catch (ReflectionTypeLoadException ex)
-                            {
-                                InformationManager.DisplayMessage(new InformationMessage($"[LM] ReflectionTypeLoadException in {assembly.GetName().Name}: {ex.Message}"));
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    InformationManager.DisplayMessage(new InformationMessage($"[LM] Fallback search error: {ex.Message}"));
-                }
-
-                InformationManager.DisplayMessage(new InformationMessage("[LM] FAILED: No suitable ViewModel method found for patching"));
-                return null; // Patch will be skipped if no matching method found
-            }
-
-            /// <summary>
-            /// Runs after vanilla sets the action button flags, overwrites them if access is locked.
-            /// </summary>
-            [HarmonyPostfix]
-            static void Postfix(object __instance)
-            {
-                _patchCallCount++;
-
-                if (_patchCallCount <= 5) // Log first few calls to avoid spam
-                {
-                    InformationManager.DisplayMessage(new InformationMessage($"[LM] PortraitActionBlocker Postfix called #{_patchCallCount}"));
-                }
-
-                try
-                {
-                    // Get the actual type to avoid dynamic issues
-                    var vmType = __instance.GetType();
-
-                    // Try to get Hero different ways using reflection
-                    Hero hero = null;
-                    try
-                    {
-                        var heroProp = vmType.GetProperty("Hero");
-                        if (heroProp != null)
-                            hero = heroProp.GetValue(__instance) as Hero;
-                    }
-                    catch { }
-
-                    if (hero == null)
-                    {
-                        try
-                        {
-                            var charProp = vmType.GetProperty("Character");
-                            if (charProp != null)
-                            {
-                                var character = charProp.GetValue(__instance);
-                                if (character != null)
-                                {
-                                    var heroObjProp = character.GetType().GetProperty("HeroObject");
-                                    if (heroObjProp != null)
-                                        hero = heroObjProp.GetValue(character) as Hero;
-                                }
-                            }
-                        }
-                        catch { }
-                    }
-
-                    if (hero == null)
-                    {
-                        if (_patchCallCount <= 3)
-                            InformationManager.DisplayMessage(new InformationMessage("[LM] No hero found in ViewModel"));
-                        return;
-                    }
-
-                    if (!hero.IsNotable)
-                    {
-                        if (_patchCallCount <= 3)
-                            InformationManager.DisplayMessage(new InformationMessage($"[LM] {hero.Name} is not a notable"));
-                        return; // Only care about notables
-                    }
-
-                    Settlement settlement = Settlement.CurrentSettlement;
-                    if (settlement == null)
-                    {
-                        if (_patchCallCount <= 3)
-                            InformationManager.DisplayMessage(new InformationMessage("[LM] No current settlement"));
-                        return;
-                    }
-
-                    if (!settlement.Notables.Contains(hero))
-                    {
-                        if (_patchCallCount <= 3)
-                            InformationManager.DisplayMessage(new InformationMessage($"[LM] {hero.Name} not in {settlement.Name} notables"));
-                        return;
-                    }
-
-                    var beh = Campaign.Current?.GetCampaignBehavior<DisableMenuBehavior>();
-                    if (beh == null)
-                    {
-                        InformationManager.DisplayMessage(new InformationMessage("[LM] DisableMenuBehavior not found!"));
-                        return;
-                    }
-
-                    bool hasAccess = beh.HasAccessToSettlement(settlement);
-                    InformationManager.DisplayMessage(new InformationMessage($"[LM] Access check for {settlement.Name}: {hasAccess}"));
-
-                    if (!hasAccess)
-                    {
-                        // Try different property names for different game versions
-                        var propertyNames = new[] {
-                            "CanTalk", "IsConversationEnabled", "IsTalkEnabled",
-                            "CanVisit", "IsVisitEnabled", "IsVisitActionEnabled"
-                        };
-
-                        bool anyPropertySet = false;
-                        foreach (var propName in propertyNames)
-                        {
-                            try
-                            {
-                                var prop = vmType.GetProperty(propName);
-                                if (prop != null && prop.PropertyType == typeof(bool))
-                                {
-                                    prop.SetValue(__instance, false);
-                                    anyPropertySet = true;
-                                    InformationManager.DisplayMessage(new InformationMessage($"[LM] Set {propName} = false"));
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                InformationManager.DisplayMessage(new InformationMessage($"[LM] Failed to set {propName}: {ex.Message}"));
-                            }
-                        }
-
-                        if (!anyPropertySet)
-                        {
-                            // Log available properties for debugging (avoid LINQ with dynamic)
-                            var allProps = vmType.GetProperties();
-                            var boolPropNames = new List<string>();
-                            foreach (var prop in allProps)
-                            {
-                                if (prop.PropertyType == typeof(bool))
-                                {
-                                    boolPropNames.Add(prop.Name);
-                                }
-                            }
-                            InformationManager.DisplayMessage(new InformationMessage($"[LM] Available bool properties: {string.Join(", ", boolPropNames)}"));
-                        }
-                        else
-                        {
-                            InformationManager.DisplayMessage(new InformationMessage($"[LM] SUCCESS: Blocked portrait buttons for {hero.Name} in {settlement.Name}"));
-                        }
-                    }
-                    else
-                    {
-                        if (_patchCallCount <= 3)
-                            InformationManager.DisplayMessage(new InformationMessage($"[LM] Player has access to {settlement.Name}, allowing buttons"));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    InformationManager.DisplayMessage(new InformationMessage($"[LM] PortraitActionBlocker error: {ex.Message}"));
-                }
-            }
-        }
-
-        /// <summary>
         /// Initializes the behavior when the game starts.
         /// </summary>
         /// <param name="campaignGameStarter">The campaign game starter.</param>
@@ -393,6 +46,7 @@ namespace LessMenusMoreImmersion.Behaviors
             InformationManager.DisplayMessage(new InformationMessage(new TextObject("{=Eji4qI4xg}Less menus more immersion loaded successfully.").ToString()));
             AddVillageTraderDialogs(campaignGameStarter);
             AddGuideDialogs(campaignGameStarter);
+            AddRecruitmentDialogs(campaignGameStarter); // Add recruitment dialogs
             CampaignEvents.LocationCharactersAreReadyToSpawnEvent.AddNonSerializedListener(this, LocationCharactersAreReadyToSpawn);
             _localGuide = MBObjectManager.Instance.GetObject<CharacterObject>("local_guide");
             InformationManager.DisplayMessage(new InformationMessage("[LM] DisableMenuBehavior fully initialized"));
@@ -700,6 +354,93 @@ namespace LessMenusMoreImmersion.Behaviors
             );
         }
 
+        /// <summary>
+        /// Adds proper recruitment dialogs that exit cleanly when refused
+        /// </summary>
+        /// <param name="campaignGameStarter">The campaign game starter used to add dialogs.</param>
+        protected void AddRecruitmentDialogs(CampaignGameStarter campaignGameStarter)
+        {
+            // Block the recruitment organizer dialog that gets stuck in loops
+            bool isRecruitmentOrganizerWithoutAccess() =>
+                Settlement.CurrentSettlement != null &&
+                !HasAccessToSettlement(Settlement.CurrentSettlement);
+
+            // Intercept the "organize willing recruits" dialog
+            campaignGameStarter.AddDialogLine(
+                "recruitment_organizer_blocked",
+                "party_recruit_confirm",
+                "recruitment_organizer_refuse",
+                "{=recruitment_organizer_blocked}I don't know you well enough to organize that kind of arrangement, stranger.",
+                isRecruitmentOrganizerWithoutAccess,
+                null,
+                200 // Very high priority to intercept
+            );
+
+            // Force exit option for organizer
+            campaignGameStarter.AddPlayerLine(
+                "recruitment_organizer_exit",
+                "recruitment_organizer_refuse",
+                "close_window",
+                "{=recruitment_organizer_exit}I understand.",
+                null,
+                () => {
+                    InformationManager.DisplayMessage(new InformationMessage("[LM] Recruitment organizer dialog closed"));
+                }
+            );
+
+            // Also block the general recruitment conversation
+            bool isRecruitmentWithoutAccess() =>
+                CharacterObject.OneToOneConversationCharacter != null &&
+                CharacterObject.OneToOneConversationCharacter.Occupation == Occupation.Soldier &&
+                Settlement.CurrentSettlement != null &&
+                !HasAccessToSettlement(Settlement.CurrentSettlement);
+
+            // Intercept normal recruitment at start
+            campaignGameStarter.AddDialogLine(
+                "recruitment_blocked_start",
+                "start",
+                "recruitment_blocked_options",
+                "{=recruitment_blocked}I don't know you, stranger. You'll need to get someone to vouch for you before I'll consider joining your cause.",
+                isRecruitmentWithoutAccess,
+                null,
+                100 // High priority
+            );
+
+            // Exit option that actually works
+            campaignGameStarter.AddPlayerLine(
+                "recruitment_exit_clean",
+                "recruitment_blocked_options",
+                "close_window",
+                "{=recruitment_exit_clean}Perhaps another time.",
+                null,
+                () => {
+                    InformationManager.DisplayMessage(new InformationMessage("[LM] Recruitment dialog properly closed"));
+                }
+            );
+
+            // Explanation option
+            campaignGameStarter.AddPlayerLine(
+                "recruitment_ask_how",
+                "recruitment_blocked_options",
+                "recruitment_explain_how",
+                "{=recruitment_ask_how}How can I gain your trust?",
+                null,
+                null
+            );
+
+            // Explain and then exit
+            campaignGameStarter.AddDialogLine(
+                "recruitment_explain_how_response",
+                "recruitment_explain_how",
+                "close_window",
+                "{=recruitment_explain_how_response}Find someone who knows the settlement to introduce you. Pay for a guide, maybe.",
+                null,
+                () => {
+                    InformationManager.DisplayMessage(new InformationMessage("[LM] Recruitment explanation completed"));
+                }
+            );
+        }
+
         // ==== UTILITY METHODS ====
 
         /// <summary>
@@ -840,6 +581,9 @@ namespace LessMenusMoreImmersion.Behaviors
                 settlementsWithAccess[settlementId] = true;
                 InformationManager.DisplayMessage(new InformationMessage($"[LM] Unlocked access to {settlement.Name}"));
                 InformationManager.DisplayMessage(new InformationMessage("{=P3q4R5s6T}You now know your way around {settlement.Name}."));
+
+                // Log that access has been granted for debugging
+                InformationManager.DisplayMessage(new InformationMessage($"[LM] Settlement access granted - menu options should now be available"));
             }
             else
             {
@@ -923,6 +667,8 @@ namespace LessMenusMoreImmersion.Behaviors
         })]
         public static class DisableSpecificMenuOptionsPatch
         {
+            private static int _patchCallCount = 0;
+
             /// <summary>
             /// Prefix method that modifies the condition delegate for certain menu options.
             /// </summary>
@@ -933,8 +679,20 @@ namespace LessMenusMoreImmersion.Behaviors
             [HarmonyPrefix]
             public static bool Prefix(ref GameMenuOption.OnConditionDelegate condition, string optionId, GameMenu __instance)
             {
-                if (SettlementMenuOptions.AllOptions.Contains(optionId))
+                // Only modify specific menu options that we know should be controlled
+                var restrictedOptions = new[] {
+                    "town_arena", "town_trade", "castle_trade", "village_trade",
+                    "town_backstreet", "town_keep", "castle_dungeon", "wait"
+                };
+
+                if (restrictedOptions.Contains(optionId))
                 {
+                    _patchCallCount++;
+                    if (_patchCallCount <= 5) // Reduced logging
+                    {
+                        InformationManager.DisplayMessage(new InformationMessage($"[LM] Menu patch applied to: {optionId}"));
+                    }
+
                     var campaign = Campaign.Current;
                     if (campaign == null)
                     {
@@ -957,18 +715,26 @@ namespace LessMenusMoreImmersion.Behaviors
                             bool hasAccess = behaviorInstance.HasAccessToSettlement(currentSettlement);
 
                             // Combine both conditions
-                            args.IsEnabled = isOriginalConditionMet && hasAccess;
+                            bool finalEnabled = isOriginalConditionMet && hasAccess;
+                            args.IsEnabled = finalEnabled;
+
+                            // Minimal logging for critical issues only
+                            if (!hasAccess && _patchCallCount <= 3)
+                            {
+                                InformationManager.DisplayMessage(new InformationMessage($"[LM] {optionId} disabled: no settlement access"));
+                            }
+                            else if (hasAccess && _patchCallCount <= 3)
+                            {
+                                InformationManager.DisplayMessage(new InformationMessage($"[LM] {optionId} enabled: has access"));
+                            }
+
                             return args.IsEnabled;
                         };
                     }
                     else
                     {
-                        // If behaviorInstance or currentSettlement is null, disable the option safely
-                        condition = (MenuCallbackArgs args) =>
-                        {
-                            args.IsEnabled = false;
-                            return false;
-                        };
+                        // If behaviorInstance or currentSettlement is null, use original condition
+                        InformationManager.DisplayMessage(new InformationMessage($"[LM] {optionId}: using original condition (behavior/settlement null)"));
                     }
                 }
                 return true; // Allow the original method to proceed
