@@ -43,12 +43,12 @@ namespace LessMenusMoreImmersion.Models
                 }
             }
 
-            // Handle 'Recruit Troops' action: always allow
+            // Handle 'Recruit Troops' action: allow but encourage using elder for better experience
             if (settlementAction == SettlementAction.RecruitTroops)
             {
                 shouldBeDisabled = false;
                 disabledText = null;
-                return true;
+                return true; // Always allow vanilla recruitment as fallback
             }
 
             // Handle 'Trade' action in villages: disable unless access is granted

@@ -39,8 +39,8 @@ namespace LessMenusMoreImmersion.Constants
 
             // Village Menu Options
             //public static readonly string VillageCenter = "village_center";
-            //public static readonly string VillageWait = "village_wait";
             //public static readonly string LeaveVillage = "leave";
+            //public static readonly string VillageWait = "village_wait";
         }
 
         public static List<string> AllOptions
