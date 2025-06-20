@@ -3,8 +3,8 @@ using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.GameComponents;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Localization;
-using TaleWorlds.MountAndBlade;
 using TaleWorlds.Library;
+using TaleWorlds.MountAndBlade;
 
 namespace LessMenusMoreImmersion.Models
 {
@@ -24,83 +24,70 @@ namespace LessMenusMoreImmersion.Models
         public override bool CanMainHeroDoSettlementAction(Settlement settlement, SettlementAction settlementAction, out bool shouldBeDisabled, out TextObject? disabledText)
         {
             var behaviorInstance = Campaign.Current?.GetCampaignBehavior<DisableMenuBehavior>();
+            var recruitmentBehaviorInstance = Campaign.Current?.GetCampaignBehavior<CustomRecruitmentMenuBehavior>();
 
             // Initialize default values
             shouldBeDisabled = false;
             disabledText = null;
 
-            // Add logging to see what's happening
-            InformationManager.DisplayMessage(new InformationMessage($"[LM] SettlementAccessModel: {settlementAction} for {settlement?.Name}"));
-
-            // Handle 'Manage Town' action
+            // Handle 'Manage Town' action - hide if not owner
             if (settlementAction == SettlementAction.ManageTown)
             {
                 if (settlement.OwnerClan.Leader != Hero.MainHero)
                 {
-                    // Do not show 'Manage Town' option at all
-                    InformationManager.DisplayMessage(new InformationMessage($"[LM] ManageTown blocked - not owner"));
-                    return false;
+                    return false; // Hide completely
                 }
                 else
                 {
-                    // Player is the owner, proceed with base implementation
                     return base.CanMainHeroDoSettlementAction(settlement, settlementAction, out shouldBeDisabled, out disabledText);
                 }
             }
 
-            // Handle 'Recruit Troops' action: allow but encourage using elder for better experience
+            // Handle 'Recruit Troops' action - check recruitment arrangements
             if (settlementAction == SettlementAction.RecruitTroops)
             {
-                shouldBeDisabled = false;
-                disabledText = null;
-                InformationManager.DisplayMessage(new InformationMessage($"[LM] RecruitTroops allowed (vanilla fallback)"));
-                return true; // Always allow vanilla recruitment as fallback
-            }
-
-            // For all other actions, check access properly
-            if (behaviorInstance != null)
-            {
-                bool hasAccess = behaviorInstance.HasAccessToSettlement(settlement);
-                InformationManager.DisplayMessage(new InformationMessage($"[LM] Access check for {settlementAction}: {hasAccess}"));
-
-                if (!hasAccess)
+                if (recruitmentBehaviorInstance != null)
                 {
-                    // Handle 'Trade' action in villages: disable unless access is granted
-                    if (settlementAction == SettlementAction.Trade && settlement.IsVillage)
+                    bool hasArrangement = recruitmentBehaviorInstance.HasRecruitmentOrganizer(settlement);
+                    if (!hasArrangement)
                     {
                         shouldBeDisabled = true;
-                        disabledText = new TextObject("{=U7v8W9x0Y}You don't know the settlement by heart.");
-                        InformationManager.DisplayMessage(new InformationMessage($"[LM] Village trade blocked - no access"));
-                        return false;
+                        disabledText = new TextObject("{=recruit_no_arrangement}You need to arrange with the local notables to organize recruitment first.");
+                        return false; // ✅ FIXED: Show but disabled (was returning false)
                     }
-
-                    // Handle 'WaitInSettlement' action: always allow
-                    if (settlementAction == SettlementAction.WaitInSettlement)
+                    else
                     {
-                        shouldBeDisabled = false;
-                        disabledText = null;
-                        InformationManager.DisplayMessage(new InformationMessage($"[LM] Wait always allowed"));
-                        return true;
+                        // Has arrangement - allow recruitment
+                        return base.CanMainHeroDoSettlementAction(settlement, settlementAction, out shouldBeDisabled, out disabledText);
                     }
+                }
+                // If recruitment behavior not found, allow base implementation
+                return base.CanMainHeroDoSettlementAction(settlement, settlementAction, out shouldBeDisabled, out disabledText);
+            }
 
-                    // For other actions without access, show disabled but don't completely block
+            // Handle 'Trade' action: disable unless access is granted
+            if (settlementAction == SettlementAction.Trade)
+            {
+                if (behaviorInstance != null && !behaviorInstance.HasAccessToSettlement(settlement))
+                {
                     shouldBeDisabled = true;
                     disabledText = new TextObject("{=U7v8W9x0Y}You don't know the settlement by heart.");
-                    InformationManager.DisplayMessage(new InformationMessage($"[LM] {settlementAction} disabled - no access"));
-                    return true; // Return true but disabled so option shows up grayed out
+                    return false; // Show but disabled
                 }
-                else
-                {
-                    // Player has access - allow everything normally
-                    InformationManager.DisplayMessage(new InformationMessage($"[LM] {settlementAction} allowed - has access"));
-                }
-            }
-            else
-            {
-                InformationManager.DisplayMessage(new InformationMessage($"[LM] DisableMenuBehavior not found - allowing {settlementAction}"));
             }
 
-            // For all other actions, use base implementation
+            // Handle 'Craft' action: disable unless access is granted
+            if (settlementAction == SettlementAction.Craft)
+            {
+                if (behaviorInstance != null && !behaviorInstance.HasAccessToSettlement(settlement))
+                {
+                    shouldBeDisabled = true;
+                    disabledText = new TextObject("{=U7v8W9x0Y}You don't know the settlement by heart.");
+                    return false; // Show but disabled
+                }
+            }
+
+            // For all other actions, use the base implementation
             return base.CanMainHeroDoSettlementAction(settlement, settlementAction, out shouldBeDisabled, out disabledText);
         }
 

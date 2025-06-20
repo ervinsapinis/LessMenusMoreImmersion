@@ -20,7 +20,6 @@ namespace LessMenusMoreImmersion.Behaviors
         public override void RegisterEvents()
         {
             CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, OnSessionLaunched);
-            CampaignEvents.AfterGameMenuOpenedEvent.AddNonSerializedListener(this, OnGameMenuOpened);
         }
 
         public override void SyncData(IDataStore dataStore)
@@ -31,57 +30,10 @@ namespace LessMenusMoreImmersion.Behaviors
 
         private void OnSessionLaunched(CampaignGameStarter campaignGameStarter)
         {
-            // Add custom recruitment to all settlement types
-            AddCustomRecruitment(campaignGameStarter, "village");
-            AddCustomRecruitment(campaignGameStarter, "town");
-            AddCustomRecruitment(campaignGameStarter, "castle");
-
             // Add notable recruitment dialogs (moved from DisableMenuBehavior)
             AddNotableRecruitmentDialogs(campaignGameStarter);
         }
 
-        private void AddCustomRecruitment(CampaignGameStarter campaignGameStarter, string menuId)
-        {
-            campaignGameStarter.AddGameMenuOption(
-                menuId,
-                "recruit_volunteers_custom",
-                "{=!}Recruit volunteers",
-                RecruitVolunteersCondition,
-                RecruitVolunteersConsequence,
-                false,
-                -1,
-                false,
-                null
-            );
-        }
-
-        private bool RecruitVolunteersCondition(MenuCallbackArgs args)
-        {
-            if (!HasRecruitmentOrganizer(Settlement.CurrentSettlement))
-            {
-                args.IsEnabled = false;
-                args.Tooltip = new TextObject("{=no_recruitment_organizer}You need to arrange with the local notables to organize recruitment first.");
-                return true;
-            }
-
-            args.IsEnabled = true;
-            return true;
-        }
-
-        private void RecruitVolunteersConsequence(MenuCallbackArgs args)
-        {
-            // Call vanilla recruitment
-            args.MenuContext.OpenRecruitVolunteers();
-        }
-
-        private void OnGameMenuOpened(MenuCallbackArgs args)
-        {
-            var menuId = args.MenuContext.GameMenu.StringId;
-            if (menuId == "village" || menuId == "town" || menuId == "castle")
-            {
-                CustomVillageMenuBehavior.RemoveMenuOption(args.MenuContext, "recruit_volunteers");
-            }
-        }
 
         /// <summary>
         /// Adds recruitment arrangement dialogs for any notable (moved from DisableMenuBehavior)

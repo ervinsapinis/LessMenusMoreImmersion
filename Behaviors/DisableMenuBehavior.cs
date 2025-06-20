@@ -16,6 +16,9 @@ using TaleWorlds.Library;
 using TaleWorlds.Localization;
 using static TaleWorlds.CampaignSystem.Inventory.InventoryManager;
 using TaleWorlds.ObjectSystem;
+using Helpers;
+using TaleWorlds.CampaignSystem.CampaignBehaviors;
+using TaleWorlds.CampaignSystem.ComponentInterfaces;
 
 namespace LessMenusMoreImmersion.Behaviors
 {
@@ -36,7 +39,6 @@ namespace LessMenusMoreImmersion.Behaviors
         {
             CampaignEvents.OnNewGameCreatedEvent.AddNonSerializedListener(this, OnGameStarted);
             CampaignEvents.OnGameLoadedEvent.AddNonSerializedListener(this, OnGameStarted);
-            InformationManager.DisplayMessage(new InformationMessage("[LM] DisableMenuBehavior events registered"));
         }
 
         /// <summary>
@@ -50,7 +52,6 @@ namespace LessMenusMoreImmersion.Behaviors
             AddGuideDialogs(campaignGameStarter);
             CampaignEvents.LocationCharactersAreReadyToSpawnEvent.AddNonSerializedListener(this, LocationCharactersAreReadyToSpawn);
             _localGuide = MBObjectManager.Instance.GetObject<CharacterObject>("local_guide");
-            InformationManager.DisplayMessage(new InformationMessage("[LM] DisableMenuBehavior fully initialized"));
         }
 
         /// <summary>
@@ -167,11 +168,6 @@ namespace LessMenusMoreImmersion.Behaviors
                 bool result = currentSettlement != null &&
                               isVillage &&
                               currentChar == expectedChar;
-
-                // Debug logging
-                InformationManager.DisplayMessage(new InformationMessage(
-                    $"[LM] Trader check: Settlement={currentSettlement?.Name}, IsVillage={isVillage}, " +
-                    $"CurrentChar={currentChar?.Name}, ExpectedChar={expectedChar?.Name}, Result={result}"));
 
                 return result;
             }
@@ -380,10 +376,6 @@ namespace LessMenusMoreImmersion.Behaviors
             var settlement = Settlement.CurrentSettlement;
             bool hasAccess = HasAccessToSettlement(settlement);
             bool showArrangement = !hasAccess;
-
-            InformationManager.DisplayMessage(new InformationMessage(
-                $"[LM] Arrangement condition: Settlement={settlement?.Name}, HasAccess={hasAccess}, ShowArrangement={showArrangement}"));
-
             return showArrangement;
         }
 
@@ -514,11 +506,7 @@ namespace LessMenusMoreImmersion.Behaviors
                 Hero.MainHero.ChangeHeroGold(-cost);
                 var settlementId = settlement.Id.ToString();
                 settlementsWithAccess[settlementId] = true;
-                InformationManager.DisplayMessage(new InformationMessage($"[LM] Unlocked access to {settlement.Name}"));
                 InformationManager.DisplayMessage(new InformationMessage("{=P3q4R5s6T}You now know your way around {settlement.Name}."));
-
-                // Log that access has been granted for debugging
-                InformationManager.DisplayMessage(new InformationMessage($"[LM] Settlement access granted - menu options should now be available"));
             }
             else
             {
@@ -585,114 +573,130 @@ namespace LessMenusMoreImmersion.Behaviors
                     harmonyInstance.PatchAll(Assembly.GetExecutingAssembly());
                 }
             }
-        }
-
-        /// <summary>
-        /// Harmony patch to disable specific menu options based on settlement access.
-        /// </summary>
-        [HarmonyPatch(typeof(GameMenu), "AddOption", new Type[] {
-            typeof(string),
-            typeof(TextObject),
-            typeof(GameMenuOption.OnConditionDelegate),
-            typeof(GameMenuOption.OnConsequenceDelegate),
-            typeof(int),
-            typeof(bool),
-            typeof(bool),
-            typeof(object)
-        })]
-        public static class DisableSpecificMenuOptionsPatch
-        {
-            private static int _patchCallCount = 0;
 
             /// <summary>
-            /// Prefix method that modifies the condition delegate for certain menu options.
+            /// Harmony patch to disable specific menu options based on settlement access.
             /// </summary>
-            /// <param name="condition">The original condition delegate.</param>
-            /// <param name="optionId">The ID of the menu option being added.</param>
-            /// <param name="__instance">The GameMenu instance.</param>
-            /// <returns>True to allow the original method to proceed.</returns>
-            [HarmonyPrefix]
-            public static bool Prefix(ref GameMenuOption.OnConditionDelegate condition, string optionId, GameMenu __instance)
+            [HarmonyPatch(typeof(GameMenu), "AddOption", new Type[] {
+                typeof(string),
+                typeof(TextObject),
+                typeof(GameMenuOption.OnConditionDelegate),
+                typeof(GameMenuOption.OnConsequenceDelegate),
+                typeof(int),
+                typeof(bool),
+                typeof(bool),
+                typeof(object)
+            })]
+            public static class DisableSpecificMenuOptionsPatch
             {
-                // Only modify specific menu options that we know should be controlled
-                var restrictedOptions = new[] {
-                    "town_arena", "town_trade", "castle_trade", "village_trade",
-                    "town_backstreet", "town_keep", "castle_dungeon", "wait"
-                };
-
-                if (restrictedOptions.Contains(optionId))
+                /// <summary>
+                /// Prefix method that modifies the condition delegate for certain menu options.
+                /// </summary>
+                /// <param name="condition">The original condition delegate.</param>
+                /// <param name="optionId">The ID of the menu option being added.</param>
+                /// <param name="__instance">The GameMenu instance.</param>
+                /// <returns>True to allow the original method to proceed.</returns>
+                [HarmonyPrefix]
+                public static bool Prefix(ref GameMenuOption.OnConditionDelegate condition, string optionId, GameMenu __instance)
                 {
-                    _patchCallCount++;
-                    if (_patchCallCount <= 5) // Reduced logging
+                    // Use SettlementMenuOptions.AllOptions instead of hardcoded list
+                    if (SettlementMenuOptions.AllOptions.Contains(optionId))
                     {
-                        InformationManager.DisplayMessage(new InformationMessage($"[LM] Menu patch applied to: {optionId}"));
-                    }
-
-                    var campaign = Campaign.Current;
-                    if (campaign == null)
-                    {
-                        return true; // Allow the original method to proceed without modification
-                    }
-
-                    var behaviorInstance = campaign.GetCampaignBehavior<DisableMenuBehavior>();
-                    var currentSettlement = GetCurrentSettlement(__instance);
-
-                    if (behaviorInstance != null && currentSettlement != null)
-                    {
-                        var originalCondition = condition; // Preserve the original condition
-
-                        condition = (MenuCallbackArgs args) =>
+                        var campaign = Campaign.Current;
+                        if (campaign == null)
                         {
-                            // Call the original condition
-                            bool isOriginalConditionMet = originalCondition == null || originalCondition(args);
+                            return true; // Allow the original method to proceed without modification
+                        }
 
-                            // Check if the player has access
-                            bool hasAccess = behaviorInstance.HasAccessToSettlement(currentSettlement);
+                        var behaviorInstance = campaign.GetCampaignBehavior<DisableMenuBehavior>();
+                        var currentSettlement = GetCurrentSettlement(__instance);
 
-                            // Combine both conditions
-                            bool finalEnabled = isOriginalConditionMet && hasAccess;
-                            args.IsEnabled = finalEnabled;
+                        if (behaviorInstance != null && currentSettlement != null)
+                        {
+                            var originalCondition = condition; // Preserve the original condition
 
-                            // Minimal logging for critical issues only
-                            if (!hasAccess && _patchCallCount <= 3)
+                            condition = (MenuCallbackArgs args) =>
                             {
-                                InformationManager.DisplayMessage(new InformationMessage($"[LM] {optionId} disabled: no settlement access"));
-                            }
-                            else if (hasAccess && _patchCallCount <= 3)
-                            {
-                                InformationManager.DisplayMessage(new InformationMessage($"[LM] {optionId} enabled: has access"));
-                            }
+                                // Call the original condition
+                                bool isOriginalConditionMet = originalCondition == null || originalCondition(args);
 
-                            return args.IsEnabled;
-                        };
+                                // Check if the player has access
+                                bool hasAccess = behaviorInstance.HasAccessToSettlement(currentSettlement);
+
+                                // Combine both conditions
+                                bool finalEnabled = isOriginalConditionMet && hasAccess;
+                                args.IsEnabled = finalEnabled;
+
+                                if (!hasAccess)
+                                {
+                                    args.Tooltip = new TextObject("{=U7v8W9x0Y}You don't know the settlement by heart.");
+                                }
+
+                                return args.IsEnabled;
+                            };
+                        }
                     }
-                    else
-                    {
-                        // If behaviorInstance or currentSettlement is null, use original condition
-                        InformationManager.DisplayMessage(new InformationMessage($"[LM] {optionId}: using original condition (behavior/settlement null)"));
-                    }
+                    return true; // Allow the original method to proceed
                 }
-                return true; // Allow the original method to proceed
+
+                /// <summary>
+                /// Retrieves the current settlement associated with the GameMenu.
+                /// </summary>
+                /// <param name="gameMenu">The GameMenu instance.</param>
+                /// <returns>The current settlement, if any; otherwise, null.</returns>
+                private static Settlement? GetCurrentSettlement(GameMenu gameMenu)
+                {
+                    // Try to get the settlement associated with the current menu
+                    if (MobileParty.MainParty.CurrentSettlement != null)
+                    {
+                        return MobileParty.MainParty.CurrentSettlement;
+                    }
+                    else if (Settlement.CurrentSettlement != null)
+                    {
+                        return Settlement.CurrentSettlement;
+                    }
+                    // Fallback
+                    return null;
+                }
             }
 
             /// <summary>
-            /// Retrieves the current settlement associated with the GameMenu.
+            /// Harmony patch to make village recruitment also use the SettlementAccessModel
             /// </summary>
-            /// <param name="gameMenu">The GameMenu instance.</param>
-            /// <returns>The current settlement, if any; otherwise, null.</returns>
-            private static Settlement? GetCurrentSettlement(GameMenu gameMenu)
+            [HarmonyPatch(typeof(PlayerTownVisitCampaignBehavior))]
+            [HarmonyPatch("game_menu_recruit_volunteers_on_condition")]
+            public static class VillageRecruitmentPatch
             {
-                // Try to get the settlement associated with the current menu
-                if (MobileParty.MainParty.CurrentSettlement != null)
+                [HarmonyPrefix]
+                public static bool Prefix(MenuCallbackArgs args, ref bool __result)
                 {
-                    return MobileParty.MainParty.CurrentSettlement;
+                    args.optionLeaveType = GameMenuOption.LeaveType.Recruit;
+
+                    if (Settlement.CurrentSettlement.IsVillage)
+                    {
+                        // For villages, check both village state AND settlement access model
+                        if (Settlement.CurrentSettlement.Village.VillageState != Village.VillageStates.Normal)
+                        {
+                            __result = false;
+                            return false; // Skip original method
+                        }
+
+                        // Now check the SettlementAccessModel (this is what was missing!)
+                        bool disableOption;
+                        TextObject disabledText;
+                        bool canPlayerDo = Campaign.Current.Models.SettlementAccessModel.CanMainHeroDoSettlementAction(
+                            Settlement.CurrentSettlement,
+                            SettlementAccessModel.SettlementAction.RecruitTroops,
+                            out disableOption,
+                            out disabledText);
+
+                        __result = MenuHelper.SetOptionProperties(args, canPlayerDo, disableOption, disabledText);
+                        return false; // Skip original method
+                    }
+
+                    // For towns/castles, let the original method handle it
+                    return true; // Run original method
                 }
-                else if (Settlement.CurrentSettlement != null)
-                {
-                    return Settlement.CurrentSettlement;
-                }
-                // Fallback
-                return null;
             }
         }
     }
