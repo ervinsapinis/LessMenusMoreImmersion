@@ -42,12 +42,12 @@ namespace LessMenusMoreImmersion.Behaviors
                 if (shouldBlock)
                 {
                     InformationManager.DisplayMessage(
-                        new InformationMessage($"[LM] ALT overlay disabled in {settlement.Name} - get introduced first"));
+                        new InformationMessage($"ALT overlay disabled in {settlement.Name} - get introduced first"));
                 }
                 else if (_lastBlockStatus && !shouldBlock) // Was blocked, now enabled
                 {
                     InformationManager.DisplayMessage(
-                        new InformationMessage($"[LM] ALT overlay enabled in {settlement.Name}"));
+                        new InformationMessage($"ALT overlay enabled in {settlement.Name}"));
                 }
 
                 _lastBlockStatus = shouldBlock;
@@ -73,19 +73,6 @@ namespace LessMenusMoreImmersion.Behaviors
 
             bool hasAccess = accessBehavior.HasAccessToSettlement(settlement);
             return !hasAccess; // Block if no access
-        }
-
-        /// <summary>
-        /// Force status refresh when settlement access changes
-        /// </summary>
-        public static void RefreshStatus()
-        {
-            var settlement = Settlement.CurrentSettlement;
-            if (settlement != null)
-            {
-                InformationManager.DisplayMessage(
-                    new InformationMessage($"[LM] ALT overlay enabled in {settlement.Name}"));
-            }
         }
     }
 
@@ -126,7 +113,6 @@ namespace LessMenusMoreImmersion.Behaviors
 
 /// <summary>
 /// Harmony patch to disable nameplate updates when no settlement access.
-/// Only patches the one we know works from the crash stack trace.
 /// </summary>
 [HarmonyPatch]
 internal static class NameMarkerViewPatch

@@ -10,7 +10,6 @@ namespace LessMenusMoreImmersion.Constants
         public static class MenuOptions
         {
             // Town Menu Options
-            //public static readonly string TownStreets = "town_streets";
             public static readonly string TownKeep = "town_keep";
             public static readonly string TownArena = "town_arena";
             public static readonly string TownBackstreet = "town_backstreet";
@@ -18,8 +17,6 @@ namespace LessMenusMoreImmersion.Constants
             public static readonly string RecruitVolunteers = "recruit_volunteers";
             public static readonly string Trade = "trade";
             public static readonly string TownSmithy = "town_smithy";
-            //public static readonly string TownWait = "town_wait";
-            //public static readonly string TownLeave = "town_leave";
 
             // Town Keep Menu Options
             public static readonly string TownLordsHall = "town_lords_hall";
@@ -34,13 +31,6 @@ namespace LessMenusMoreImmersion.Constants
             public static readonly string CastleLordsHall = "castle_lords_hall";
             public static readonly string CastlePrison = "castle_prison";
             public static readonly string ManageProductionCastle = "manage_production";
-            //public static readonly string CastleWait = "town_wait";
-            //public static readonly string CastleLeave = "leave";
-
-            // Village Menu Options
-            //public static readonly string VillageCenter = "village_center";
-            //public static readonly string LeaveVillage = "leave";
-            //public static readonly string VillageWait = "village_wait";
         }
 
         public static List<string> AllOptions

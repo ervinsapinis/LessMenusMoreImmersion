@@ -3,7 +3,6 @@ using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.GameComponents;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Localization;
-using TaleWorlds.Library;
 using TaleWorlds.MountAndBlade;
 
 namespace LessMenusMoreImmersion.Models
@@ -53,7 +52,7 @@ namespace LessMenusMoreImmersion.Models
                     {
                         shouldBeDisabled = true;
                         disabledText = new TextObject("{=recruit_no_arrangement}You need to arrange with the local notables to organize recruitment first.");
-                        return false; // ✅ FIXED: Show but disabled (was returning false)
+                        return false;
                     }
                     else
                     {
@@ -72,7 +71,7 @@ namespace LessMenusMoreImmersion.Models
                 {
                     shouldBeDisabled = true;
                     disabledText = new TextObject("{=U7v8W9x0Y}You don't know the settlement by heart.");
-                    return false; // Show but disabled
+                    return false;
                 }
             }
 
@@ -83,7 +82,7 @@ namespace LessMenusMoreImmersion.Models
                 {
                     shouldBeDisabled = true;
                     disabledText = new TextObject("{=U7v8W9x0Y}You don't know the settlement by heart.");
-                    return false; // Show but disabled
+                    return false;
                 }
             }
 

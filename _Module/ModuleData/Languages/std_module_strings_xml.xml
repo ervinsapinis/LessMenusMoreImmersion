@@ -5,12 +5,11 @@
 	</tags>
 	<strings>
 		<string id="Eji4qI4xg" text="Less menus more immersion loaded successfully." />
-		<string id="JTX6YNsZT" text="Hail {?PLAYER.GENDER}m'lady{?}m'lord{\\?}, I bid thee welcome to our humble hamlet. I organize the trade here. Be thee interested in haggling?" />
 		<string id="MmNpGwNT9" text="Indeed, let's have a look." />
 		<string id="1qSPbCkBo" text="I want you to be ready to trade with me on a moment's notice when you see my banner approaching." />
 		<string id="OeZhSF3K0" text="Not at this time. Take care." />
 		<string id="iZHsKXxU6" text="Very well, let's trade." />
-		<string id="kOPidaq6F" text="Ah, methinks for a humble price of {ARRANGEMENT_COST}{GOLD_ICON}, to pay the boys for running and gathering goods for thee, we shall be keen for such an arrangement. Does {?PLAYER.GENDER}m'lord{?}m'lady{\\?} concur?" />
+		<string id="kOPidaq6F" text="Ah, methinks for a humble price of {ARRANGEMENT_COST}{GOLD_ICON}, to pay the boys for running and gathering goods for thee, we shall be keen for such an arrangement. Furthermore, I shall telle thee of about our hamlet and the esteemed folk therein. Does {?PLAYER.GENDER}m'lady{?}m'lord{\\?} concur?" />
 		<string id="vt6FfbaMf" text="Yes, that sounds acceptable. [Pay {ARRANGEMENT_COST}{GOLD_ICON}]" />
 		<string id="p12b9Nsi9" text="Splendid! We shall be at your service whenever you need us." />
 		<string id="ojZrYpAXh" text="No, perhaps another time." />
@@ -27,5 +26,16 @@
 		<string id="Y1z2A3b4C" text="Splendid. Let me show thee the ins and outs of our {SETTLEMENT_NAME}." />
 		<string id="D5e6F7g8H" text="By heaven's Grace, what are you on about. Not interested." />
 		<string id="ZOEjOZMO2" text="Local guide" />
+
+		<!-- Village Trader Dialog -->
+		<string id="village_trader_greeting" text="Hail {?PLAYER.GENDER}m'lady{?}m'lord{\\?}, I bid thee welcome to our humble hamlet. I am the village trader here. How may I serve thee?" />
+
+		<!-- Recruitment Arrangement Dialog -->
+		<string id="recruit_no_arrangement" text="You need to arrange with the local notables to organize recruitment first." />
+		<string id="notable_recruitment_ask" text="Can you help organize willing recruits for my company?" />
+		<string id="notable_recruitment_response" text="Organizing recruits requires cooperation between all the notables here. We'd need to coordinate with everyone - some are... more expensive to convince than others. For {RECRUITMENT_COST}{GOLD_ICON}, I can arrange it so willing volunteers will be ready whenever you visit. Interested?" />
+		<string id="notable_recruitment_accept" text="Yes, arrange it. [Pay {RECRUITMENT_COST}{GOLD_ICON}]" />
+		<string id="notable_recruitment_accepted" text="Excellent! I'll speak with the other notables. From now on, you'll find willing volunteers ready when you need them." />
+		<string id="notable_recruitment_decline" text="Perhaps another time." />
 	</strings>
 </base>

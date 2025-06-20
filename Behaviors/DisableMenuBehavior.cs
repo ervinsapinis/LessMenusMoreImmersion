@@ -506,7 +506,7 @@ namespace LessMenusMoreImmersion.Behaviors
                 Hero.MainHero.ChangeHeroGold(-cost);
                 var settlementId = settlement.Id.ToString();
                 settlementsWithAccess[settlementId] = true;
-                InformationManager.DisplayMessage(new InformationMessage("{=P3q4R5s6T}You now know your way around {settlement.Name}."));
+                InformationManager.DisplayMessage(new InformationMessage(new TextObject("{=P3q4R5s6T}You now know your way around {settlement.Name}.").ToString()));
             }
             else
             {
