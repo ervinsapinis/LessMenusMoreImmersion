@@ -3,6 +3,7 @@ using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.GameComponents;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Localization;
+using TaleWorlds.Library;
 using TaleWorlds.MountAndBlade;
 
 namespace LessMenusMoreImmersion.Models
@@ -22,64 +23,71 @@ namespace LessMenusMoreImmersion.Models
         /// <returns>True if the action can be performed; otherwise, false.</returns>
         public override bool CanMainHeroDoSettlementAction(Settlement settlement, SettlementAction settlementAction, out bool shouldBeDisabled, out TextObject? disabledText)
         {
-            var behaviorInstance = Campaign.Current.GetCampaignBehavior<DisableMenuBehavior>();
+            var behaviorInstance = Campaign.Current?.GetCampaignBehavior<DisableMenuBehavior>();
+            var recruitmentBehaviorInstance = Campaign.Current?.GetCampaignBehavior<CustomRecruitmentMenuBehavior>();
 
             // Initialize default values
             shouldBeDisabled = false;
             disabledText = null;
 
-            // Handle 'Manage Town' action
+            // Handle 'Manage Town' action - hide if not owner
             if (settlementAction == SettlementAction.ManageTown)
             {
                 if (settlement.OwnerClan.Leader != Hero.MainHero)
                 {
-                    // Do not show 'Manage Town' option at all
-                    return false;
+                    return false; // Hide completely
                 }
                 else
                 {
-                    // Player is the owner, proceed with base implementation
                     return base.CanMainHeroDoSettlementAction(settlement, settlementAction, out shouldBeDisabled, out disabledText);
                 }
             }
 
-            // Handle 'Recruit Troops' action: always allow
+            // Handle 'Recruit Troops' action - check recruitment arrangements
             if (settlementAction == SettlementAction.RecruitTroops)
             {
-                shouldBeDisabled = false;
-                disabledText = null;
-                return true;
+                if (recruitmentBehaviorInstance != null)
+                {
+                    bool hasArrangement = recruitmentBehaviorInstance.HasRecruitmentOrganizer(settlement);
+                    if (!hasArrangement)
+                    {
+                        shouldBeDisabled = true;
+                        disabledText = new TextObject("{=recruit_no_arrangement}You need to arrange with the local notables to organize recruitment first.");
+                        return false; // ✅ FIXED: Show but disabled (was returning false)
+                    }
+                    else
+                    {
+                        // Has arrangement - allow recruitment
+                        return base.CanMainHeroDoSettlementAction(settlement, settlementAction, out shouldBeDisabled, out disabledText);
+                    }
+                }
+                // If recruitment behavior not found, allow base implementation
+                return base.CanMainHeroDoSettlementAction(settlement, settlementAction, out shouldBeDisabled, out disabledText);
             }
 
-            // Handle 'Trade' action in villages: disable unless access is granted
-            if (settlementAction == SettlementAction.Trade && settlement.IsVillage)
+            // Handle 'Trade' action: disable unless access is granted
+            if (settlementAction == SettlementAction.Trade)
             {
-                if (!behaviorInstance.HasAccessToSettlement(settlement))
+                if (behaviorInstance != null && !behaviorInstance.HasAccessToSettlement(settlement))
                 {
                     shouldBeDisabled = true;
                     disabledText = new TextObject("{=U7v8W9x0Y}You don't know the settlement by heart.");
-                    return false;
+                    return false; // Show but disabled
                 }
             }
 
-            // Handle 'WaitInSettlement' action: always allow
-            if (settlementAction == SettlementAction.WaitInSettlement)
+            // Handle 'Craft' action: disable unless access is granted
+            if (settlementAction == SettlementAction.Craft)
             {
-                shouldBeDisabled = false;
-                disabledText = null;
-                return true;
+                if (behaviorInstance != null && !behaviorInstance.HasAccessToSettlement(settlement))
+                {
+                    shouldBeDisabled = true;
+                    disabledText = new TextObject("{=U7v8W9x0Y}You don't know the settlement by heart.");
+                    return false; // Show but disabled
+                }
             }
 
-            // Handle other actions
-            // These should be allowed only if access is granted
-            if (!behaviorInstance.HasAccessToSettlement(settlement))
-            {
-                shouldBeDisabled = true;
-                disabledText = new TextObject("{=U7v8W9x0Y}You don't know the settlement by heart.");
-                return false;
-            }
-
-            // For all other actions, use base implementation
+            // For all other actions, use the base implementation
             return base.CanMainHeroDoSettlementAction(settlement, settlementAction, out shouldBeDisabled, out disabledText);
         }
 
@@ -93,7 +101,7 @@ namespace LessMenusMoreImmersion.Models
         /// <returns>True if the location can be accessed; otherwise, false.</returns>
         public override bool CanMainHeroAccessLocation(Settlement settlement, string locationId, out bool disableOption, out TextObject? disabledText)
         {
-            var behaviorInstance = Campaign.Current.GetCampaignBehavior<DisableMenuBehavior>();
+            var behaviorInstance = Campaign.Current?.GetCampaignBehavior<DisableMenuBehavior>();
 
             if (behaviorInstance == null)
             {
@@ -140,7 +148,7 @@ namespace LessMenusMoreImmersion.Models
         /// <returns>True if the option is available; otherwise, false.</returns>
         public override bool IsRequestMeetingOptionAvailable(Settlement settlement, out bool disableOption, out TextObject disabledText)
         {
-            var behaviorInstance = Campaign.Current.GetCampaignBehavior<DisableMenuBehavior>();
+            var behaviorInstance = Campaign.Current?.GetCampaignBehavior<DisableMenuBehavior>();
 
             if (behaviorInstance == null)
             {

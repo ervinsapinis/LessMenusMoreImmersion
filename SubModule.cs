@@ -1,29 +1,29 @@
-﻿using LessMenusMoreImmersion.Behaviors;
+﻿using HarmonyLib;
+using LessMenusMoreImmersion.Behaviors;
 using LessMenusMoreImmersion.Models;
+using System;
+using System.Reflection;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Core;
 using TaleWorlds.Library;
-using TaleWorlds.Localization;
 using TaleWorlds.MountAndBlade;
-
 
 namespace LessMenusMoreImmersion
 {
     public class SubModule : MBSubModuleBase
     {
+        private Harmony _harmony;
+
         protected override void OnSubModuleLoad()
         {
             base.OnSubModuleLoad();
-        }
 
-        protected override void OnSubModuleUnloaded()
-        {
-            base.OnSubModuleUnloaded();
-        }
+            Harmony.DEBUG = true;                       // forward Harmony’s own internal logs
+            _harmony = new Harmony("LessMenusMoreImmersion");
+            _harmony.PatchAll(Assembly.GetExecutingAssembly());
 
-        protected override void OnBeforeInitialModuleScreenSetAsRoot()
-        {
-            base.OnBeforeInitialModuleScreenSetAsRoot();
+            var ver = typeof(Harmony).Assembly.GetName().Version;
+            InformationManager.DisplayMessage(new InformationMessage($"[LM] Harmony {ver} initialised"));
         }
 
         protected override void OnGameStart(Game game, IGameStarter gameStarterObject)
@@ -32,16 +32,14 @@ namespace LessMenusMoreImmersion
 
             if (game.GameType is Campaign)
             {
-                CampaignGameStarter campaignGameStarter = gameStarterObject as CampaignGameStarter;
-                if (campaignGameStarter != null)
-                {
-                    campaignGameStarter.AddBehavior(new DisableMenuBehavior());
-                    campaignGameStarter.AddBehavior(new CustomVillageMenuBehavior());
+                var starter = (CampaignGameStarter)gameStarterObject;
 
-                    campaignGameStarter.AddModel(new CustomSettlementAccessModel());
-                }
+                starter.AddBehavior(new DisableMenuBehavior());
+                starter.AddBehavior(new CustomVillageMenuBehavior());
+                starter.AddBehavior(new CustomRecruitmentMenuBehavior());
+                starter.AddModel(new CustomSettlementAccessModel());
+                starter.AddBehavior(new AltOverlayBlockerBehavior()); 
             }
         }
-
     }
 }

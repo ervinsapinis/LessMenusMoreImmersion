@@ -16,11 +16,16 @@ using TaleWorlds.Library;
 using TaleWorlds.Localization;
 using static TaleWorlds.CampaignSystem.Inventory.InventoryManager;
 using TaleWorlds.ObjectSystem;
+using Helpers;
+using TaleWorlds.CampaignSystem.CampaignBehaviors;
+using TaleWorlds.CampaignSystem.ComponentInterfaces;
 
 namespace LessMenusMoreImmersion.Behaviors
 {
     /// <summary>
     /// Custom behavior to manage menu options and settlement access within the LessMenusMoreImmersion mod.
+    /// Handles settlement access, village trader dialogs, and guide dialogs.
+    /// Recruitment functionality is handled by CustomRecruitmentMenuBehavior.
     /// </summary>
     public class DisableMenuBehavior : CampaignBehaviorBase
     {
@@ -153,17 +158,26 @@ namespace LessMenusMoreImmersion.Behaviors
             /// Determines if the current conversation is with the village merchant.
             /// </summary>
             /// <returns>True if the conversation is with the village merchant; otherwise, false.</returns>
-            bool isConversationWithVillageMerchant() =>
-                MobileParty.MainParty.CurrentSettlement != null &&
-                MobileParty.MainParty.CurrentSettlement.IsVillage &&
-                CharacterObject.OneToOneConversationCharacter == MobileParty.MainParty.CurrentSettlement.Culture.Merchant;
+            bool isConversationWithVillageMerchant()
+            {
+                var currentSettlement = MobileParty.MainParty.CurrentSettlement;
+                var isVillage = currentSettlement?.IsVillage ?? false;
+                var currentChar = CharacterObject.OneToOneConversationCharacter;
+                var expectedChar = currentSettlement?.Culture?.Merchant;
+
+                bool result = currentSettlement != null &&
+                              isVillage &&
+                              currentChar == expectedChar;
+
+                return result;
+            }
 
             // Trader greeting
             campaignGameStarter.AddDialogLine(
                 "village_trader_greeting",
                 "start",
                 "village_trader",
-                "{=JTX6YNsZT}Hail {?PLAYER.GENDER}m'lady{?}m'lord{\\?}, I bid thee welcome to our humble hamlet. I organize the trade here. Be thee interested in haggling?",
+                "{=village_trader_greeting}Hail {?PLAYER.GENDER}m'lady{?}m'lord{\\?}, I bid thee welcome to our humble hamlet. I am the village trader here. How may I serve thee?",
                 isConversationWithVillageMerchant,
                 null
             );
@@ -216,7 +230,7 @@ namespace LessMenusMoreImmersion.Behaviors
                 "village_trader_arrangement_response",
                 "village_trader_arrangement_response",
                 "village_trader_arrangement_offer",
-                "{=kOPidaq6F}Ah, methinks for a humble price of {ARRANGEMENT_COST}{GOLD_ICON}, to pay the boys for running and gathering goods for thee, we shall be keen for such an arrangement. Does {?PLAYER.GENDER}m'lord{?}m'lady{\\?} concur?",
+                "{=kOPidaq6F}Ah, methinks for a humble price of {ARRANGEMENT_COST}{GOLD_ICON}, to pay the boys for running and gathering goods for thee, we shall be keen for such an arrangement. Furthermore, I shall telle thee of about our hamlet and the esteemed folk therein. Does {?PLAYER.GENDER}m'lady{?}m'lord{\\?} concur?",
                 null,
                 null
             );
@@ -279,52 +293,6 @@ namespace LessMenusMoreImmersion.Behaviors
 
             // Set text variables
             MBTextManager.SetTextVariable("ARRANGEMENT_COST", GetVillageArrangementCost());
-        }
-
-        /// <summary>
-        /// Determines whether the player can arrange trading with the village trader.
-        /// </summary>
-        /// <returns>True if the player does not have access to the settlement.</returns>
-        private bool VillageTraderArrangementOnCondition()
-        {
-            return !HasAccessToSettlement(Settlement.CurrentSettlement);
-        }
-
-        /// <summary>
-        /// Determines whether the player can accept the arrangement with the village trader.
-        /// </summary>
-        /// <returns>True if the player has enough gold to pay for the arrangement.</returns>
-        private bool VillageTraderAcceptArrangementOnCondition()
-        {
-            return Hero.MainHero.Gold >= GetVillageArrangementCost();
-        }
-
-        /// <summary>
-        /// Gets the cost for arranging trading with the village trader.
-        /// </summary>
-        /// <returns>The cost amount.</returns>
-        private int GetVillageArrangementCost()
-        {
-            return 200; // Fixed cost for village arrangement
-        }
-
-        /// <summary>
-        /// Initiates trading with the village trader.
-        /// </summary>
-        private void BeginTradeWithVillageTrader()
-        {
-            var settlementComponent = Settlement.CurrentSettlement.SettlementComponent;
-            if (settlementComponent != null)
-            {
-                OpenScreenAsTrade(Settlement.CurrentSettlement.ItemRoster, settlementComponent, InventoryCategoryType.None, null);
-
-                // Correctly set the SETTLEMENT_NAME variable
-                Settlement settlement = Settlement.CurrentSettlement;
-                if (settlement != null)
-                {
-                    MBTextManager.SetTextVariable("SETTLEMENT_NAME", settlement.Name);
-                }
-            }
         }
 
         /// <summary>
@@ -395,6 +363,57 @@ namespace LessMenusMoreImmersion.Behaviors
                 GuideDeclineOnCondition,
                 null
             );
+        }
+
+        // ==== UTILITY METHODS ====
+
+        /// <summary>
+        /// Determines whether the player can arrange trading with the village trader.
+        /// </summary>
+        /// <returns>True if the player does not have access to the settlement.</returns>
+        private bool VillageTraderArrangementOnCondition()
+        {
+            var settlement = Settlement.CurrentSettlement;
+            bool hasAccess = HasAccessToSettlement(settlement);
+            bool showArrangement = !hasAccess;
+            return showArrangement;
+        }
+
+        /// <summary>
+        /// Determines whether the player can accept the arrangement with the village trader.
+        /// </summary>
+        /// <returns>True if the player has enough gold to pay for the arrangement.</returns>
+        private bool VillageTraderAcceptArrangementOnCondition()
+        {
+            return Hero.MainHero.Gold >= GetVillageArrangementCost();
+        }
+
+        /// <summary>
+        /// Gets the cost for arranging trading with the village trader.
+        /// </summary>
+        /// <returns>The cost amount.</returns>
+        private int GetVillageArrangementCost()
+        {
+            return 200; // Fixed cost for village trading arrangement
+        }
+
+        /// <summary>
+        /// Initiates trading with the village trader.
+        /// </summary>
+        private void BeginTradeWithVillageTrader()
+        {
+            var settlementComponent = Settlement.CurrentSettlement.SettlementComponent;
+            if (settlementComponent != null)
+            {
+                OpenScreenAsTrade(Settlement.CurrentSettlement.ItemRoster, settlementComponent, InventoryCategoryType.None, null);
+
+                // Correctly set the SETTLEMENT_NAME variable
+                Settlement settlement = Settlement.CurrentSettlement;
+                if (settlement != null)
+                {
+                    MBTextManager.SetTextVariable("SETTLEMENT_NAME", settlement.Name);
+                }
+            }
         }
 
         /// <summary>
@@ -502,6 +521,8 @@ namespace LessMenusMoreImmersion.Behaviors
         /// <returns>True if the player has access; otherwise, false.</returns>
         public bool HasAccessToSettlement(Settlement settlement)
         {
+            if (settlement == null) return true;
+
             if (settlement.OwnerClan == Clan.PlayerClan)
             {
                 // Player owns the settlement
@@ -552,92 +573,130 @@ namespace LessMenusMoreImmersion.Behaviors
                     harmonyInstance.PatchAll(Assembly.GetExecutingAssembly());
                 }
             }
-        }
 
-        /// <summary>
-        /// Harmony patch to disable specific menu options based on settlement access.
-        /// </summary>
-        [HarmonyPatch(typeof(GameMenu), "AddOption", new Type[] {
-            typeof(string),
-            typeof(TextObject),
-            typeof(GameMenuOption.OnConditionDelegate),
-            typeof(GameMenuOption.OnConsequenceDelegate),
-            typeof(int),
-            typeof(bool),
-            typeof(bool),
-            typeof(object)
-        })]
-        public static class DisableSpecificMenuOptionsPatch
-        {
             /// <summary>
-            /// Prefix method that modifies the condition delegate for certain menu options.
+            /// Harmony patch to disable specific menu options based on settlement access.
             /// </summary>
-            /// <param name="condition">The original condition delegate.</param>
-            /// <param name="optionId">The ID of the menu option being added.</param>
-            /// <param name="__instance">The GameMenu instance.</param>
-            /// <returns>True to allow the original method to proceed.</returns>
-            [HarmonyPrefix]
-            public static bool Prefix(ref GameMenuOption.OnConditionDelegate condition, string optionId, GameMenu __instance)
+            [HarmonyPatch(typeof(GameMenu), "AddOption", new Type[] {
+                typeof(string),
+                typeof(TextObject),
+                typeof(GameMenuOption.OnConditionDelegate),
+                typeof(GameMenuOption.OnConsequenceDelegate),
+                typeof(int),
+                typeof(bool),
+                typeof(bool),
+                typeof(object)
+            })]
+            public static class DisableSpecificMenuOptionsPatch
             {
-                if (SettlementMenuOptions.AllOptions.Contains(optionId))
+                /// <summary>
+                /// Prefix method that modifies the condition delegate for certain menu options.
+                /// </summary>
+                /// <param name="condition">The original condition delegate.</param>
+                /// <param name="optionId">The ID of the menu option being added.</param>
+                /// <param name="__instance">The GameMenu instance.</param>
+                /// <returns>True to allow the original method to proceed.</returns>
+                [HarmonyPrefix]
+                public static bool Prefix(ref GameMenuOption.OnConditionDelegate condition, string optionId, GameMenu __instance)
                 {
-                    var campaign = Campaign.Current;
-                    if (campaign == null)
+                    // Use SettlementMenuOptions.AllOptions instead of hardcoded list
+                    if (SettlementMenuOptions.AllOptions.Contains(optionId))
                     {
-                        return true; // Allow the original method to proceed without modification
-                    }
-
-                    var behaviorInstance = campaign.GetCampaignBehavior<DisableMenuBehavior>();
-                    var currentSettlement = GetCurrentSettlement(__instance);
-
-                    if (behaviorInstance != null && currentSettlement != null)
-                    {
-                        var originalCondition = condition; // Preserve the original condition
-
-                        condition = (MenuCallbackArgs args) =>
+                        var campaign = Campaign.Current;
+                        if (campaign == null)
                         {
-                            // Call the original condition
-                            bool isOriginalConditionMet = originalCondition == null || originalCondition(args);
+                            return true; // Allow the original method to proceed without modification
+                        }
 
-                            // Check if the player has access
-                            bool hasAccess = behaviorInstance.HasAccessToSettlement(currentSettlement);
+                        var behaviorInstance = campaign.GetCampaignBehavior<DisableMenuBehavior>();
+                        var currentSettlement = GetCurrentSettlement(__instance);
 
-                            // Combine both conditions
-                            args.IsEnabled = isOriginalConditionMet && hasAccess;
-                            return args.IsEnabled;
-                        };
-                    }
-                    else
-                    {
-                        // If behaviorInstance or currentSettlement is null, disable the option safely
-                        condition = (MenuCallbackArgs args) =>
+                        if (behaviorInstance != null && currentSettlement != null)
                         {
-                            args.IsEnabled = false;
-                            return false;
-                        };
+                            var originalCondition = condition; // Preserve the original condition
+
+                            condition = (MenuCallbackArgs args) =>
+                            {
+                                // Call the original condition
+                                bool isOriginalConditionMet = originalCondition == null || originalCondition(args);
+
+                                // Check if the player has access
+                                bool hasAccess = behaviorInstance.HasAccessToSettlement(currentSettlement);
+
+                                // Combine both conditions
+                                bool finalEnabled = isOriginalConditionMet && hasAccess;
+                                args.IsEnabled = finalEnabled;
+
+                                if (!hasAccess)
+                                {
+                                    args.Tooltip = new TextObject("{=U7v8W9x0Y}You don't know the settlement by heart.");
+                                }
+
+                                return args.IsEnabled;
+                            };
+                        }
                     }
+                    return true; // Allow the original method to proceed
                 }
-                return true; // Allow the original method to proceed
+
+                /// <summary>
+                /// Retrieves the current settlement associated with the GameMenu.
+                /// </summary>
+                /// <param name="gameMenu">The GameMenu instance.</param>
+                /// <returns>The current settlement, if any; otherwise, null.</returns>
+                private static Settlement? GetCurrentSettlement(GameMenu gameMenu)
+                {
+                    // Try to get the settlement associated with the current menu
+                    if (MobileParty.MainParty.CurrentSettlement != null)
+                    {
+                        return MobileParty.MainParty.CurrentSettlement;
+                    }
+                    else if (Settlement.CurrentSettlement != null)
+                    {
+                        return Settlement.CurrentSettlement;
+                    }
+                    // Fallback
+                    return null;
+                }
             }
 
             /// <summary>
-            /// Retrieves the current settlement associated with the GameMenu.
+            /// Harmony patch to make village recruitment also use the SettlementAccessModel
             /// </summary>
-            /// <param name="gameMenu">The GameMenu instance.</param>
-            /// <returns>The current settlement, if any; otherwise, null.</returns>
-            private static Settlement? GetCurrentSettlement(GameMenu gameMenu)
+            [HarmonyPatch(typeof(PlayerTownVisitCampaignBehavior))]
+            [HarmonyPatch("game_menu_recruit_volunteers_on_condition")]
+            public static class VillageRecruitmentPatch
             {
-                // Try to get the settlement associated with the current menu
-                if (MobileParty.MainParty.CurrentSettlement != null)
+                [HarmonyPrefix]
+                public static bool Prefix(MenuCallbackArgs args, ref bool __result)
                 {
-                    return MobileParty.MainParty.CurrentSettlement;
+                    args.optionLeaveType = GameMenuOption.LeaveType.Recruit;
+
+                    if (Settlement.CurrentSettlement.IsVillage)
+                    {
+                        // For villages, check both village state AND settlement access model
+                        if (Settlement.CurrentSettlement.Village.VillageState != Village.VillageStates.Normal)
+                        {
+                            __result = false;
+                            return false; // Skip original method
+                        }
+
+                        // Now check the SettlementAccessModel (this is what was missing!)
+                        bool disableOption;
+                        TextObject disabledText;
+                        bool canPlayerDo = Campaign.Current.Models.SettlementAccessModel.CanMainHeroDoSettlementAction(
+                            Settlement.CurrentSettlement,
+                            SettlementAccessModel.SettlementAction.RecruitTroops,
+                            out disableOption,
+                            out disabledText);
+
+                        __result = MenuHelper.SetOptionProperties(args, canPlayerDo, disableOption, disabledText);
+                        return false; // Skip original method
+                    }
+
+                    // For towns/castles, let the original method handle it
+                    return true; // Run original method
                 }
-                else if (Settlement.CurrentSettlement != null)
-                {
-                    return Settlement.CurrentSettlement;
-                }
-                // Fallback
-                return null;
             }
         }
     }
