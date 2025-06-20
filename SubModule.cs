@@ -38,6 +38,7 @@ namespace LessMenusMoreImmersion
                 starter.AddBehavior(new CustomVillageMenuBehavior());
                 starter.AddBehavior(new CustomRecruitmentMenuBehavior());
                 starter.AddModel(new CustomSettlementAccessModel());
+                starter.AddBehavior(new AltOverlayBlockerBehavior()); 
             }
         }
     }

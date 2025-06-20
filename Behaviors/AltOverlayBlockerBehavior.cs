@@ -1,126 +1,166 @@
-﻿using System;
-using System.IO;
-using HarmonyLib;
+﻿using HarmonyLib;
+using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Settlements;
-using TaleWorlds.InputSystem;
 using TaleWorlds.Library;
 using TaleWorlds.MountAndBlade;
+using LessMenusMoreImmersion.Behaviors;
+using TaleWorlds.Core;
 
 namespace LessMenusMoreImmersion.Behaviors
 {
     /// <summary>
-    /// Harmony patch to disable ALT key highlighting in settlements where player doesn't have access.
-    /// This prevents the "xray" overlay that shows character names and location markers.
-    /// Uses Prefix to intercept ALT before other systems can process it.
+    /// Campaign behavior to manage ALT highlighting status and show notifications.
     /// </summary>
-    [HarmonyPatch(typeof(Input), nameof(Input.IsKeyDown))]
-    internal static class AltOverlayBlocker
+    public class AltOverlayBlockerBehavior : CampaignBehaviorBase
     {
-        private static bool _shouldBlockAlt = false;
-        private static string _currentSettlementId = "";
-        private static DateTime _lastAccessCheck = DateTime.MinValue;
-        private static string _logFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AltBlockerDebug.txt");
+        private bool _lastBlockStatus = false;
+        private string _lastSettlementId = "";
 
-        private static void LogToFile(string message)
+        public override void RegisterEvents()
         {
-            try
-            {
-                File.AppendAllText(_logFilePath, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}\n");
-            }
-            catch { /* Silent fail */ }
+            CampaignEvents.OnMissionStartedEvent.AddNonSerializedListener(this, OnMissionStarted);
         }
 
-        [HarmonyPrefix]
-        static bool Prefix(InputKey key)
+        public override void SyncData(IDataStore dataStore)
         {
-            // Only process ALT keys
-            if (key != InputKey.LeftAlt && key != InputKey.RightAlt)
-                return true; // Continue with original method
-
-            // Check if we need to recalculate block status (settlement changed)
-            UpdateBlockStatusIfNeeded();
-
-            if (_shouldBlockAlt)
-            {
-                return false; // Block ALT - skip original method
-            }
-
-            return true; // Allow ALT - continue with original method
+            // No data to sync
         }
 
-        private static void UpdateBlockStatusIfNeeded()
+        private void OnMissionStarted(IMission mission)
         {
-            Settlement settlement = Settlement.CurrentSettlement;
-            string currentSettlementId = settlement?.StringId ?? "";
-            DateTime now = DateTime.Now;
+            var settlement = Settlement.CurrentSettlement;
+            if (settlement == null)
+                return;
 
-            // Recalculate if:
-            // 1. Settlement changed, OR
-            // 2. Been 10 seconds since last check (to catch access changes from paying guide/trader)
-            bool settlementChanged = currentSettlementId != _currentSettlementId;
-            bool timeToRecheck = (now - _lastAccessCheck).TotalSeconds > 10;
+            bool shouldBlock = ShouldBlockHighlighting();
+            string currentSettlementId = settlement.StringId;
 
-            if (settlementChanged || timeToRecheck)
+            // Only show message when status changes or entering new settlement
+            if (shouldBlock != _lastBlockStatus || currentSettlementId != _lastSettlementId)
             {
-                _currentSettlementId = currentSettlementId;
-                _lastAccessCheck = now;
-
-                bool oldBlockStatus = _shouldBlockAlt;
-                bool newBlockStatus = ShouldBlockAlt();
-
-                if (newBlockStatus != oldBlockStatus)
+                if (shouldBlock)
                 {
-                    LogToFile($"ALT block status changed: {oldBlockStatus} -> {newBlockStatus} in {settlement?.Name.ToString() ?? "no settlement"}");
-                    _shouldBlockAlt = newBlockStatus;
-
-                    if (newBlockStatus && settlement != null)
-                    {
-                        // Entering restricted settlement
-                        InformationManager.DisplayMessage(
-                            new InformationMessage($"[LM] ALT overlay disabled in {settlement.Name} - get introduced first"));
-                    }
-                    else if (!newBlockStatus && settlement != null && oldBlockStatus)
-                    {
-                        // Gained access to settlement
-                        InformationManager.DisplayMessage(
-                            new InformationMessage($"[LM] ALT overlay enabled in {settlement.Name}"));
-                    }
+                    InformationManager.DisplayMessage(
+                        new InformationMessage($"[LM] ALT overlay disabled in {settlement.Name} - get introduced first"));
                 }
-                else
+                else if (_lastBlockStatus && !shouldBlock) // Was blocked, now enabled
                 {
-                    _shouldBlockAlt = newBlockStatus;
+                    InformationManager.DisplayMessage(
+                        new InformationMessage($"[LM] ALT overlay enabled in {settlement.Name}"));
                 }
+
+                _lastBlockStatus = shouldBlock;
+                _lastSettlementId = currentSettlementId;
             }
         }
 
-        /// <summary>
-        /// Public method to force recalculation of ALT blocking status.
-        /// Can be called when settlement access is granted.
-        /// </summary>
-        public static void RefreshBlockStatus()
+        private bool ShouldBlockHighlighting()
         {
-            _lastAccessCheck = DateTime.MinValue; // Force immediate recheck
-        }
-
-        private static bool ShouldBlockAlt()
-        {
-            // Only apply in missions (settlement interiors)
-            if (Mission.Current == null)
+            // Only in campaign missions
+            if (Campaign.Current == null || Mission.Current == null)
                 return false;
 
-            // Get current settlement
-            Settlement settlement = Settlement.CurrentSettlement;
+            // Only in settlement missions
+            var settlement = Settlement.CurrentSettlement;
             if (settlement == null)
                 return false;
 
-            // Check if player has settlement access using existing logic
-            var accessBehavior = Campaign.Current?.GetCampaignBehavior<DisableMenuBehavior>();
+            // Check settlement access
+            var accessBehavior = Campaign.Current.GetCampaignBehavior<DisableMenuBehavior>();
             if (accessBehavior == null)
                 return false;
 
             bool hasAccess = accessBehavior.HasAccessToSettlement(settlement);
             return !hasAccess; // Block if no access
         }
+
+        /// <summary>
+        /// Force status refresh when settlement access changes
+        /// </summary>
+        public static void RefreshStatus()
+        {
+            var settlement = Settlement.CurrentSettlement;
+            if (settlement != null)
+            {
+                InformationManager.DisplayMessage(
+                    new InformationMessage($"[LM] ALT overlay enabled in {settlement.Name}"));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Helper class to check if ALT highlighting should be blocked.
+    /// Used by the Harmony patches.
+    /// </summary>
+    public static class HighlightingBlocker
+    {
+        public static bool ShouldBlockHighlighting()
+        {
+            try
+            {
+                // Only in campaign missions
+                if (Campaign.Current == null || Mission.Current == null)
+                    return false;
+
+                // Only in settlement missions
+                var settlement = Settlement.CurrentSettlement;
+                if (settlement == null)
+                    return false;
+
+                // Check settlement access
+                var accessBehavior = Campaign.Current.GetCampaignBehavior<DisableMenuBehavior>();
+                if (accessBehavior == null)
+                    return false;
+
+                bool hasAccess = accessBehavior.HasAccessToSettlement(settlement);
+                return !hasAccess; // Block if no access
+            }
+            catch
+            {
+                return false; // Don't block on any error
+            }
+        }
+    }
+}
+
+/// <summary>
+/// Harmony patch to disable nameplate updates when no settlement access.
+/// Only patches the one we know works from the crash stack trace.
+/// </summary>
+[HarmonyPatch]
+internal static class NameMarkerViewPatch
+{
+    // Use TargetMethod to be more flexible about finding the right method
+    static System.Reflection.MethodBase TargetMethod()
+    {
+        try
+        {
+            // Try to find the MissionGauntletNameMarkerView class
+            var assembly = System.AppDomain.CurrentDomain.GetAssemblies()
+                .FirstOrDefault(a => a.GetName().Name == "SandBox.GauntletUI");
+
+            if (assembly != null)
+            {
+                var type = assembly.GetType("SandBox.GauntletUI.Missions.MissionGauntletNameMarkerView");
+                if (type != null)
+                {
+                    return type.GetMethod("OnMissionScreenTick",
+                        System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                }
+            }
+        }
+        catch
+        {
+            // If we can't find it, return null and the patch won't apply
+        }
+
+        return null;
+    }
+
+    static bool Prefix()
+    {
+        // Block nameplate updates if no settlement access
+        return !LessMenusMoreImmersion.Behaviors.HighlightingBlocker.ShouldBlockHighlighting();
     }
 }
