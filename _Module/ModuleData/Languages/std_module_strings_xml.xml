@@ -37,5 +37,13 @@
 		<string id="notable_recruitment_accept" text="Yes, arrange it. [Pay {RECRUITMENT_COST}{GOLD_ICON}]" />
 		<string id="notable_recruitment_accepted" text="Excellent! I'll speak with the other notables. From now on, you'll find willing volunteers ready when you need them." />
 		<string id="notable_recruitment_decline" text="Perhaps another time." />
+
+		<!-- Direct Recruitment Dialog -->
+		<string id="ask_notable_recruits" text="What recruits do you have available?" />
+		<string id="notable_recruits_list" text="I can offer you: {TROOP_LIST} for {TOTAL_COST}{GOLD_ICON} total." />
+		<string id="accept_bulk_recruits" text="I'll take them all. [Pay {TOTAL_COST}{GOLD_ICON}]" />
+		<string id="bulk_recruitment_success" text="Excellent! The lads are yours now. Fight well!" />
+		<string id="decline_bulk_recruits" text="Perhaps another time." />
+		<string id="notable_recruitment_ok" text="Very well. Perhaps when you're ready." />
 	</strings>
 </base>
