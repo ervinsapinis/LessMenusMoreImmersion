@@ -21,6 +21,8 @@ namespace LessMenusMoreImmersion.Behaviors
 {
     /// <summary>
     /// Custom behavior to manage menu options and settlement access within the LessMenusMoreImmersion mod.
+    /// Handles settlement access, village trader dialogs, and guide dialogs.
+    /// Recruitment functionality is handled by CustomRecruitmentMenuBehavior.
     /// </summary>
     public class DisableMenuBehavior : CampaignBehaviorBase
     {
@@ -46,7 +48,6 @@ namespace LessMenusMoreImmersion.Behaviors
             InformationManager.DisplayMessage(new InformationMessage(new TextObject("{=Eji4qI4xg}Less menus more immersion loaded successfully.").ToString()));
             AddVillageTraderDialogs(campaignGameStarter);
             AddGuideDialogs(campaignGameStarter);
-            AddRecruitmentDialogs(campaignGameStarter); // Add recruitment dialogs
             CampaignEvents.LocationCharactersAreReadyToSpawnEvent.AddNonSerializedListener(this, LocationCharactersAreReadyToSpawn);
             _localGuide = MBObjectManager.Instance.GetObject<CharacterObject>("local_guide");
             InformationManager.DisplayMessage(new InformationMessage("[LM] DisableMenuBehavior fully initialized"));
@@ -156,17 +157,31 @@ namespace LessMenusMoreImmersion.Behaviors
             /// Determines if the current conversation is with the village merchant.
             /// </summary>
             /// <returns>True if the conversation is with the village merchant; otherwise, false.</returns>
-            bool isConversationWithVillageMerchant() =>
-                MobileParty.MainParty.CurrentSettlement != null &&
-                MobileParty.MainParty.CurrentSettlement.IsVillage &&
-                CharacterObject.OneToOneConversationCharacter == MobileParty.MainParty.CurrentSettlement.Culture.Merchant;
+            bool isConversationWithVillageMerchant()
+            {
+                var currentSettlement = MobileParty.MainParty.CurrentSettlement;
+                var isVillage = currentSettlement?.IsVillage ?? false;
+                var currentChar = CharacterObject.OneToOneConversationCharacter;
+                var expectedChar = currentSettlement?.Culture?.Merchant;
+
+                bool result = currentSettlement != null &&
+                              isVillage &&
+                              currentChar == expectedChar;
+
+                // Debug logging
+                InformationManager.DisplayMessage(new InformationMessage(
+                    $"[LM] Trader check: Settlement={currentSettlement?.Name}, IsVillage={isVillage}, " +
+                    $"CurrentChar={currentChar?.Name}, ExpectedChar={expectedChar?.Name}, Result={result}"));
+
+                return result;
+            }
 
             // Trader greeting
             campaignGameStarter.AddDialogLine(
                 "village_trader_greeting",
                 "start",
                 "village_trader",
-                "{=village_elder_greeting}Hail {?PLAYER.GENDER}m'lady{?}m'lord{\\?}, I bid thee welcome to our humble hamlet. I am the village elder here. How may I serve thee?",
+                "{=village_trader_greeting}Hail {?PLAYER.GENDER}m'lady{?}m'lord{\\?}, I bid thee welcome to our humble hamlet. I am the village trader here. How may I serve thee?",
                 isConversationWithVillageMerchant,
                 null
             );
@@ -219,7 +234,7 @@ namespace LessMenusMoreImmersion.Behaviors
                 "village_trader_arrangement_response",
                 "village_trader_arrangement_response",
                 "village_trader_arrangement_offer",
-                "{=kOPidaq6F}Ah, methinks for a humble price of {ARRANGEMENT_COST}{GOLD_ICON}, to pay the boys for running and gathering goods for thee, we shall be keen for such an arrangement. Does {?PLAYER.GENDER}m'lord{?}m'lady{\\?} concur?",
+                "{=kOPidaq6F}Ah, methinks for a humble price of {ARRANGEMENT_COST}{GOLD_ICON}, to pay the boys for running and gathering goods for thee, we shall be keen for such an arrangement. Furthermore, I shall telle thee of about our hamlet and the esteemed folk therein. Does {?PLAYER.GENDER}m'lady{?}m'lord{\\?} concur?",
                 null,
                 null
             );
@@ -354,93 +369,6 @@ namespace LessMenusMoreImmersion.Behaviors
             );
         }
 
-        /// <summary>
-        /// Adds proper recruitment dialogs that exit cleanly when refused
-        /// </summary>
-        /// <param name="campaignGameStarter">The campaign game starter used to add dialogs.</param>
-        protected void AddRecruitmentDialogs(CampaignGameStarter campaignGameStarter)
-        {
-            // Block the recruitment organizer dialog that gets stuck in loops
-            bool isRecruitmentOrganizerWithoutAccess() =>
-                Settlement.CurrentSettlement != null &&
-                !HasAccessToSettlement(Settlement.CurrentSettlement);
-
-            // Intercept the "organize willing recruits" dialog
-            campaignGameStarter.AddDialogLine(
-                "recruitment_organizer_blocked",
-                "party_recruit_confirm",
-                "recruitment_organizer_refuse",
-                "{=recruitment_organizer_blocked}I don't know you well enough to organize that kind of arrangement, stranger.",
-                isRecruitmentOrganizerWithoutAccess,
-                null,
-                200 // Very high priority to intercept
-            );
-
-            // Force exit option for organizer
-            campaignGameStarter.AddPlayerLine(
-                "recruitment_organizer_exit",
-                "recruitment_organizer_refuse",
-                "close_window",
-                "{=recruitment_organizer_exit}I understand.",
-                null,
-                () => {
-                    InformationManager.DisplayMessage(new InformationMessage("[LM] Recruitment organizer dialog closed"));
-                }
-            );
-
-            // Also block the general recruitment conversation
-            bool isRecruitmentWithoutAccess() =>
-                CharacterObject.OneToOneConversationCharacter != null &&
-                CharacterObject.OneToOneConversationCharacter.Occupation == Occupation.Soldier &&
-                Settlement.CurrentSettlement != null &&
-                !HasAccessToSettlement(Settlement.CurrentSettlement);
-
-            // Intercept normal recruitment at start
-            campaignGameStarter.AddDialogLine(
-                "recruitment_blocked_start",
-                "start",
-                "recruitment_blocked_options",
-                "{=recruitment_blocked}I don't know you, stranger. You'll need to get someone to vouch for you before I'll consider joining your cause.",
-                isRecruitmentWithoutAccess,
-                null,
-                100 // High priority
-            );
-
-            // Exit option that actually works
-            campaignGameStarter.AddPlayerLine(
-                "recruitment_exit_clean",
-                "recruitment_blocked_options",
-                "close_window",
-                "{=recruitment_exit_clean}Perhaps another time.",
-                null,
-                () => {
-                    InformationManager.DisplayMessage(new InformationMessage("[LM] Recruitment dialog properly closed"));
-                }
-            );
-
-            // Explanation option
-            campaignGameStarter.AddPlayerLine(
-                "recruitment_ask_how",
-                "recruitment_blocked_options",
-                "recruitment_explain_how",
-                "{=recruitment_ask_how}How can I gain your trust?",
-                null,
-                null
-            );
-
-            // Explain and then exit
-            campaignGameStarter.AddDialogLine(
-                "recruitment_explain_how_response",
-                "recruitment_explain_how",
-                "close_window",
-                "{=recruitment_explain_how_response}Find someone who knows the settlement to introduce you. Pay for a guide, maybe.",
-                null,
-                () => {
-                    InformationManager.DisplayMessage(new InformationMessage("[LM] Recruitment explanation completed"));
-                }
-            );
-        }
-
         // ==== UTILITY METHODS ====
 
         /// <summary>
@@ -449,7 +377,14 @@ namespace LessMenusMoreImmersion.Behaviors
         /// <returns>True if the player does not have access to the settlement.</returns>
         private bool VillageTraderArrangementOnCondition()
         {
-            return !HasAccessToSettlement(Settlement.CurrentSettlement);
+            var settlement = Settlement.CurrentSettlement;
+            bool hasAccess = HasAccessToSettlement(settlement);
+            bool showArrangement = !hasAccess;
+
+            InformationManager.DisplayMessage(new InformationMessage(
+                $"[LM] Arrangement condition: Settlement={settlement?.Name}, HasAccess={hasAccess}, ShowArrangement={showArrangement}"));
+
+            return showArrangement;
         }
 
         /// <summary>
@@ -467,7 +402,7 @@ namespace LessMenusMoreImmersion.Behaviors
         /// <returns>The cost amount.</returns>
         private int GetVillageArrangementCost()
         {
-            return 200; // Fixed cost for village arrangement
+            return 200; // Fixed cost for village trading arrangement
         }
 
         /// <summary>

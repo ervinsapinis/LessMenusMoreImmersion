@@ -36,7 +36,7 @@ namespace LessMenusMoreImmersion.Behaviors
             AddCustomRecruitment(campaignGameStarter, "town");
             AddCustomRecruitment(campaignGameStarter, "castle");
 
-            // Add notable recruitment dialogs
+            // Add notable recruitment dialogs (moved from DisableMenuBehavior)
             AddNotableRecruitmentDialogs(campaignGameStarter);
         }
 
@@ -84,9 +84,152 @@ namespace LessMenusMoreImmersion.Behaviors
         }
 
         /// <summary>
+        /// Adds recruitment arrangement dialogs for any notable (moved from DisableMenuBehavior)
+        /// </summary>
+        /// <param name="campaignGameStarter">The campaign game starter used to add dialogs.</param>
+        protected void AddNotableRecruitmentDialogs(CampaignGameStarter campaignGameStarter)
+        {
+            // Check if current character is a notable in current settlement
+            bool isNotableInCurrentSettlement() =>
+                CharacterObject.OneToOneConversationCharacter != null &&
+                CharacterObject.OneToOneConversationCharacter.IsHero &&
+                Settlement.CurrentSettlement != null &&
+                Settlement.CurrentSettlement.Notables.Contains(CharacterObject.OneToOneConversationCharacter.HeroObject);
+
+            // Player option: Ask about recruitment arrangement (available to any notable)
+            campaignGameStarter.AddPlayerLine(
+                "notable_recruitment_arrangement_ask",
+                "hero_main_options",
+                "notable_recruitment_arrangement_response",
+                "{=notable_recruitment_ask}Can you help organize willing recruits for my company?",
+                isNotableInCurrentSettlement,
+                null
+            );
+
+            // Notable explains the arrangement
+            campaignGameStarter.AddDialogLine(
+                "notable_recruitment_arrangement_response",
+                "notable_recruitment_arrangement_response",
+                "notable_recruitment_arrangement_offer",
+                "{=notable_recruitment_response}Organizing recruits requires cooperation between all the notables here. We'd need to coordinate with everyone - some are... more expensive to convince than others. For {RECRUITMENT_COST}{GOLD_ICON}, I can arrange it so willing volunteers will be ready whenever you visit. Interested?",
+                null,
+                () => {
+                    // Set the recruitment cost variable
+                    int recruitmentCost = GetRecruitmentArrangementCost();
+                    MBTextManager.SetTextVariable("RECRUITMENT_COST", recruitmentCost);
+                }
+            );
+
+            // Player option: Accept recruitment arrangement
+            campaignGameStarter.AddPlayerLine(
+                "notable_recruitment_accept",
+                "notable_recruitment_arrangement_offer",
+                "notable_recruitment_accepted",
+                "{=notable_recruitment_accept}Yes, arrange it. [Pay {RECRUITMENT_COST}{GOLD_ICON}]",
+                () => {
+                    int recruitmentCost = GetRecruitmentArrangementCost();
+                    return Hero.MainHero.Gold >= recruitmentCost;
+                },
+                () => {
+                    int cost = GetRecruitmentArrangementCost();
+                    Hero.MainHero.ChangeHeroGold(-cost);
+
+                    // Mark recruitment as arranged for this settlement
+                    var settlementId = Settlement.CurrentSettlement.Id.ToString();
+                    settlementsWithRecruitmentOrganizer[settlementId] = true;
+
+                    // Also mark settlement access since coordinating with all notables means you've met them
+                    var disableMenuBehavior = Campaign.Current?.GetCampaignBehavior<DisableMenuBehavior>();
+                    if (disableMenuBehavior != null)
+                    {
+                        // Access the settlement access dictionary through reflection if needed
+                        var field = typeof(DisableMenuBehavior).GetField("settlementsWithAccess",
+                            BindingFlags.NonPublic | BindingFlags.Static);
+                        if (field != null)
+                        {
+                            var settlementsWithAccess = field.GetValue(null) as Dictionary<string, bool>;
+                            if (settlementsWithAccess != null)
+                            {
+                                settlementsWithAccess[settlementId] = true;
+                            }
+                        }
+                    }
+
+                    InformationManager.DisplayMessage(new InformationMessage($"[LM] Recruitment arrangement made for {Settlement.CurrentSettlement.Name}"));
+                    InformationManager.DisplayMessage(new InformationMessage("You've arranged for willing recruits to be available when you visit."));
+                    InformationManager.DisplayMessage(new InformationMessage("You've been introduced to all the notables during the arrangement."));
+                }
+            );
+
+            // Notable confirms arrangement
+            campaignGameStarter.AddDialogLine(
+                "notable_recruitment_accepted",
+                "notable_recruitment_accepted",
+                "close_window",
+                "{=notable_recruitment_accepted}Excellent! I'll speak with the other notables. From now on, you'll find willing volunteers ready when you need them.",
+                null,
+                null
+            );
+
+            // Player option: Decline recruitment arrangement
+            campaignGameStarter.AddPlayerLine(
+                "notable_recruitment_decline",
+                "notable_recruitment_arrangement_offer",
+                "close_window",
+                "{=notable_recruitment_decline}Perhaps another time.",
+                null,
+                null
+            );
+        }
+
+        /// <summary>
+        /// Gets the cost for arranging recruitment with notables based on their relations (complex formula).
+        /// </summary>
+        /// <returns>The cost amount.</returns>
+        private int GetRecruitmentArrangementCost()
+        {
+            var settlement = Settlement.CurrentSettlement;
+            if (settlement == null) return 500; // Fallback cost
+
+            int totalCost = 0;
+            int notableCount = 0;
+
+            foreach (var notable in settlement.Notables)
+            {
+                notableCount++;
+                int baseCostPerNotable = 250; // Base cost per notable
+                int relation = (int)notable.GetRelationWithPlayer();
+
+                // Calculate cost for this notable
+                int notableCost = baseCostPerNotable;
+
+                if (relation > 0)
+                {
+                    // Positive relation: discount
+                    notableCost -= (relation * 30);
+                }
+                else if (relation < 0)
+                {
+                    // Negative relation: premium
+                    notableCost += (Math.Abs(relation) * 75);
+                }
+
+                // Ensure minimum cost of 50g per notable
+                notableCost = Math.Max(notableCost, 50);
+
+                totalCost += notableCost;
+
+                InformationManager.DisplayMessage(new InformationMessage($"[LM] {notable.Name}: relation {relation}, cost {notableCost}g"));
+            }
+
+            InformationManager.DisplayMessage(new InformationMessage($"[LM] Total recruitment cost for {notableCount} notables: {totalCost}g"));
+            return totalCost;
+        }
+
+        /// <summary>
         /// Adds recruitment dialog options to existing notable conversations
         /// </summary>
-        protected void AddNotableRecruitmentDialogs(CampaignGameStarter campaignGameStarter)
+        protected void AddNotableDirectRecruitmentDialogs(CampaignGameStarter campaignGameStarter)
         {
             // Check if this is a conversation with a notable in a settlement where we don't have an organizer
             bool canOfferRecruitmentServices() =>
@@ -172,7 +315,8 @@ namespace LessMenusMoreImmersion.Behaviors
                 null,
                 null
             );
-            // Player asks about organizing recruitment
+
+            // Player asks about organizing recruitment (old system)
             campaignGameStarter.AddPlayerLine(
                 "notable_ask_organizer",
                 "hero_main_options",
@@ -182,7 +326,7 @@ namespace LessMenusMoreImmersion.Behaviors
                 null
             );
 
-            // Notable offers organizer service
+            // Notable offers organizer service (old simple system)
             campaignGameStarter.AddDialogLine(
                 "notable_organizer_response",
                 "notable_organizer_response",
