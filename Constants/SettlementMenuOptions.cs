@@ -95,7 +95,7 @@ namespace LessMenusMoreImmersion.Constants
             {
                 case Features.Keep: return "keep";
                 case Features.Arena: return "arena";
-                case Features.Backstreet: return "back streets";
+                case Features.Backstreet: return "tavern district";
                 case Features.Trade: return "marketplace";
                 case Features.Smithy: return "smithy";
                 default: return feature;

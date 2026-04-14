@@ -32,7 +32,7 @@ namespace LessMenusMoreImmersion.Behaviors
         [NonSerialized] private Dictionary<string, List<string>> settlementsFeaturesAccessed = new Dictionary<string, List<string>>();
         [NonSerialized] private CharacterObject? _localGuide;
         [NonSerialized] private bool _spawnListenerRegistered;
-        
+
         private EscortBehavior _escortBehavior = new EscortBehavior();
 
         private static readonly Dictionary<Occupation, string> OccupationFeatureMap = new Dictionary<Occupation, string>
@@ -374,24 +374,18 @@ namespace LessMenusMoreImmersion.Behaviors
             if (playerClan == null) return true;
 
             if (settlement.OwnerClan == playerClan)
-            {
                 return true;
-            }
 
             int fullTier = LmmiSettingsProvider.FullAccessClanTier;
             if (playerClan.Tier >= fullTier)
-            {
                 return true;
-            }
 
             int kingdomTier = LmmiSettingsProvider.KingdomAccessClanTier;
             if (settlement.OwnerClan?.Kingdom != null &&
                 playerClan.Kingdom != null &&
                 settlement.OwnerClan.Kingdom == playerClan.Kingdom &&
                 playerClan.Tier >= kingdomTier)
-            {
                 return true;
-            }
 
             var settlementId = settlement.Id.ToString();
             if (settlementsWithAccess == null) return false;
@@ -462,6 +456,7 @@ namespace LessMenusMoreImmersion.Behaviors
             );
         }
 
+        // ===================== Escort State =====================
         [NonSerialized] private string? _pendingNavLocationId;
         [NonSerialized] private string? _pendingNavFeature;
         [NonSerialized] private Agent? _pendingNpcAgent;
@@ -475,8 +470,128 @@ namespace LessMenusMoreImmersion.Behaviors
             return CampaignMission.Current?.Location?.StringId == "center";
         }
 
+        // ===================== Escort Dialog Conditions =====================
+
+        /// <summary>
+        /// Fires when escort NPC has arrived at destination — shows "Here we are!" dialog.
+        /// Priority 200 prevents vanilla's crashing escort dialog from running.
+        /// </summary>
+        private bool IsEscortArrivalConversation()
+        {
+            if (!_escortBehavior.IsActive || !_escortBehavior.IsArrived) return false;
+            var convAgent = ConversationMission.OneToOneConversationAgent;
+            if (convAgent == null || convAgent != _escortBehavior.NpcAgent) return false;
+
+            // Set destination display name for the dialog text
+            string feature = _escortBehavior.TargetFeature ?? string.Empty;
+            string destName = SettlementMenuOptions.GetFeatureDisplayName(feature);
+            MBTextManager.SetTextVariable("ESCORT_DESTINATION", destName);
+            return true;
+        }
+
+        /// <summary>
+        /// Fires when player interrupts the escort NPC mid-journey.
+        /// Priority 200 prevents vanilla's crashing escort dialog from running.
+        /// </summary>
+        private bool IsEscortInProgressConversation()
+        {
+            if (!_escortBehavior.IsActive || _escortBehavior.IsArrived) return false;
+            var convAgent = ConversationMission.OneToOneConversationAgent;
+            if (convAgent == null || convAgent != _escortBehavior.NpcAgent) return false;
+
+            // Pick location-specific flavor text
+            string feature = _escortBehavior.TargetFeature ?? string.Empty;
+            float rand = MBRandom.RandomFloat;
+            string text;
+
+            if (feature == SettlementMenuOptions.Features.Backstreet)
+                text = rand < 0.5f ? "The tavern is just around the corner..." : "Nearly at the tavern now...";
+            else if (feature == SettlementMenuOptions.Features.Trade)
+                text = rand < 0.5f ? "The marketplace is just ahead..." : "We're almost at the marketplace...";
+            else if (feature == SettlementMenuOptions.Features.Arena)
+                text = rand < 0.5f ? "The arena is close by, I can hear the crowds..." : "Nearly at the arena...";
+            else if (feature == SettlementMenuOptions.Features.Smithy)
+                text = rand < 0.5f ? "The smithy is nearby, can you smell the forge?" : "Almost at the smithy...";
+            else if (feature == SettlementMenuOptions.Features.Keep)
+                text = rand < 0.5f ? "The lord's hall is just ahead..." : "We're nearly at the lord's hall...";
+            else
+                text = "It's just over there...";
+
+            MBTextManager.SetTextVariable("ESCORT_ENROUTE_TEXT", text);
+            return true;
+        }
+
+        /// <summary>
+        /// Called from arrival dialog — unlocks the feature and finishes the escort.
+        /// </summary>
+        private void CompleteEscortArrival()
+        {
+            LmmiLog.Info("CompleteEscortArrival: Player acknowledged arrival.");
+            _escortBehavior.CompleteEscortArrival();
+        }
+
+        /// <summary>
+        /// Called when player cancels escort mid-journey.
+        /// </summary>
+        private void CancelEscort()
+        {
+            LmmiLog.Info("CancelEscort: Player cancelled escort.");
+            _escortBehavior.Cancel();
+        }
+
+        // ===================== Direction Dialogs =====================
+
         protected void AddTownDirectionsDialogs(CampaignGameStarter starter)
         {
+            // === ESCORT ARRIVAL DIALOG (priority 200) ===
+            // Fires BEFORE vanilla's escort dialog which crashes on TargetAgent.Character when TargetAgent is null.
+            starter.AddDialogLine(
+                "lmmi_escort_arrived",
+                "start",
+                "lmmi_escort_arrived_resp",
+                "{=lmmi_arrived}Here we are! This is the {ESCORT_DESTINATION}.",
+                () => IsEscortArrivalConversation(),
+                null,
+                200
+            );
+            starter.AddPlayerLine(
+                "lmmi_escort_arrived_thanks",
+                "lmmi_escort_arrived_resp",
+                "close_window",
+                "{=lmmi_arrived_thanks}Thank you, I appreciate it.",
+                null,
+                () => CompleteEscortArrival()
+            );
+
+            // === ESCORT EN-ROUTE INTERCEPT (priority 200) ===
+            // Fires when player talks to escorting NPC before reaching destination.
+            starter.AddDialogLine(
+                "lmmi_escort_enroute",
+                "start",
+                "lmmi_escort_enroute_resp",
+                "{=lmmi_enroute}{ESCORT_ENROUTE_TEXT}",
+                () => IsEscortInProgressConversation(),
+                null,
+                200
+            );
+            starter.AddPlayerLine(
+                "lmmi_escort_keep_going",
+                "lmmi_escort_enroute_resp",
+                "close_window",
+                "{=lmmi_keep_going}Let's keep going.",
+                null,
+                null
+            );
+            starter.AddPlayerLine(
+                "lmmi_escort_cancel_opt",
+                "lmmi_escort_enroute_resp",
+                "close_window",
+                "{=lmmi_cancel_esc}Never mind, I'll find it myself.",
+                null,
+                () => CancelEscort()
+            );
+
+            // === DIRECTION REQUEST DIALOGS ===
             starter.AddPlayerLine(
                 "lmmi_dirs_townsfolk_ask",
                 "town_or_village_player",
@@ -564,9 +679,7 @@ namespace LessMenusMoreImmersion.Behaviors
         private void BeginEscort()
         {
             // NOTE: Do NOT clear _pendingNavLocationId/_pendingNavFeature here.
-            // They are class fields that PerformEscortSetup() reads later (from OnMissionTick).
-            // BeginEscort runs during the dialog consequence (conversation still open),
-            // so we capture the agent and settlement NOW while they're valid.
+            // PerformEscortSetup() reads them from OnMissionTick after dialog closes.
             var locationId = _pendingNavLocationId;
             var feature = _pendingNavFeature;
 
@@ -575,54 +688,51 @@ namespace LessMenusMoreImmersion.Behaviors
             var settlement = Settlement.CurrentSettlement;
             if (settlement == null) return;
 
-            // Capture the NPC agent NOW while conversation is still open
+            // Capture agent NOW while conversation is still open
             var npcAgent = ConversationMission.OneToOneConversationAgent;
-            LmmiLog.Info($"BeginEscort: Starting escort to '{locationId}' for feature '{feature}'. NPC agent={(npcAgent != null ? npcAgent.Name + " id=" + npcAgent.Index : "NULL")}");
+            LmmiLog.Info($"BeginEscort: Starting escort to '{locationId}' for '{feature}'. NPC={(npcAgent != null ? npcAgent.Name + " id=" + npcAgent.Index : "NULL")}");
 
             if (npcAgent == null)
             {
-                LmmiLog.Warning("BeginEscort: ConversationMission.OneToOneConversationAgent is null — cannot escort.");
+                LmmiLog.Warning("BeginEscort: OneToOneConversationAgent is null — cannot escort.");
                 return;
             }
 
-            // Store for use after dialog closes
             _pendingNpcAgent = npcAgent;
             _pendingSettlement = settlement;
 
-            InformationManager.DisplayMessage(new InformationMessage(new TextObject("{=lmmi_escort_start}Follow me to the {LOCATION}!").SetTextVariable("LOCATION", feature).ToString()));
+            InformationManager.DisplayMessage(new InformationMessage(
+                new TextObject("{=lmmi_escort_start}Follow me to the {LOCATION}!")
+                    .SetTextVariable("LOCATION", feature).ToString()));
 
             _performEscortSetupPending = true;
         }
 
         private void PerformEscortSetup()
         {
-            // Read all pending state captured in BeginEscort (while conversation was still open)
             var locationId = _pendingNavLocationId;
             var feature = _pendingNavFeature;
             var npcAgent = _pendingNpcAgent;
             var settlement = _pendingSettlement;
 
-            // Clear pending state
             _pendingNavLocationId = null;
             _pendingNavFeature = null;
             _pendingNpcAgent = null;
             _pendingSettlement = null;
             _performEscortSetupPending = false;
 
-            LmmiLog.Info($"PerformEscortSetup: locationId='{locationId}' feature='{feature}' npc={(npcAgent != null ? npcAgent.Name + " id=" + npcAgent.Index : "NULL")} settlement={(settlement != null ? settlement.Name.ToString() : "NULL")}");
+            LmmiLog.Info($"PerformEscortSetup: loc='{locationId}' feat='{feature}' npc={(npcAgent != null ? npcAgent.Name + " id=" + npcAgent.Index : "NULL")} settlement={(settlement != null ? settlement.Name.ToString() : "NULL")}");
 
             if (string.IsNullOrEmpty(locationId) || string.IsNullOrEmpty(feature))
             {
                 LmmiLog.Warning("PerformEscortSetup: No pending location/feature.");
                 return;
             }
-
             if (npcAgent == null || !npcAgent.IsActive())
             {
-                LmmiLog.Warning("PerformEscortSetup: NPC agent is null or inactive.");
+                LmmiLog.Warning("PerformEscortSetup: NPC agent null or inactive.");
                 return;
             }
-
             if (settlement == null)
             {
                 LmmiLog.Warning("PerformEscortSetup: No settlement.");
@@ -633,33 +743,53 @@ namespace LessMenusMoreImmersion.Behaviors
 
             if (locationId == "center")
             {
+                // Marketplace: navigate to a shop worker NPC (not a Notable merchant hero)
                 Agent? merchantAgent = EscortBehavior.FindMerchantAgent(npcAgent);
                 if (merchantAgent != null)
                 {
                     destinationPos = merchantAgent.Position;
-                    LmmiLog.Info($"PerformEscortSetup: Using merchant agent at {destinationPos}");
+                    LmmiLog.Info($"PerformEscortSetup: Using shop worker agent at {destinationPos}");
                 }
                 else
                 {
-                    LmmiLog.Warning("PerformEscortSetup: No merchant agent found for 'center' escort.");
+                    LmmiLog.Warning("PerformEscortSetup: No shop worker found for 'center'.");
+                }
+            }
+            else if (locationId == "smithy")
+            {
+                // Smithy: navigate to the blacksmith NPC in the town center
+                Agent? blacksmithAgent = EscortBehavior.FindBlacksmithAgent(npcAgent);
+                if (blacksmithAgent != null)
+                {
+                    destinationPos = blacksmithAgent.Position;
+                    LmmiLog.Info($"PerformEscortSetup: Using blacksmith agent at {destinationPos}");
+                }
+                else
+                {
+                    // Fallback: try passage just in case
+                    destinationPos = EscortBehavior.FindPassagePosition(locationId);
+                    if (destinationPos.HasValue)
+                        LmmiLog.Info($"PerformEscortSetup: Smithy fallback passage at {destinationPos}");
+                    else
+                        LmmiLog.Warning("PerformEscortSetup: No blacksmith agent or passage found for 'smithy'.");
                 }
             }
             else
             {
                 destinationPos = EscortBehavior.FindPassagePosition(locationId);
                 if (destinationPos.HasValue)
-                    LmmiLog.Info($"PerformEscortSetup: Using passage position at {destinationPos}");
+                    LmmiLog.Info($"PerformEscortSetup: Passage at {destinationPos}");
                 else
-                    LmmiLog.Warning($"PerformEscortSetup: FindPassagePosition returned null for '{locationId}'.");
+                    LmmiLog.Warning($"PerformEscortSetup: FindPassagePosition null for '{locationId}'.");
             }
 
             if (!destinationPos.HasValue)
             {
-                LmmiLog.Warning($"PerformEscortSetup: Cannot find destination for '{locationId}' — escort aborted.");
+                LmmiLog.Warning($"PerformEscortSetup: No destination for '{locationId}' — aborted.");
                 return;
             }
 
-            LmmiLog.Info($"PerformEscortSetup: Calling StartEscort. NPC={npcAgent.Name}, dest={destinationPos.Value}, feature={feature}");
+            LmmiLog.Info($"PerformEscortSetup: StartEscort NPC={npcAgent.Name} dest={destinationPos.Value} feat={feature}");
             _escortBehavior.StartEscort(npcAgent, destinationPos.Value, feature, settlement);
         }
 
@@ -670,7 +800,6 @@ namespace LessMenusMoreImmersion.Behaviors
                 LmmiLog.Info("OnMissionTick: Conversation ended - performing escort setup.");
                 _performEscortSetupPending = false;
                 PerformEscortSetup();
-                return;
             }
         }
 
@@ -717,12 +846,9 @@ namespace LessMenusMoreImmersion.Behaviors
                         bool isOriginalConditionMet = originalCondition == null || originalCondition(args);
 
                         if (currentSettlement == null)
-                        {
                             return isOriginalConditionMet;
-                        }
 
                         bool hasFeature = behaviorInstance.HasFeatureAccess(currentSettlement, requiredFeature);
-
                         bool finalEnabled = isOriginalConditionMet && hasFeature;
                         args.IsEnabled = finalEnabled;
 
