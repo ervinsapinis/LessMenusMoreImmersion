@@ -33,7 +33,7 @@ namespace LessMenusMoreImmersion.Behaviors
         [NonSerialized] private CharacterObject? _localGuide;
         [NonSerialized] private bool _spawnListenerRegistered;
 
-        private EscortBehavior _escortBehavior = new EscortBehavior();
+        [NonSerialized] private EscortBehavior _escortBehavior = new EscortBehavior();
 
         private static readonly Dictionary<Occupation, string> OccupationFeatureMap = new Dictionary<Occupation, string>
         {
@@ -45,6 +45,9 @@ namespace LessMenusMoreImmersion.Behaviors
             { Occupation.Merchant, SettlementMenuOptions.Features.Trade },
             { Occupation.GoodsTrader, SettlementMenuOptions.Features.Trade },
             { Occupation.ShopWorker, SettlementMenuOptions.Features.Trade },
+            { Occupation.Blacksmith, SettlementMenuOptions.Features.Smithy },
+            { Occupation.Armorer, SettlementMenuOptions.Features.Smithy },
+            { Occupation.Weaponsmith, SettlementMenuOptions.Features.Smithy },
         };
 
         public override void RegisterEvents()
@@ -456,12 +459,111 @@ namespace LessMenusMoreImmersion.Behaviors
             );
         }
 
+        // ===================== Citizen Willingness State =====================
+        private enum CitizenWillingness
+        {
+            Undetermined,
+            TooBusy,
+            Foreigner,
+            Glad,
+            Greedy
+        }
+
+        [NonSerialized] private CitizenWillingness _currentWillingness = CitizenWillingness.Undetermined;
+        [NonSerialized] private int _bribeAmount;
+        [NonSerialized] private Dictionary<int, CitizenWillingness> _agentWillingnessMap = new Dictionary<int, CitizenWillingness>();
+        [NonSerialized] private Dictionary<int, int> _agentBribeMap = new Dictionary<int, int>();
+        [NonSerialized] private Settlement? _lastWillingnessSettlement;
+
         // ===================== Escort State =====================
         [NonSerialized] private string? _pendingNavLocationId;
         [NonSerialized] private string? _pendingNavFeature;
         [NonSerialized] private Agent? _pendingNpcAgent;
         [NonSerialized] private Settlement? _pendingSettlement;
         [NonSerialized] private bool _performEscortSetupPending;
+
+        private void CalculateWillingness()
+        {
+            var partner = CharacterObject.OneToOneConversationCharacter;
+            var agent = ConversationMission.OneToOneConversationAgent;
+            var settlement = Settlement.CurrentSettlement;
+            var player = Hero.MainHero;
+
+            if (partner == null || settlement == null || player == null || agent == null)
+            {
+                _currentWillingness = CitizenWillingness.Glad;
+                return;
+            }
+
+            // Reset cache if we entered a new settlement
+            if (_lastWillingnessSettlement != settlement)
+            {
+                _agentWillingnessMap.Clear();
+                _agentBribeMap.Clear();
+                _lastWillingnessSettlement = settlement;
+            }
+
+            int agentId = agent.Index;
+
+            // Did we already roll for this NPC?
+            if (_agentWillingnessMap.TryGetValue(agentId, out var existingWillingness))
+            {
+                _currentWillingness = existingWillingness;
+                if (existingWillingness == CitizenWillingness.Greedy && _agentBribeMap.TryGetValue(agentId, out var existingBribe))
+                {
+                    _bribeAmount = existingBribe;
+                    MBTextManager.SetTextVariable("BRIBE_AMOUNT", _bribeAmount);
+                }
+                return;
+            }
+
+            // Owner or kingdom member? Always glad to help.
+            if (settlement.OwnerClan == player.Clan ||
+                (player.Clan.Kingdom != null && player.Clan.Kingdom == settlement.OwnerClan.Kingdom))
+            {
+                _currentWillingness = CitizenWillingness.Glad;
+                _agentWillingnessMap[agentId] = _currentWillingness;
+                return;
+            }
+
+            // Roll for it
+            int busyWeight = 0, foreignerWeight = 0, gladWeight = 0, greedyWeight = 0;
+            switch (player.Clan.Tier)
+            {
+                case 0:
+                case 1: busyWeight = 30; foreignerWeight = 25; gladWeight = 25; greedyWeight = 20; break;
+                case 2: busyWeight = 20; foreignerWeight = 15; gladWeight = 40; greedyWeight = 25; break;
+                default: busyWeight = 0; foreignerWeight = 0; gladWeight = 60; greedyWeight = 40; break;
+            }
+
+            // Same culture bonus
+            if (partner.Culture == player.Culture)
+            {
+                gladWeight += foreignerWeight;
+                foreignerWeight = 0;
+            }
+
+            int total = busyWeight + foreignerWeight + gladWeight + greedyWeight;
+            int roll = MBRandom.RandomInt(total);
+
+            if ((roll -= busyWeight) < 0) _currentWillingness = CitizenWillingness.TooBusy;
+            else if ((roll -= foreignerWeight) < 0) _currentWillingness = CitizenWillingness.Foreigner;
+            else if ((roll -= gladWeight) < 0) _currentWillingness = CitizenWillingness.Glad;
+            else _currentWillingness = CitizenWillingness.Greedy;
+
+            if (_currentWillingness == CitizenWillingness.Greedy)
+            {
+                _bribeAmount = (int)(player.Gold * 0.01f) + (10 * player.Clan.Tier) + 10;
+                _bribeAmount = Math.Min(_bribeAmount, 500); // Cap at 500
+                if (partner.Culture == player.Culture)
+                    _bribeAmount /= 2; // Same culture discount
+                
+                MBTextManager.SetTextVariable("BRIBE_AMOUNT", _bribeAmount);
+                _agentBribeMap[agentId] = _bribeAmount;
+            }
+
+            _agentWillingnessMap[agentId] = _currentWillingness;
+        }
 
         private bool IsInTownCenter()
         {
@@ -591,47 +693,76 @@ namespace LessMenusMoreImmersion.Behaviors
                 () => CancelEscort()
             );
 
-            // === DIRECTION REQUEST DIALOGS ===
+            // === DIRECTION REQUEST DIALOG (entry point) ===
+            // This is the player's opening line. On consequence, we roll for citizen willingness.
             starter.AddPlayerLine(
-                "lmmi_dirs_townsfolk_ask",
+                "lmmi_dirs_ask",
                 "town_or_village_player",
-                "lmmi_dirs_where_resp",
-                "{=lmmi_dirs_ask}Can you show me way somewhere?",
-                () =>
-                {
+                "lmmi_dirs_willingness_check",
+                "{=lmmi_dirs_ask}Can you show me the way somewhere?",
+                () => {
                     if (!IsInTownCenter()) return false;
                     var partner = CharacterObject.OneToOneConversationCharacter;
-                    if (partner == null || partner == _localGuide) return false;
+                    if (partner == null || partner.IsHero || partner == _localGuide) return false;
                     var s = Settlement.CurrentSettlement;
                     return s != null && HasAnyUndiscoveredFeature(s);
                 },
-                null
+                () => CalculateWillingness()
             );
 
-            starter.AddPlayerLine(
+            // Add for notables as well
+             starter.AddPlayerLine(
                 "lmmi_dirs_notable_ask",
                 "hero_main_options",
-                "lmmi_dirs_where_resp",
-                "{=lmmi_dirs_ask}Can you show me way somewhere?",
-                () =>
-                {
+                "lmmi_dirs_willingness_check",
+                "{=lmmi_dirs_ask}Can you show me the way somewhere?",
+                 () => {
                     if (!IsInTownCenter()) return false;
                     var partner = CharacterObject.OneToOneConversationCharacter;
-                    if (partner == null || partner == _localGuide) return false;
+                    if (partner == null || !partner.IsHero || partner == _localGuide) return false;
                     var s = Settlement.CurrentSettlement;
                     return s != null && HasAnyUndiscoveredFeature(s);
                 },
-                null
+                () => _currentWillingness = CitizenWillingness.Glad // Notables are always helpful
             );
 
-            starter.AddDialogLine(
-                "lmmi_dirs_where_resp_line",
-                "lmmi_dirs_where_resp",
-                "lmmi_dirs_choices",
-                "{=lmmi_dirs_where}Where would you like to go?",
-                null,
-                null
-            );
+            // === WILLINGNESS CHECK & DIVERGENCE ===
+            // This is a dummy state that immediately diverges based on the roll.
+            starter.AddDialogLine("lmmi_dirs_willingness_check_nonverbal", "lmmi_dirs_willingness_check", "close_window", string.Empty, () => false, null);
+
+            // OUTCOME 1: Too Busy
+            starter.AddDialogLine("lmmi_dirs_busy_resp", "lmmi_dirs_willingness_check", "close_window",
+                "{=lmmi_busy}Can't you see I'm busy? Find someone else.",
+                () => _currentWillingness == CitizenWillingness.TooBusy, null);
+
+            // OUTCOME 2: Foreigner
+            starter.AddDialogLine("lmmi_dirs_foreigner_resp", "lmmi_dirs_willingness_check", "close_window",
+                "{=lmmi_foreigner}I don't help outsiders around here. Move along.",
+                () => _currentWillingness == CitizenWillingness.Foreigner, null);
+
+            // OUTCOME 3: Glad
+            starter.AddDialogLine("lmmi_dirs_glad_resp", "lmmi_dirs_willingness_check", "lmmi_dirs_choices",
+                "{=lmmi_glad}Of course! Where would you like to go?",
+                () => _currentWillingness == CitizenWillingness.Glad, null);
+
+            // OUTCOME 4: Greedy
+            starter.AddDialogLine("lmmi_dirs_greedy_resp", "lmmi_dirs_willingness_check", "lmmi_dirs_greedy_options",
+                "{=lmmi_greedy}I know this town well... every back alley and shortcut. For {BRIBE_AMOUNT}{GOLD_ICON}, I'll take you wherever you need to go.",
+                () => _currentWillingness == CitizenWillingness.Greedy, null);
+
+            starter.AddPlayerLine("lmmi_dirs_greedy_pay", "lmmi_dirs_greedy_options", "lmmi_dirs_choices_paid",
+                "{=lmmi_greedy_pay}Agreed. Here is the coin.",
+                () => Hero.MainHero.Gold >= _bribeAmount,
+                () => { 
+                    Hero.MainHero.ChangeHeroGold(-_bribeAmount); 
+                    _agentWillingnessMap[ConversationMission.OneToOneConversationAgent.Index] = CitizenWillingness.Glad; 
+                });
+
+            starter.AddPlayerLine("lmmi_dirs_greedy_refuse", "lmmi_dirs_greedy_options", "close_window",
+                "{=lmmi_greedy_refuse}I'll find my own way.", null, null);
+
+            starter.AddDialogLine("lmmi_dirs_greedy_paid_resp", "lmmi_dirs_choices_paid", "lmmi_dirs_choices",
+                "{=lmmi_greedy_paid_resp}Excellent. Where to?", null, null);
 
             starter.AddPlayerLine("lmmi_dirs_to_tavern", "lmmi_dirs_choices", "lmmi_dirs_follow",
                 "{=lmmi_dirs_tavern}The tavern.",
@@ -805,8 +936,90 @@ namespace LessMenusMoreImmersion.Behaviors
 
         public override void SyncData(IDataStore dataStore)
         {
-            dataStore.SyncData("_settlementsWithAccess", ref settlementsWithAccess);
-            dataStore.SyncData("_settlementsFeaturesAccessed", ref settlementsFeaturesAccessed);
+            // Serialize ONLY as a plain string — avoids Bannerlord's container graph walker
+            // which crashes on nested types (Dictionary<string, List<string>>) and
+            // non-serializable objects (Agent, Settlement refs inside EscortBehavior).
+            string savedData = string.Empty;
+            if (!dataStore.IsLoading)
+                savedData = BuildSaveString();
+
+            dataStore.SyncData("lmmi_data_v1", ref savedData);
+
+            if (dataStore.IsLoading)
+                LoadSaveString(savedData);
+        }
+
+        /// <summary>
+        /// Encodes all discovery state as a plain string safe for Bannerlord's save system.
+        /// Format: entries separated by '|'
+        ///   Full access: "F:{settlementId}"
+        ///   Feature access: "D:{settlementId}:{feat1},{feat2}"
+        /// </summary>
+        private string BuildSaveString()
+        {
+            var parts = new List<string>();
+
+            if (settlementsWithAccess != null)
+                foreach (var kv in settlementsWithAccess)
+                    if (kv.Value)
+                        parts.Add("F:" + kv.Key);
+
+            if (settlementsFeaturesAccessed != null)
+                foreach (var kv in settlementsFeaturesAccessed)
+                    if (kv.Value != null && kv.Value.Count > 0)
+                        parts.Add("D:" + kv.Key + ":" + string.Join(",", kv.Value));
+
+            var result = string.Join("|", parts);
+            LmmiLog.Debug($"SyncData Save: {parts.Count} entries encoded.");
+            return result;
+        }
+
+        /// <summary>
+        /// Restores discovery state from a saved string.
+        /// </summary>
+        private void LoadSaveString(string savedData)
+        {
+            settlementsWithAccess = new Dictionary<string, bool>();
+            settlementsFeaturesAccessed = new Dictionary<string, List<string>>();
+
+            if (string.IsNullOrEmpty(savedData))
+            {
+                LmmiLog.Debug("SyncData Load: No saved data found.");
+                return;
+            }
+
+            int loaded = 0;
+            foreach (var part in savedData.Split('|'))
+            {
+                if (string.IsNullOrEmpty(part)) continue;
+
+                if (part.StartsWith("F:"))
+                {
+                    var id = part.Substring(2);
+                    if (!string.IsNullOrEmpty(id))
+                    {
+                        settlementsWithAccess[id] = true;
+                        loaded++;
+                    }
+                }
+                else if (part.StartsWith("D:"))
+                {
+                    var rest = part.Substring(2);
+                    int colonIdx = rest.IndexOf(':');
+                    if (colonIdx > 0)
+                    {
+                        var id = rest.Substring(0, colonIdx);
+                        var featureStr = rest.Substring(colonIdx + 1);
+                        if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(featureStr))
+                        {
+                            settlementsFeaturesAccessed[id] = new List<string>(featureStr.Split(','));
+                            loaded++;
+                        }
+                    }
+                }
+            }
+
+            LmmiLog.Debug($"SyncData Load: {loaded} entries restored.");
         }
 
         public static class HarmonyPatches

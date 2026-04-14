@@ -1,144 +1,392 @@
 ﻿using HarmonyLib;
 using System;
 using System.Linq;
+using System.Reflection;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Settlements;
-using TaleWorlds.Library;
 using TaleWorlds.MountAndBlade;
-using LessMenusMoreImmersion.Behaviors;
 using LessMenusMoreImmersion.Constants;
 using LessMenusMoreImmersion.Logging;
 using TaleWorlds.Core;
+using TaleWorlds.CampaignSystem.Settlements.Locations;
 
 namespace LessMenusMoreImmersion.Behaviors
 {
     /// <summary>
-    /// Campaign behavior to manage ALT highlighting status and show notifications.
+    /// Campaign behavior that lazily applies nameplate Harmony patches on the first mission tick.
+    /// Using MissionTickEvent guarantees SandBox.GauntletUI is loaded before we search for it.
     /// </summary>
     public class AltOverlayBlockerBehavior : CampaignBehaviorBase
     {
-        private bool _lastBlockStatus = false;
-        private string _lastSettlementId = "";
+        private static bool _patchesApplied;
 
         public override void RegisterEvents()
         {
-            CampaignEvents.OnMissionStartedEvent.AddNonSerializedListener(this, OnMissionStarted);
+            CampaignEvents.MissionTickEvent.AddNonSerializedListener(this, OnMissionTick);
         }
 
-        public override void SyncData(IDataStore dataStore)
+        public override void SyncData(IDataStore dataStore) { }
+
+        private void OnMissionTick(float dt)
         {
-            // No data to sync
+            if (_patchesApplied) return;
+            NameMarkerPatches.TryApply();
+            _patchesApplied = true;
         }
-
-        private void OnMissionStarted(IMission mission)
-        {
-            // Status-change notification removed — the per-feature blocking fires
-            // dynamically on every tick via HighlightingBlocker, so a one-shot
-            // on-enter message would be misleading (features can unlock mid-session).
-        }
-
-        private bool ShouldBlockHighlighting() => HighlightingBlocker.ShouldBlockHighlighting();
     }
 
     /// <summary>
-    /// Helper class to check if ALT highlighting should be blocked.
-    /// Used by the Harmony patches.
+    /// Locates MissionGauntletNameMarkerView and applies Prefix + Postfix patches at runtime.
     /// </summary>
-    public static class HighlightingBlocker
+    internal static class NameMarkerPatches
     {
-        /// <summary>
-        /// Called every tick while Alt is held. Returns true when nameplate
-        /// rendering should be suppressed for the current scene.
-        ///
-        /// Logic mirrors <see cref="CustomSettlementAccessModel.CanMainHeroAccessLocation"/>:
-        /// - Full settlement access → never block.
-        /// - Current scene maps to a feature → block only until that feature is discovered.
-        /// - Unmapped scene (shouldn't normally occur) → block until full access.
-        /// </summary>
-        /// <summary>
-        /// Returns true only when the player is inside a sub-location scene
-        /// (tavern, smithy, lordshall, etc.) that has NOT been discovered yet.
-        ///
-        /// The town center ("center") is NEVER blocked — companions, passage
-        /// markers and all agents show normally there.
-        /// </summary>
-        public static bool ShouldBlockHighlighting()
+        public static void TryApply()
         {
             try
             {
-                if (Campaign.Current == null || Mission.Current == null)
-                    return false;
+                // Locate the SandBox.GauntletUI assembly (loaded by Bannerlord at this point)
+                var assembly = AppDomain.CurrentDomain.GetAssemblies()
+                    .FirstOrDefault(a => a.GetName().Name == "SandBox.GauntletUI");
+
+                if (assembly == null)
+                {
+                    // Log related assemblies to help diagnose name mismatch
+                    var candidates = AppDomain.CurrentDomain.GetAssemblies()
+                        .Select(a => a.GetName().Name)
+                        .Where(n => n != null && (n.Contains("Sand") || n.Contains("Gauntlet") || n.Contains("NameMarker")))
+                        .ToList();
+                    LmmiLog.Warning($"NameMarkerPatches: SandBox.GauntletUI not found. Candidates: [{string.Join(", ", candidates)}]");
+                    return;
+                }
+
+                // Find the name marker view type
+                var viewType = assembly.GetType("SandBox.GauntletUI.Missions.MissionGauntletNameMarkerView");
+                if (viewType == null)
+                {
+                    var nameMarkerTypes = assembly.GetTypes()
+                        .Where(t => t.Name.Contains("NameMarker") || t.Name.Contains("Marker"))
+                        .Select(t => t.FullName)
+                        .ToList();
+                    LmmiLog.Warning($"NameMarkerPatches: MissionGauntletNameMarkerView not found. Types with 'Marker': [{string.Join(", ", nameMarkerTypes)}]");
+                    return;
+                }
+
+                // Find OnMissionScreenTick
+                var tickMethod = viewType.GetMethod("OnMissionScreenTick", BindingFlags.Public | BindingFlags.Instance);
+                if (tickMethod == null)
+                {
+                    var methods = viewType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                        .Select(m => m.Name).ToList();
+                    LmmiLog.Warning($"NameMarkerPatches: OnMissionScreenTick not found. Public instance methods: [{string.Join(", ", methods)}]");
+                    return;
+                }
+
+                // Hand the type to the filter patch for reflection caching
+                NameMarkerFilterPatch.Initialize(viewType);
+
+                var harmony = new Harmony("LessMenusMoreImmersion.NameMarker");
+
+                var prefix = typeof(NameMarkerViewPatch)
+                    .GetMethod(nameof(NameMarkerViewPatch.Prefix), BindingFlags.Static | BindingFlags.Public);
+                var postfix = typeof(NameMarkerFilterPatch)
+                    .GetMethod(nameof(NameMarkerFilterPatch.Postfix), BindingFlags.Static | BindingFlags.Public);
+
+                harmony.Patch(tickMethod,
+                    prefix: prefix != null ? new HarmonyMethod(prefix) : null,
+                    postfix: postfix != null ? new HarmonyMethod(postfix) : null);
+
+                LmmiLog.Info($"NameMarkerPatches: Patches applied to {viewType.Name}.{tickMethod.Name}.");
+            }
+            catch (Exception ex)
+            {
+                LmmiLog.Error("NameMarkerPatches.TryApply failed", ex);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Prefix: completely block nameplate updates in undiscovered sub-locations (tavern, smithy, etc.)
+    /// </summary>
+    internal static class NameMarkerViewPatch
+    {
+        public static bool Prefix()
+        {
+            try
+            {
+                if (Campaign.Current == null || Mission.Current == null) return true;
 
                 var settlement = Settlement.CurrentSettlement;
-                if (settlement == null)
-                    return false;
+                if (settlement == null) return true;
 
                 var accessBehavior = Campaign.Current.GetCampaignBehavior<DisableMenuBehavior>();
-                if (accessBehavior == null)
-                    return false;
+                if (accessBehavior == null) return true;
 
-                // Full access → never block anywhere.
-                if (accessBehavior.HasAccessToSettlement(settlement))
-                    return false;
+                if (accessBehavior.HasAccessToSettlement(settlement)) return true;
 
                 var locationId = CampaignMission.Current?.Location?.StringId;
+                // Never block in the center — Postfix handles per-agent filtering there
+                if (string.IsNullOrEmpty(locationId) || locationId == "center") return true;
 
-                // Town center / unmapped → never block.
-                if (string.IsNullOrEmpty(locationId) || locationId == "center")
-                    return false;
-
-                // Sub-location with a feature mapping → block only if undiscovered.
                 if (SettlementMenuOptions.LocationFeatureMap.TryGetValue(locationId!, out var feature))
-                    return !accessBehavior.HasFeatureAccess(settlement, feature);
+                    return accessBehavior.HasFeatureAccess(settlement, feature);
 
-                // Unknown sub-location → don't block.
-                return false;
+                return true;
             }
             catch
             {
-                return false;
+                return true;
             }
         }
     }
-}
 
-/// <summary>
-/// Harmony patch to disable nameplate updates when no settlement access.
-/// </summary>
-[HarmonyPatch]
-internal static class NameMarkerViewPatch
-{
-    // Use TargetMethod to be more flexible about finding the right method
-    static System.Reflection.MethodBase TargetMethod()
+    /// <summary>
+    /// Postfix: in the town center, selectively hide nameplates for undiscovered NPCs.
+    /// </summary>
+    internal static class NameMarkerFilterPatch
     {
-        try
-        {
-            // Try to find the MissionGauntletNameMarkerView class
-            var assembly = System.AppDomain.CurrentDomain.GetAssemblies()
-                .FirstOrDefault(a => a.GetName().Name == "SandBox.GauntletUI");
+        private static Type? _markerViewType;
+        private static FieldInfo? _dataSourceField;
+        private static PropertyInfo? _targetsProperty;
+        private static PropertyInfo? _isEnabledProperty;
+        private static bool _reflectionReady;
+        private static bool _reflectionFailed;
+        
+        // Cache for generic properties (Target property depends on runtime subclass)
+        private static readonly System.Collections.Generic.Dictionary<Type, PropertyInfo?> _targetPropertiesCache = new();
+        private static readonly System.Collections.Generic.Dictionary<Type, FieldInfo?> _identifierFieldsCache = new();
 
-            if (assembly != null)
+        public static void Initialize(Type markerViewType)
+        {
+            _markerViewType = markerViewType;
+            _reflectionReady = false;
+            _reflectionFailed = false;
+        }
+
+        public static void Postfix(object __instance)
+        {
+            if (_reflectionFailed) return;
+
+            try
             {
-                var type = assembly.GetType("SandBox.GauntletUI.Missions.MissionGauntletNameMarkerView");
-                if (type != null)
+                if (!_reflectionReady)
                 {
-                    return type.GetMethod("OnMissionScreenTick",
-                        System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                    CacheReflection();
+                    if (_reflectionFailed) return;
+                }
+
+                var settlement = Settlement.CurrentSettlement;
+                if (settlement == null || !settlement.IsTown) return;
+
+                var accessBehavior = Campaign.Current?.GetCampaignBehavior<DisableMenuBehavior>();
+                if (accessBehavior == null) return;
+
+                // Full settlement access = show everything
+                if (accessBehavior.HasAccessToSettlement(settlement)) return;
+
+                // Only filter in the town center
+                var locationId = CampaignMission.Current?.Location?.StringId;
+                if (locationId != "center") return;
+
+                var dataSource = _dataSourceField!.GetValue(__instance);
+                if (dataSource == null) return;
+
+                var targets = _targetsProperty!.GetValue(dataSource) as System.Collections.IList;
+                if (targets == null) return;
+
+                foreach (var target in targets)
+                {
+                    if (target == null) continue;
+                    
+                    var targetType = target.GetType();
+
+                    // Check if it's an Agent marker (e.g., MissionNameMarkerTargetVM<Agent>)
+                    if (!_targetPropertiesCache.TryGetValue(targetType, out var targetProp))
+                    {
+                        targetProp = targetType.GetProperty("Target", BindingFlags.Public | BindingFlags.Instance);
+                        _targetPropertiesCache[targetType] = targetProp;
+                    }
+
+                    if (targetProp != null)
+                    {
+                        var agent = targetProp.GetValue(target) as Agent;
+                        if (agent != null)
+                        {
+                            if (!ShouldShowAgent(agent, accessBehavior, settlement))
+                                _isEnabledProperty!.SetValue(target, false);
+                            continue;
+                        }
+                    }
+
+                    // Check if it's a generic marker (e.g., passage to tavern/arena)
+                    // (MissionGenericMarkerTargetVM has an 'Identifier' field/property)
+                    if (!_identifierFieldsCache.TryGetValue(targetType, out var identifierField))
+                    {
+                        identifierField = targetType.GetField("Identifier", BindingFlags.Public | BindingFlags.Instance);
+                        _identifierFieldsCache[targetType] = identifierField;
+                    }
+
+                    if (identifierField != null)
+                    {
+                        var identifier = identifierField.GetValue(target) as string;
+                        if (!string.IsNullOrEmpty(identifier))
+                        {
+                            if (!ShouldShowLocationIdentifier(identifier, accessBehavior, settlement))
+                                _isEnabledProperty!.SetValue(target, false);
+                        }
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                LmmiLog.Warning($"NameMarkerFilterPatch.Postfix error: {ex.Message}");
+                _reflectionFailed = true;
+            }
         }
-        catch (Exception ex)
+
+        private static void CacheReflection()
         {
-            // If we can't find it, return null and the patch won't apply
-            LmmiLog.Warning($"NameMarkerViewPatch.TargetMethod failed to locate target: {ex.Message}");
+            if (_markerViewType == null)
+            {
+                LmmiLog.Warning("NameMarkerFilterPatch.CacheReflection: _markerViewType is null.");
+                _reflectionFailed = true;
+                return;
+            }
+
+            try
+            {
+                // Try known field names for the ViewModel
+                _dataSourceField =
+                    _markerViewType.GetField("_dataSource", BindingFlags.NonPublic | BindingFlags.Instance)
+                    ?? _markerViewType.GetField("_missionNameMarkerVM", BindingFlags.NonPublic | BindingFlags.Instance)
+                    ?? _markerViewType.GetField("_nameMarkerVM", BindingFlags.NonPublic | BindingFlags.Instance);
+
+                if (_dataSourceField == null)
+                {
+                    var allFields = _markerViewType
+                        .GetFields(BindingFlags.NonPublic | BindingFlags.Instance)
+                        .Select(f => $"{f.Name}({f.FieldType.Name})").ToList();
+                    LmmiLog.Warning($"NameMarkerFilterPatch: VM field not found. NonPublic instance fields: [{string.Join(", ", allFields)}]");
+                    _reflectionFailed = true;
+                    return;
+                }
+
+                LmmiLog.Info($"NameMarkerFilterPatch: Using VM field '{_dataSourceField.Name}' ({_dataSourceField.FieldType.Name})");
+
+                var vmType = _dataSourceField.FieldType;
+
+                // Try known property names for the Targets list
+                _targetsProperty =
+                    vmType.GetProperty("Targets", BindingFlags.Public | BindingFlags.Instance)
+                    ?? vmType.GetProperty("MarkerList", BindingFlags.Public | BindingFlags.Instance);
+
+                if (_targetsProperty == null)
+                {
+                    var allProps = vmType
+                        .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                        .Select(p => $"{p.Name}({p.PropertyType.Name})").ToList();
+                    LmmiLog.Warning($"NameMarkerFilterPatch: Targets property not found on {vmType.Name}. Props: [{string.Join(", ", allProps)}]");
+                    _reflectionFailed = true;
+                    return;
+                }
+
+                LmmiLog.Info($"NameMarkerFilterPatch: Using targets property '{_targetsProperty.Name}'");
+
+                var genericArgs = _targetsProperty.PropertyType.GetGenericArguments();
+                if (genericArgs.Length == 0)
+                {
+                    LmmiLog.Warning($"NameMarkerFilterPatch: '{_targetsProperty.Name}' has no generic type args (type={_targetsProperty.PropertyType.Name}).");
+                    _reflectionFailed = true;
+                    return;
+                }
+
+                var itemType = genericArgs[0];
+                LmmiLog.Info($"NameMarkerFilterPatch: Target base item type: {itemType.FullName}");
+
+                _isEnabledProperty = itemType.GetProperty("IsEnabled", BindingFlags.Public | BindingFlags.Instance);
+
+                if (_isEnabledProperty == null)
+                {
+                    var props = itemType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                        .Select(p => p.Name).ToList();
+                    LmmiLog.Warning($"NameMarkerFilterPatch: Missing IsEnabled on {itemType.Name}. All props: [{string.Join(", ", props)}]");
+                    _reflectionFailed = true;
+                    return;
+                }
+
+                _reflectionReady = true;
+                LmmiLog.Info("NameMarkerFilterPatch: Base reflection cached. Subclass properties will be resolved dynamically.");
+            }
+            catch (Exception ex)
+            {
+                LmmiLog.Warning($"NameMarkerFilterPatch.CacheReflection exception: {ex.Message}");
+                _reflectionFailed = true;
+            }
         }
 
-        return null;
-    }
+        private static bool ShouldShowAgent(Agent agent, DisableMenuBehavior accessBehavior, Settlement settlement)
+        {
+            // Always show the player
+            if (agent.IsPlayerControlled) return true;
 
-    static bool Prefix()
-    {
-        // Block nameplate updates if no settlement access
-        return !LessMenusMoreImmersion.Behaviors.HighlightingBlocker.ShouldBlockHighlighting();
+            if (agent.IsHero)
+            {
+                var charObj = agent.Character as CharacterObject;
+                var hero = charObj?.HeroObject;
+                if (hero == null) return true; // Unknown hero — show safely
+
+                // Companions and clan members always visible
+                if (hero.Clan == Clan.PlayerClan) return true;
+
+                // Other heroes (lords/notables) — only if the Keep is discovered
+                return accessBehavior.HasFeatureAccess(settlement, SettlementMenuOptions.Features.Keep);
+            }
+
+            var character = agent.Character as CharacterObject;
+            if (character == null) return false;
+
+            switch (character.Occupation)
+            {
+                case Occupation.ShopWorker:
+                case Occupation.GoodsTrader:
+                case Occupation.Merchant:
+                    return accessBehavior.HasFeatureAccess(settlement, SettlementMenuOptions.Features.Trade);
+
+                case Occupation.Tavernkeeper:
+                case Occupation.TavernWench:
+                case Occupation.TavernGameHost:
+                case Occupation.GangLeader:
+                case Occupation.Gangster:
+                    return accessBehavior.HasFeatureAccess(settlement, SettlementMenuOptions.Features.Backstreet);
+
+                case Occupation.Weaponsmith:
+                case Occupation.Armorer:
+                case Occupation.Blacksmith:
+                    return accessBehavior.HasFeatureAccess(settlement, SettlementMenuOptions.Features.Smithy);
+            }
+
+            // Fallback string-ID checks for smithy/arena NPCs without a distinct occupation
+            if (character.StringId != null)
+            {
+                if (character.StringId.IndexOf("smith", StringComparison.OrdinalIgnoreCase) >= 0)
+                    return accessBehavior.HasFeatureAccess(settlement, SettlementMenuOptions.Features.Smithy);
+
+                if (character.StringId.IndexOf("arena", StringComparison.OrdinalIgnoreCase) >= 0)
+                    return accessBehavior.HasFeatureAccess(settlement, SettlementMenuOptions.Features.Arena);
+            }
+
+            // Default: random townsfolk — hide
+            return false;
+        }
+
+        private static bool ShouldShowLocationIdentifier(string identifier, DisableMenuBehavior accessBehavior, Settlement settlement)
+        {
+            if (string.IsNullOrEmpty(identifier)) return true;
+
+            // "tavern", "arena", "lordshall", etc. map to feature names
+            if (SettlementMenuOptions.LocationFeatureMap.TryGetValue(identifier, out var feature))
+                return accessBehavior.HasFeatureAccess(settlement, feature);
+
+            return true;
+        }
     }
 }
