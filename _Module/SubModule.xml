@@ -25,6 +25,8 @@
     <DependedModuleMetadata id="Sandbox" order="LoadBeforeThis" />
     <DependedModuleMetadata id="StoryMode" order="LoadBeforeThis" />
     <DependedModuleMetadata id="CustomBattle" order="LoadBeforeThis" />
+    <!-- MCM is optional: when present it provides the settings menu; when absent the mod uses built-in defaults. -->
+    <DependedModuleMetadata id="Bannerlord.MBOptionScreen" order="LoadBeforeThis" optional="true" />
   </DependedModuleMetadatas>
   <!-- Community Dependency Metadata -->
   <SubModules>

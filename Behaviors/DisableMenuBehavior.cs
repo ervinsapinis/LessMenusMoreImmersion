@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using HarmonyLib;
 using LessMenusMoreImmersion.Constants;
+using LessMenusMoreImmersion.Logging;
+using LessMenusMoreImmersion.Settings;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.AgentOrigins;
 using TaleWorlds.CampaignSystem.Encounters;
@@ -14,75 +15,130 @@ using TaleWorlds.CampaignSystem.Settlements.Locations;
 using TaleWorlds.Core;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
-using static TaleWorlds.CampaignSystem.Inventory.InventoryManager;
 using TaleWorlds.ObjectSystem;
+using static Helpers.InventoryScreenHelper;
 using Helpers;
 using TaleWorlds.CampaignSystem.CampaignBehaviors;
 using TaleWorlds.CampaignSystem.ComponentInterfaces;
+using TaleWorlds.MountAndBlade;
+using SandBox;
+using SandBox.Conversation;
 
 namespace LessMenusMoreImmersion.Behaviors
 {
-    /// <summary>
-    /// Custom behavior to manage menu options and settlement access within the LessMenusMoreImmersion mod.
-    /// Handles settlement access, village trader dialogs, and guide dialogs.
-    /// Recruitment functionality is handled by CustomRecruitmentMenuBehavior.
-    /// </summary>
     public class DisableMenuBehavior : CampaignBehaviorBase
     {
-        private static Dictionary<string, bool> settlementsWithAccess = new Dictionary<string, bool>();
-        private CharacterObject? _localGuide;
+        [NonSerialized] private Dictionary<string, bool> settlementsWithAccess = new Dictionary<string, bool>();
+        [NonSerialized] private Dictionary<string, List<string>> settlementsFeaturesAccessed = new Dictionary<string, List<string>>();
+        [NonSerialized] private CharacterObject? _localGuide;
+        [NonSerialized] private bool _spawnListenerRegistered;
+        
+        private EscortBehavior _escortBehavior = new EscortBehavior();
 
-        /// <summary>
-        /// Registers campaign events for this behavior.
-        /// </summary>
+        private static readonly Dictionary<Occupation, string> OccupationFeatureMap = new Dictionary<Occupation, string>
+        {
+            { Occupation.Tavernkeeper, SettlementMenuOptions.Features.Backstreet },
+            { Occupation.TavernWench, SettlementMenuOptions.Features.Backstreet },
+            { Occupation.TavernGameHost, SettlementMenuOptions.Features.Backstreet },
+            { Occupation.GangLeader, SettlementMenuOptions.Features.Backstreet },
+            { Occupation.Gangster, SettlementMenuOptions.Features.Backstreet },
+            { Occupation.Merchant, SettlementMenuOptions.Features.Trade },
+            { Occupation.GoodsTrader, SettlementMenuOptions.Features.Trade },
+            { Occupation.ShopWorker, SettlementMenuOptions.Features.Trade },
+        };
+
         public override void RegisterEvents()
         {
             CampaignEvents.OnNewGameCreatedEvent.AddNonSerializedListener(this, OnGameStarted);
             CampaignEvents.OnGameLoadedEvent.AddNonSerializedListener(this, OnGameStarted);
+            CampaignEvents.MissionTickEvent.AddNonSerializedListener(this, OnMissionTick);
         }
 
-        /// <summary>
-        /// Initializes the behavior when the game starts.
-        /// </summary>
-        /// <param name="campaignGameStarter">The campaign game starter.</param>
         private void OnGameStarted(CampaignGameStarter campaignGameStarter)
         {
-            InformationManager.DisplayMessage(new InformationMessage(new TextObject("{=Eji4qI4xg}Less menus more immersion loaded successfully.").ToString()));
-            AddVillageTraderDialogs(campaignGameStarter);
-            AddGuideDialogs(campaignGameStarter);
-            CampaignEvents.LocationCharactersAreReadyToSpawnEvent.AddNonSerializedListener(this, LocationCharactersAreReadyToSpawn);
+            LmmiLog.Info("DisableMenuBehavior: OnGameStarted - registering dialogs and events. [v3.1.0]");
+            InformationManager.DisplayMessage(new InformationMessage(new TextObject("{=Eji4qI4xg}Less menus more immersion loaded successfully [v3.1.0].").ToString()));
+
+            try
+            {
+                AddVillageTraderDialogs(campaignGameStarter);
+                AddGuideDialogs(campaignGameStarter);
+                AddDiscoveryDialog(campaignGameStarter);
+                AddTownDirectionsDialogs(campaignGameStarter);
+            }
+            catch (Exception ex)
+            {
+                LmmiLog.Error("Failed to register dialogs", ex);
+            }
+
+            if (!_spawnListenerRegistered)
+            {
+                CampaignEvents.LocationCharactersAreReadyToSpawnEvent.AddNonSerializedListener(this, LocationCharactersAreReadyToSpawn);
+                _spawnListenerRegistered = true;
+                LmmiLog.Debug("LocationCharactersAreReadyToSpawn listener registered.");
+            }
+
             _localGuide = MBObjectManager.Instance.GetObject<CharacterObject>("local_guide");
+            if (_localGuide == null)
+                LmmiLog.Warning("local_guide character object not found - guide tavern spawns will be skipped.");
+
+            _escortBehavior.OnFeatureUnlocked += OnFeatureUnlocked;
         }
 
-        /// <summary>
-        /// Event handler called when location characters are ready to spawn.
-        /// Adds traders or guides to the appropriate locations.
-        /// </summary>
-        /// <param name="dictionary">A dictionary of character counts.</param>
-        private void LocationCharactersAreReadyToSpawn(Dictionary<string, int> dictionary)
+        private void OnFeatureUnlocked(string feature, Settlement settlement)
         {
-            if (Campaign.Current == null || Game.Current == null)
-                return; // Ensure campaign is initialized
+            if (settlement == null || string.IsNullOrEmpty(feature)) return;
+            if (HasAccessToSettlement(settlement)) return;
 
-            var settlement = PlayerEncounter.LocationEncounter?.Settlement ?? Settlement.CurrentSettlement;
-
-            if (settlement != null)
+            var settlementId = settlement.Id.ToString();
+            if (settlementsFeaturesAccessed == null) settlementsFeaturesAccessed = new Dictionary<string, List<string>>();
+            if (!settlementsFeaturesAccessed.TryGetValue(settlementId, out var features))
             {
-                if (settlement.IsVillage)
-                {
-                    AddVillageTraderToLocation(settlement);
-                }
-                else if (CampaignMission.Current.Location.StringId == "tavern")
-                {
-                    AddGuideToTavern(settlement);
-                }
+                features = new List<string>();
+                settlementsFeaturesAccessed[settlementId] = features;
+            }
+
+            if (features.Contains(feature)) return;
+            features.Add(feature);
+
+            LmmiLog.Debug($"Discovered feature '{feature}' in {settlement.Name} (id={settlementId}).");
+
+            if (LmmiSettingsProvider.ShowDiscoveryMessages)
+            {
+                var displayName = SettlementMenuOptions.GetFeatureDisplayName(feature);
+                var message = new TextObject("{=lmmi_feature_discovered}You've found {FEATURE} of {SETTLEMENT}.");
+                message.SetTextVariable("FEATURE", displayName);
+                message.SetTextVariable("SETTLEMENT", settlement.Name);
+                InformationManager.DisplayMessage(new InformationMessage(message.ToString()));
             }
         }
 
-        /// <summary>
-        /// Adds a village trader to the specified settlement's location.
-        /// </summary>
-        /// <param name="settlement">The settlement to add the trader to.</param>
+        private void LocationCharactersAreReadyToSpawn(Dictionary<string, int> dictionary)
+        {
+            if (Campaign.Current == null || Game.Current == null)
+                return;
+
+            var settlement = PlayerEncounter.LocationEncounter?.Settlement ?? Settlement.CurrentSettlement;
+            if (settlement == null)
+                return;
+
+            var locationId = CampaignMission.Current?.Location?.StringId;
+
+            if (settlement.IsVillage)
+            {
+                AddVillageTraderToLocation(settlement);
+            }
+            else if (locationId == "tavern")
+            {
+                AddGuideToTavern(settlement);
+            }
+
+            if (!string.IsNullOrEmpty(locationId))
+            {
+                TryDiscoverFromLocation(settlement, locationId!);
+            }
+        }
+
         private void AddVillageTraderToLocation(Settlement settlement)
         {
             if (settlement?.Culture?.Merchant == null)
@@ -109,12 +165,11 @@ namespace LessMenusMoreImmersion.Behaviors
             location.AddCharacter(locationCharacter);
         }
 
-        /// <summary>
-        /// Adds a guide to the tavern location of the specified settlement.
-        /// </summary>
-        /// <param name="settlement">The settlement to add the guide to.</param>
         private void AddGuideToTavern(Settlement settlement)
         {
+            if (_localGuide == null)
+                return;
+
             Location? tavernLocation = settlement.LocationComplex?.GetLocationWithId("tavern");
             if (tavernLocation == null)
                 return;
@@ -129,7 +184,6 @@ namespace LessMenusMoreImmersion.Behaviors
                   .Monster(monsterWithSuffix)
                   .Age(30);
 
-            // Create the location character for the guide
             LocationCharacter guideLocationCharacter = new LocationCharacter(
                 agentData,
                 SandBoxManager.Instance.AgentBehaviorManager.AddWandererBehaviors,
@@ -148,16 +202,8 @@ namespace LessMenusMoreImmersion.Behaviors
             tavernLocation.AddCharacter(guideLocationCharacter);
         }
 
-        /// <summary>
-        /// Adds dialog lines and player options for the village trader, utilizing localized strings.
-        /// </summary>
-        /// <param name="campaignGameStarter">The campaign game starter used to add dialogs.</param>
         protected void AddVillageTraderDialogs(CampaignGameStarter campaignGameStarter)
         {
-            /// <summary>
-            /// Determines if the current conversation is with the village merchant.
-            /// </summary>
-            /// <returns>True if the conversation is with the village merchant; otherwise, false.</returns>
             bool isConversationWithVillageMerchant()
             {
                 var currentSettlement = MobileParty.MainParty.CurrentSettlement;
@@ -172,30 +218,24 @@ namespace LessMenusMoreImmersion.Behaviors
                 return result;
             }
 
-            // Trader greeting
             campaignGameStarter.AddDialogLine(
                 "village_trader_greeting",
                 "start",
                 "village_trader",
-                "{=village_trader_greeting}Hail {?PLAYER.GENDER}m'lady{?}m'lord{\\?}, I bid thee welcome to our humble hamlet. I am the village trader here. How may I serve thee?",
+                "{=village_trader_greeting}Hail {?PLAYER.GENDER}m'lady{?}m'lord{\\?}, I bid thee welcome to our humble hamlet. I am village trader here. How may I serve thee?",
                 isConversationWithVillageMerchant,
                 null
             );
 
-            // Player option: Trade
             campaignGameStarter.AddPlayerLine(
                 "village_trader_trade",
                 "village_trader",
                 "village_trader_trade_response",
                 "{=MmNpGwNT9}Indeed, let's have a look.",
                 null,
-                () =>
-                {
-                    BeginTradeWithVillageTrader();
-                }
+                null
             );
 
-            // Player option: Arrangement
             campaignGameStarter.AddPlayerLine(
                 "village_trader_arrangement",
                 "village_trader",
@@ -205,7 +245,6 @@ namespace LessMenusMoreImmersion.Behaviors
                 null
             );
 
-            // Player option: End Conversation
             campaignGameStarter.AddPlayerLine(
                 "village_trader_end_conversation",
                 "village_trader",
@@ -215,7 +254,6 @@ namespace LessMenusMoreImmersion.Behaviors
                 null
             );
 
-            // Trader's response to Trade
             campaignGameStarter.AddDialogLine(
                 "village_trader_trade_response",
                 "village_trader_trade_response",
@@ -225,30 +263,24 @@ namespace LessMenusMoreImmersion.Behaviors
                 null
             );
 
-            // Trader's response to Arrangement
             campaignGameStarter.AddDialogLine(
                 "village_trader_arrangement_response",
                 "village_trader_arrangement_response",
                 "village_trader_arrangement_offer",
-                "{=kOPidaq6F}Ah, methinks for a humble price of {ARRANGEMENT_COST}{GOLD_ICON}, to pay the boys for running and gathering goods for thee, we shall be keen for such an arrangement. Furthermore, I shall telle thee of about our hamlet and the esteemed folk therein. Does {?PLAYER.GENDER}m'lady{?}m'lord{\\?} concur?",
+                "{=kOPidaq6F}Ah, methinks for a humble price of {ARRANGEMENT_COST}{GOLD_ICON}, to pay boys for running and gathering goods for thee, we shall be keen for such an arrangement. Furthermore, I shall telle thee of about our hamlet and esteemed folk therein. Does {?PLAYER.GENDER}m'lady{?}m'lord{\\?} concur?",
                 null,
                 null
             );
 
-            // Player option: Accept Arrangement
             campaignGameStarter.AddPlayerLine(
                 "village_trader_accept_arrangement",
                 "village_trader_arrangement_offer",
                 "village_trader_arrangement_accepted",
                 "{=vt6FfbaMf}Yes, that sounds acceptable. [Pay {ARRANGEMENT_COST}{GOLD_ICON}]",
                 VillageTraderAcceptArrangementOnCondition,
-                () =>
-                {
-                    UnlockSettlementAccess(Settlement.CurrentSettlement, GetVillageArrangementCost());
-                }
+                () => UnlockSettlementAccess(Settlement.CurrentSettlement, GetVillageArrangementCost())
             );
 
-            // Trader acknowledges arrangement
             campaignGameStarter.AddDialogLine(
                 "village_trader_arrangement_accepted",
                 "village_trader_arrangement_accepted",
@@ -258,7 +290,6 @@ namespace LessMenusMoreImmersion.Behaviors
                 null
             );
 
-            // Player option: Decline Arrangement
             campaignGameStarter.AddPlayerLine(
                 "village_trader_decline_arrangement",
                 "village_trader_arrangement_offer",
@@ -268,20 +299,15 @@ namespace LessMenusMoreImmersion.Behaviors
                 null
             );
 
-            // Player option: Trade More
             campaignGameStarter.AddPlayerLine(
                 "village_trader_trade_more",
                 "village_trader_options",
                 "village_trader_trade_response",
                 "{=A1b2C3d4E}Yes, I am not done yet.",
                 null,
-                () =>
-                {
-                    BeginTradeWithVillageTrader();
-                }
+                null
             );
 
-            // Player option: End Conversation Again
             campaignGameStarter.AddPlayerLine(
                 "village_trader_end_conversation",
                 "village_trader_options",
@@ -291,292 +317,371 @@ namespace LessMenusMoreImmersion.Behaviors
                 null
             );
 
-            // Set text variables
             MBTextManager.SetTextVariable("ARRANGEMENT_COST", GetVillageArrangementCost());
         }
 
-        /// <summary>
-        /// Adds dialog lines and player options for the guide, utilizing localized strings.
-        /// </summary>
-        /// <param name="campaignGameStarter">The campaign game starter used to add dialogs.</param>
-        protected void AddGuideDialogs(CampaignGameStarter campaignGameStarter)
+        private int GetVillageArrangementCost()
         {
-            // Dialog for player who already has access
-            campaignGameStarter.AddDialogLine(
-                "guide_already_paid_start",
-                "start",
-                "guide_talk",
-                "{=E5f6G7h8I}Ah, I see thou hast already been shown the wonders of {SETTLEMENT_NAME}. There is naught more to see.",
-                GuideAlreadyPaidStartOnCondition,
-                null
-            );
-
-            // Player option: End Conversation
-            campaignGameStarter.AddPlayerLine(
-                "guide_already_paid_end",
-                "guide_talk",
-                "close_window",
-                ("{=J9k0L1m2N}Indeed, I have seen all there is."),
-                GuideAlreadyPaidEndOnCondition,
-                null
-            );
-
-            // Dialog for initiating conversation with the guide
-            campaignGameStarter.AddDialogLine(
-                "guide_start",
-                "start",
-                "guide_talk",
-                "{=O3p4Q5r6S}Ho there, sojourner. Thine puzzled face betrays thine nature. Fear thee not, as for the most modest sum, I shall show thee around {SETTLEMENT_NAME}, we shall leave no boulder unturned until thou knows't this corner of earth as thine own. Be thee interested?",
-                GuideStartOnCondition,
-                null
-            );
-
-            // Player option: Accept to Pay the Guide
-            campaignGameStarter.AddPlayerLine(
-                "guide_accept",
-                "guide_talk",
-                "guide_agree",
-                "{=T7u8V9w0X}Yes, I could use your help. [Pay {COST}{GOLD_ICON}]",
-                GuideAcceptOnCondition,
-                () =>
-                {
-                    UnlockSettlementAccess(Settlement.CurrentSettlement, GetGuideCost());
-                }
-            );
-
-            // Guide agrees to show around
-            campaignGameStarter.AddDialogLine(
-                "guide_agree",
-                "guide_agree",
-                "close_window",
-                "{=Y1z2A3b4C}Splendid. Let me show thee the ins and outs of our {SETTLEMENT_NAME}.",
-                 GuideAgreeOnCondition,
-                null
-            );
-
-            // Player option: Decline to Pay the Guide
-            campaignGameStarter.AddPlayerLine(
-                "guide_decline",
-                "guide_talk",
-                "close_window",
-                "{=D5e6F7g8H}By heaven's Grace, what are you on about. Not interested.",
-                GuideDeclineOnCondition,
-                null
-            );
+            int clanTier = Clan.PlayerClan != null ? Clan.PlayerClan.Tier : 0;
+            int baseCost = 100;
+            return baseCost * (clanTier + 1);
         }
 
-        // ==== UTILITY METHODS ====
-
-        /// <summary>
-        /// Determines whether the player can arrange trading with the village trader.
-        /// </summary>
-        /// <returns>True if the player does not have access to the settlement.</returns>
         private bool VillageTraderArrangementOnCondition()
         {
-            var settlement = Settlement.CurrentSettlement;
-            bool hasAccess = HasAccessToSettlement(settlement);
-            bool showArrangement = !hasAccess;
-            return showArrangement;
+            return !HasAccessToSettlement(Settlement.CurrentSettlement);
         }
 
-        /// <summary>
-        /// Determines whether the player can accept the arrangement with the village trader.
-        /// </summary>
-        /// <returns>True if the player has enough gold to pay for the arrangement.</returns>
         private bool VillageTraderAcceptArrangementOnCondition()
         {
             return Hero.MainHero.Gold >= GetVillageArrangementCost();
         }
 
-        /// <summary>
-        /// Gets the cost for arranging trading with the village trader.
-        /// </summary>
-        /// <returns>The cost amount.</returns>
-        private int GetVillageArrangementCost()
+        protected void AddGuideDialogs(CampaignGameStarter campaignGameStarter)
         {
-            return 200; // Fixed cost for village trading arrangement
+            LmmiLog.Debug("AddGuideDialogs: Guide dialogs not yet implemented.");
         }
 
-        /// <summary>
-        /// Initiates trading with the village trader.
-        /// </summary>
-        private void BeginTradeWithVillageTrader()
-        {
-            var settlementComponent = Settlement.CurrentSettlement.SettlementComponent;
-            if (settlementComponent != null)
-            {
-                OpenScreenAsTrade(Settlement.CurrentSettlement.ItemRoster, settlementComponent, InventoryCategoryType.None, null);
-
-                // Correctly set the SETTLEMENT_NAME variable
-                Settlement settlement = Settlement.CurrentSettlement;
-                if (settlement != null)
-                {
-                    MBTextManager.SetTextVariable("SETTLEMENT_NAME", settlement.Name);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Condition to check if the guide dialog should start for players who have already paid.
-        /// </summary>
-        /// <returns>True if the player has access to the settlement.</returns>
-        private bool GuideAlreadyPaidStartOnCondition()
-        {
-            if (CharacterObject.OneToOneConversationCharacter != _localGuide)
-                return false;
-
-            MBTextManager.SetTextVariable("SETTLEMENT_NAME", Settlement.CurrentSettlement.Name);
-            return HasAccessToSettlement(Settlement.CurrentSettlement);
-        }
-
-        /// <summary>
-        /// Condition to check if the player has already paid the guide.
-        /// </summary>
-        /// <returns>True if the player has access to the settlement.</returns>
-        private bool GuideAlreadyPaidEndOnCondition()
-        {
-            return HasAccessToSettlement(Settlement.CurrentSettlement);
-        }
-
-        /// <summary>
-        /// Condition to check if the guide dialog should start for players who have not paid.
-        /// </summary>
-        /// <returns>True if the player does not have access to the settlement.</returns>
-        private bool GuideStartOnCondition()
-        {
-            if (CharacterObject.OneToOneConversationCharacter != _localGuide)
-                return false;
-
-            MBTextManager.SetTextVariable("SETTLEMENT_NAME", Settlement.CurrentSettlement.Name);
-            return !HasAccessToSettlement(Settlement.CurrentSettlement);
-        }
-
-        /// <summary>
-        /// Condition to check if the player can accept paying the guide.
-        /// </summary>
-        /// <returns>True if the player has enough gold to pay the guide.</returns>
-        private bool GuideAcceptOnCondition()
-        {
-            if (HasAccessToSettlement(Settlement.CurrentSettlement))
-                return false;
-
-            MBTextManager.SetTextVariable("COST", GetGuideCost());
-            MBTextManager.SetTextVariable("SETTLEMENT_NAME", Settlement.CurrentSettlement.Name);
-            return Hero.MainHero.Gold >= GetGuideCost();
-        }
-
-        /// <summary>
-        /// Condition to check if the guide agrees to show around.
-        /// </summary>
-        /// <returns>Always true.</returns>
-        private bool GuideAgreeOnCondition()
-        {
-            MBTextManager.SetTextVariable("SETTLEMENT_NAME", Settlement.CurrentSettlement.Name);
-            return true;
-        }
-
-        /// <summary>
-        /// Condition to check if the player declines to pay the guide.
-        /// </summary>
-        /// <returns>True if the player does not have access to the settlement.</returns>
-        private bool GuideDeclineOnCondition()
-        {
-            return !HasAccessToSettlement(Settlement.CurrentSettlement);
-        }
-
-        /// <summary>
-        /// Gets the cost for hiring the guide based on the player's clan tier.
-        /// </summary>
-        /// <returns>The cost amount.</returns>
-        private int GetGuideCost()
-        {
-            int clanTier = Clan.PlayerClan != null ? Clan.PlayerClan.Tier : 0;
-            return 500 * (clanTier + 1);
-        }
-
-        /// <summary>
-        /// Unlocks access to the specified settlement by deducting gold and updating access records.
-        /// </summary>
-        /// <param name="settlement">The settlement to unlock access for.</param>
-        /// <param name="cost">The cost to unlock access.</param>
         private void UnlockSettlementAccess(Settlement settlement, int cost)
         {
+            if (settlement == null)
+            {
+                LmmiLog.Warning("UnlockSettlementAccess called with null settlement.");
+                return;
+            }
+
             if (Hero.MainHero.Gold >= cost)
             {
                 Hero.MainHero.ChangeHeroGold(-cost);
                 var settlementId = settlement.Id.ToString();
+                if (settlementsWithAccess == null) settlementsWithAccess = new Dictionary<string, bool>();
                 settlementsWithAccess[settlementId] = true;
+                LmmiLog.Info($"Full settlement access unlocked for '{settlement.Name}' (id={settlementId}) for {cost} gold.");
                 InformationManager.DisplayMessage(new InformationMessage(new TextObject("{=P3q4R5s6T}You now know your way around {settlement.Name}.").ToString()));
             }
             else
             {
+                LmmiLog.Debug($"Player tried to unlock '{settlement.Name}' but lacked gold ({Hero.MainHero.Gold}/{cost}).");
                 InformationManager.DisplayMessage(new InformationMessage(new TextObject("{=Z1a2B3c4D}You don't have enough gold.").ToString()));
             }
         }
 
-        /// <summary>
-        /// Checks if the player has access to the specified settlement.
-        /// </summary>
-        /// <param name="settlement">The settlement to check access for.</param>
-        /// <returns>True if the player has access; otherwise, false.</returns>
         public bool HasAccessToSettlement(Settlement settlement)
         {
             if (settlement == null) return true;
 
-            if (settlement.OwnerClan == Clan.PlayerClan)
+            var playerClan = Clan.PlayerClan;
+            if (playerClan == null) return true;
+
+            if (settlement.OwnerClan == playerClan)
             {
-                // Player owns the settlement
                 return true;
             }
 
-            if (settlement.OwnerClan.Kingdom == Clan.PlayerClan.Kingdom && Clan.PlayerClan.Tier >= 3)
+            int fullTier = LmmiSettingsProvider.FullAccessClanTier;
+            if (playerClan.Tier >= fullTier)
             {
-                // Player shares kingdom
                 return true;
             }
 
-            if (Clan.PlayerClan.Tier >= 5)
+            int kingdomTier = LmmiSettingsProvider.KingdomAccessClanTier;
+            if (settlement.OwnerClan?.Kingdom != null &&
+                playerClan.Kingdom != null &&
+                settlement.OwnerClan.Kingdom == playerClan.Kingdom &&
+                playerClan.Tier >= kingdomTier)
             {
-                // Player very renowned, maps are given to him
                 return true;
             }
 
             var settlementId = settlement.Id.ToString();
-            // Check if the player has paid for access
+            if (settlementsWithAccess == null) return false;
             return settlementsWithAccess.ContainsKey(settlementId) && settlementsWithAccess[settlementId];
         }
 
-        /// <summary>
-        /// Synchronizes data when saving or loading the game.
-        /// </summary>
-        /// <param name="dataStore">The data store.</param>
-        public override void SyncData(IDataStore dataStore)
+        public bool HasFeatureAccess(Settlement settlement, string feature)
         {
-            dataStore.SyncData("settlementsWithAccess", ref settlementsWithAccess);
+            if (settlement == null) return true;
+            if (HasAccessToSettlement(settlement)) return true;
+
+            var settlementId = settlement.Id.ToString();
+            if (settlementsFeaturesAccessed == null) return false;
+            if (!settlementsFeaturesAccessed.TryGetValue(settlementId, out var features))
+                return false;
+
+            return features.Contains(feature);
         }
 
-        /// <summary>
-        /// Contains Harmony patches for the DisableMenuBehavior.
-        /// </summary>
-        public static class HarmonyPatches
+        private void TryDiscoverFromLocation(Settlement settlement, string locationId)
         {
-            private static Harmony? harmonyInstance;
+            if (!LmmiSettingsProvider.EnableDynamicDiscovery) return;
+            if (settlement == null || string.IsNullOrEmpty(locationId)) return;
 
-            /// <summary>
-            /// Applies all Harmony patches defined in this class.
-            /// </summary>
-            public static void ApplyPatches()
+            if (SettlementMenuOptions.LocationFeatureMap.TryGetValue(locationId, out var feature))
             {
-                if (harmonyInstance == null)
+                LmmiLog.Debug($"Location '{locationId}' maps to feature '{feature}' - attempting discovery in {settlement.Name}.");
+                OnFeatureUnlocked(feature, settlement);
+            }
+        }
+
+        private void TryDiscoverFromConversationPartner()
+        {
+            if (!LmmiSettingsProvider.EnableDynamicDiscovery) return;
+
+            var settlement = Settlement.CurrentSettlement;
+            if (settlement == null || settlement.IsVillage) return;
+
+            var partner = CharacterObject.OneToOneConversationCharacter;
+            if (partner == null) return;
+
+            LmmiLog.Debug($"DEBUG: TryDiscoverFromConversationPartner called. Occupation: {partner.Occupation}");
+
+            if (OccupationFeatureMap.TryGetValue(partner.Occupation, out var feature))
+            {
+                LmmiLog.Debug($"DEBUG: Occupation '{partner.Occupation}' maps to feature '{feature}' in {settlement.Name}.");
+                OnFeatureUnlocked(feature, settlement);
+            }
+            else
+            {
+                LmmiLog.Debug($"DEBUG: Occupation '{partner.Occupation}' has NO mapping.");
+            }
+        }
+
+        protected void AddDiscoveryDialog(CampaignGameStarter campaignGameStarter)
+        {
+            campaignGameStarter.AddDialogLine(
+                "lmmi_discovery_check",
+                "start",
+                "lmmi_discovery_skip",
+                string.Empty,
+                () => {
+                    TryDiscoverFromConversationPartner();
+                    return false;
+                },
+                null,
+                1000
+            );
+        }
+
+        [NonSerialized] private string? _pendingNavLocationId;
+        [NonSerialized] private string? _pendingNavFeature;
+        [NonSerialized] private Agent? _pendingNpcAgent;
+        [NonSerialized] private Settlement? _pendingSettlement;
+        [NonSerialized] private bool _performEscortSetupPending;
+
+        private bool IsInTownCenter()
+        {
+            var s = Settlement.CurrentSettlement;
+            if (s == null || !s.IsTown) return false;
+            return CampaignMission.Current?.Location?.StringId == "center";
+        }
+
+        protected void AddTownDirectionsDialogs(CampaignGameStarter starter)
+        {
+            starter.AddPlayerLine(
+                "lmmi_dirs_townsfolk_ask",
+                "town_or_village_player",
+                "lmmi_dirs_where_resp",
+                "{=lmmi_dirs_ask}Can you show me way somewhere?",
+                () =>
                 {
-                    harmonyInstance = new Harmony("LessMenusMoreImmersion");
-                    harmonyInstance.PatchAll(Assembly.GetExecutingAssembly());
-                }
+                    if (!IsInTownCenter()) return false;
+                    var partner = CharacterObject.OneToOneConversationCharacter;
+                    if (partner == null || partner == _localGuide) return false;
+                    var s = Settlement.CurrentSettlement;
+                    return s != null && HasAnyUndiscoveredFeature(s);
+                },
+                null
+            );
+
+            starter.AddPlayerLine(
+                "lmmi_dirs_notable_ask",
+                "hero_main_options",
+                "lmmi_dirs_where_resp",
+                "{=lmmi_dirs_ask}Can you show me way somewhere?",
+                () =>
+                {
+                    if (!IsInTownCenter()) return false;
+                    var partner = CharacterObject.OneToOneConversationCharacter;
+                    if (partner == null || partner == _localGuide) return false;
+                    var s = Settlement.CurrentSettlement;
+                    return s != null && HasAnyUndiscoveredFeature(s);
+                },
+                null
+            );
+
+            starter.AddDialogLine(
+                "lmmi_dirs_where_resp_line",
+                "lmmi_dirs_where_resp",
+                "lmmi_dirs_choices",
+                "{=lmmi_dirs_where}Where would you like to go?",
+                null,
+                null
+            );
+
+            starter.AddPlayerLine("lmmi_dirs_to_tavern", "lmmi_dirs_choices", "lmmi_dirs_follow",
+                "{=lmmi_dirs_tavern}The tavern.",
+                () => !HasFeatureAccess(Settlement.CurrentSettlement, SettlementMenuOptions.Features.Backstreet),
+                () => { _pendingNavLocationId = "tavern"; _pendingNavFeature = SettlementMenuOptions.Features.Backstreet; });
+            starter.AddPlayerLine("lmmi_dirs_to_market", "lmmi_dirs_choices", "lmmi_dirs_follow",
+                "{=lmmi_dirs_market}The marketplace.",
+                () => !HasFeatureAccess(Settlement.CurrentSettlement, SettlementMenuOptions.Features.Trade),
+                () => { _pendingNavLocationId = "center"; _pendingNavFeature = SettlementMenuOptions.Features.Trade; });
+            starter.AddPlayerLine("lmmi_dirs_to_smithy", "lmmi_dirs_choices", "lmmi_dirs_follow",
+                "{=lmmi_dirs_smithy}The smithy.",
+                () => !HasFeatureAccess(Settlement.CurrentSettlement, SettlementMenuOptions.Features.Smithy),
+                () => { _pendingNavLocationId = "smithy"; _pendingNavFeature = SettlementMenuOptions.Features.Smithy; });
+            starter.AddPlayerLine("lmmi_dirs_to_arena", "lmmi_dirs_choices", "lmmi_dirs_follow",
+                "{=lmmi_dirs_arena}The arena.",
+                () => !HasFeatureAccess(Settlement.CurrentSettlement, SettlementMenuOptions.Features.Arena),
+                () => { _pendingNavLocationId = "arena"; _pendingNavFeature = SettlementMenuOptions.Features.Arena; });
+            starter.AddPlayerLine("lmmi_dirs_to_keep", "lmmi_dirs_choices", "lmmi_dirs_follow",
+                "{=lmmi_dirs_keep}The lord's hall.",
+                () => !HasFeatureAccess(Settlement.CurrentSettlement, SettlementMenuOptions.Features.Keep),
+                () => { _pendingNavLocationId = "lordshall"; _pendingNavFeature = SettlementMenuOptions.Features.Keep; });
+            starter.AddPlayerLine("lmmi_dirs_nevermind", "lmmi_dirs_choices", "close_window",
+                "{=lmmi_dirs_never}Never mind.", null, null);
+
+            starter.AddDialogLine(
+                "lmmi_dirs_follow_line",
+                "lmmi_dirs_follow",
+                "close_window",
+                "{=lmmi_dirs_followme}Follow me!",
+                null,
+                () => BeginEscort()
+            );
+        }
+
+        private bool HasAnyUndiscoveredFeature(Settlement settlement)
+        {
+            if (HasAccessToSettlement(settlement)) return false;
+            return !HasFeatureAccess(settlement, SettlementMenuOptions.Features.Backstreet)
+                || !HasFeatureAccess(settlement, SettlementMenuOptions.Features.Trade)
+                || !HasFeatureAccess(settlement, SettlementMenuOptions.Features.Smithy)
+                || !HasFeatureAccess(settlement, SettlementMenuOptions.Features.Arena)
+                || !HasFeatureAccess(settlement, SettlementMenuOptions.Features.Keep);
+        }
+
+        private void BeginEscort()
+        {
+            // NOTE: Do NOT clear _pendingNavLocationId/_pendingNavFeature here.
+            // They are class fields that PerformEscortSetup() reads later (from OnMissionTick).
+            // BeginEscort runs during the dialog consequence (conversation still open),
+            // so we capture the agent and settlement NOW while they're valid.
+            var locationId = _pendingNavLocationId;
+            var feature = _pendingNavFeature;
+
+            if (string.IsNullOrEmpty(locationId) || string.IsNullOrEmpty(feature)) return;
+
+            var settlement = Settlement.CurrentSettlement;
+            if (settlement == null) return;
+
+            // Capture the NPC agent NOW while conversation is still open
+            var npcAgent = ConversationMission.OneToOneConversationAgent;
+            LmmiLog.Info($"BeginEscort: Starting escort to '{locationId}' for feature '{feature}'. NPC agent={(npcAgent != null ? npcAgent.Name + " id=" + npcAgent.Index : "NULL")}");
+
+            if (npcAgent == null)
+            {
+                LmmiLog.Warning("BeginEscort: ConversationMission.OneToOneConversationAgent is null — cannot escort.");
+                return;
             }
 
-            /// <summary>
-            /// Harmony patch to disable specific menu options based on settlement access.
-            /// </summary>
+            // Store for use after dialog closes
+            _pendingNpcAgent = npcAgent;
+            _pendingSettlement = settlement;
+
+            InformationManager.DisplayMessage(new InformationMessage(new TextObject("{=lmmi_escort_start}Follow me to the {LOCATION}!").SetTextVariable("LOCATION", feature).ToString()));
+
+            _performEscortSetupPending = true;
+        }
+
+        private void PerformEscortSetup()
+        {
+            // Read all pending state captured in BeginEscort (while conversation was still open)
+            var locationId = _pendingNavLocationId;
+            var feature = _pendingNavFeature;
+            var npcAgent = _pendingNpcAgent;
+            var settlement = _pendingSettlement;
+
+            // Clear pending state
+            _pendingNavLocationId = null;
+            _pendingNavFeature = null;
+            _pendingNpcAgent = null;
+            _pendingSettlement = null;
+            _performEscortSetupPending = false;
+
+            LmmiLog.Info($"PerformEscortSetup: locationId='{locationId}' feature='{feature}' npc={(npcAgent != null ? npcAgent.Name + " id=" + npcAgent.Index : "NULL")} settlement={(settlement != null ? settlement.Name.ToString() : "NULL")}");
+
+            if (string.IsNullOrEmpty(locationId) || string.IsNullOrEmpty(feature))
+            {
+                LmmiLog.Warning("PerformEscortSetup: No pending location/feature.");
+                return;
+            }
+
+            if (npcAgent == null || !npcAgent.IsActive())
+            {
+                LmmiLog.Warning("PerformEscortSetup: NPC agent is null or inactive.");
+                return;
+            }
+
+            if (settlement == null)
+            {
+                LmmiLog.Warning("PerformEscortSetup: No settlement.");
+                return;
+            }
+
+            Vec3? destinationPos = null;
+
+            if (locationId == "center")
+            {
+                Agent? merchantAgent = EscortBehavior.FindMerchantAgent(npcAgent);
+                if (merchantAgent != null)
+                {
+                    destinationPos = merchantAgent.Position;
+                    LmmiLog.Info($"PerformEscortSetup: Using merchant agent at {destinationPos}");
+                }
+                else
+                {
+                    LmmiLog.Warning("PerformEscortSetup: No merchant agent found for 'center' escort.");
+                }
+            }
+            else
+            {
+                destinationPos = EscortBehavior.FindPassagePosition(locationId);
+                if (destinationPos.HasValue)
+                    LmmiLog.Info($"PerformEscortSetup: Using passage position at {destinationPos}");
+                else
+                    LmmiLog.Warning($"PerformEscortSetup: FindPassagePosition returned null for '{locationId}'.");
+            }
+
+            if (!destinationPos.HasValue)
+            {
+                LmmiLog.Warning($"PerformEscortSetup: Cannot find destination for '{locationId}' — escort aborted.");
+                return;
+            }
+
+            LmmiLog.Info($"PerformEscortSetup: Calling StartEscort. NPC={npcAgent.Name}, dest={destinationPos.Value}, feature={feature}");
+            _escortBehavior.StartEscort(npcAgent, destinationPos.Value, feature, settlement);
+        }
+
+        private void OnMissionTick(float dt)
+        {
+            if (_performEscortSetupPending && Mission.Current != null && Mission.Current.Mode != MissionMode.Conversation)
+            {
+                LmmiLog.Info("OnMissionTick: Conversation ended - performing escort setup.");
+                _performEscortSetupPending = false;
+                PerformEscortSetup();
+                return;
+            }
+        }
+
+        public override void SyncData(IDataStore dataStore)
+        {
+            dataStore.SyncData("_settlementsWithAccess", ref settlementsWithAccess);
+            dataStore.SyncData("_settlementsFeaturesAccessed", ref settlementsFeaturesAccessed);
+        }
+
+        public static class HarmonyPatches
+        {
             [HarmonyPatch(typeof(GameMenu), "AddOption", new Type[] {
                 typeof(string),
                 typeof(TextObject),
@@ -589,80 +694,50 @@ namespace LessMenusMoreImmersion.Behaviors
             })]
             public static class DisableSpecificMenuOptionsPatch
             {
-                /// <summary>
-                /// Prefix method that modifies the condition delegate for certain menu options.
-                /// </summary>
-                /// <param name="condition">The original condition delegate.</param>
-                /// <param name="optionId">The ID of the menu option being added.</param>
-                /// <param name="__instance">The GameMenu instance.</param>
-                /// <returns>True to allow the original method to proceed.</returns>
                 [HarmonyPrefix]
                 public static bool Prefix(ref GameMenuOption.OnConditionDelegate condition, string optionId, GameMenu __instance)
                 {
-                    // Use SettlementMenuOptions.AllOptions instead of hardcoded list
-                    if (SettlementMenuOptions.AllOptions.Contains(optionId))
+                    if (!SettlementMenuOptions.OptionFeatureMap.TryGetValue(optionId, out var requiredFeature))
+                        return true;
+
+                    var campaign = Campaign.Current;
+                    if (campaign == null)
+                        return true;
+
+                    var behaviorInstance = campaign.GetCampaignBehavior<DisableMenuBehavior>();
+                    if (behaviorInstance == null)
+                        return true;
+
+                    var originalCondition = condition;
+
+                    condition = (MenuCallbackArgs args) =>
                     {
-                        var campaign = Campaign.Current;
-                        if (campaign == null)
+                        var currentSettlement = MobileParty.MainParty?.CurrentSettlement ?? Settlement.CurrentSettlement;
+
+                        bool isOriginalConditionMet = originalCondition == null || originalCondition(args);
+
+                        if (currentSettlement == null)
                         {
-                            return true; // Allow the original method to proceed without modification
+                            return isOriginalConditionMet;
                         }
 
-                        var behaviorInstance = campaign.GetCampaignBehavior<DisableMenuBehavior>();
-                        var currentSettlement = GetCurrentSettlement(__instance);
+                        bool hasFeature = behaviorInstance.HasFeatureAccess(currentSettlement, requiredFeature);
 
-                        if (behaviorInstance != null && currentSettlement != null)
+                        bool finalEnabled = isOriginalConditionMet && hasFeature;
+                        args.IsEnabled = finalEnabled;
+
+                        if (!hasFeature)
                         {
-                            var originalCondition = condition; // Preserve the original condition
-
-                            condition = (MenuCallbackArgs args) =>
-                            {
-                                // Call the original condition
-                                bool isOriginalConditionMet = originalCondition == null || originalCondition(args);
-
-                                // Check if the player has access
-                                bool hasAccess = behaviorInstance.HasAccessToSettlement(currentSettlement);
-
-                                // Combine both conditions
-                                bool finalEnabled = isOriginalConditionMet && hasAccess;
-                                args.IsEnabled = finalEnabled;
-
-                                if (!hasAccess)
-                                {
-                                    args.Tooltip = new TextObject("{=U7v8W9x0Y}You don't know the settlement by heart.");
-                                }
-
-                                return args.IsEnabled;
-                            };
+                            args.Tooltip = new TextObject("{=lmmi_undiscovered}You haven't discovered this part of settlement yet.");
                         }
-                    }
-                    return true; // Allow the original method to proceed
-                }
 
-                /// <summary>
-                /// Retrieves the current settlement associated with the GameMenu.
-                /// </summary>
-                /// <param name="gameMenu">The GameMenu instance.</param>
-                /// <returns>The current settlement, if any; otherwise, null.</returns>
-                private static Settlement? GetCurrentSettlement(GameMenu gameMenu)
-                {
-                    // Try to get the settlement associated with the current menu
-                    if (MobileParty.MainParty.CurrentSettlement != null)
-                    {
-                        return MobileParty.MainParty.CurrentSettlement;
-                    }
-                    else if (Settlement.CurrentSettlement != null)
-                    {
-                        return Settlement.CurrentSettlement;
-                    }
-                    // Fallback
-                    return null;
+                        return args.IsEnabled;
+                    };
+
+                    return true;
                 }
             }
 
-            /// <summary>
-            /// Harmony patch to make village recruitment also use the SettlementAccessModel
-            /// </summary>
             [HarmonyPatch(typeof(PlayerTownVisitCampaignBehavior))]
             [HarmonyPatch("game_menu_recruit_volunteers_on_condition")]
             public static class VillageRecruitmentPatch
@@ -672,16 +747,17 @@ namespace LessMenusMoreImmersion.Behaviors
                 {
                     args.optionLeaveType = GameMenuOption.LeaveType.Recruit;
 
+                    if (Settlement.CurrentSettlement == null)
+                        return true;
+
                     if (Settlement.CurrentSettlement.IsVillage)
                     {
-                        // For villages, check both village state AND settlement access model
                         if (Settlement.CurrentSettlement.Village.VillageState != Village.VillageStates.Normal)
                         {
                             __result = false;
-                            return false; // Skip original method
+                            return false;
                         }
 
-                        // Now check the SettlementAccessModel (this is what was missing!)
                         bool disableOption;
                         TextObject disabledText;
                         bool canPlayerDo = Campaign.Current.Models.SettlementAccessModel.CanMainHeroDoSettlementAction(
@@ -691,11 +767,10 @@ namespace LessMenusMoreImmersion.Behaviors
                             out disabledText);
 
                         __result = MenuHelper.SetOptionProperties(args, canPlayerDo, disableOption, disabledText);
-                        return false; // Skip original method
+                        return false;
                     }
 
-                    // For towns/castles, let the original method handle it
-                    return true; // Run original method
+                    return true;
                 }
             }
         }

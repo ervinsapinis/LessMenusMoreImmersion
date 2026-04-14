@@ -1,0 +1,60 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<!--
+	  MCM bridge assembly.
+
+	  This project exists purely so the main mod DLL can remain MCM-free at the
+	  CLR metadata level. Bannerlord calls `Assembly.GetTypes()` on every mod
+	  assembly at load time, and `GetTypes()` forces resolution of every type's
+	  base class. If the main DLL contained a type whose base class lived in
+	  MCMv5, then a user without MCM installed would crash the module loader
+	  with a ReflectionTypeLoadException before any of our code ever ran.
+
+	  So: the only class that directly inherits from an MCM type
+	  (LmmiSettings : AttributeGlobalSettings<LmmiSettings>) lives here. The
+	  main mod loads this DLL at runtime via Assembly.LoadFrom and calls into
+	  it through pure reflection — the main DLL has zero compile-time or
+	  metadata references to MCM or to this bridge.
+
+	  This DLL is NOT declared in SubModule.xml's <SubModules> section, so
+	  Bannerlord never calls GetTypes() on it directly. It's just a resource
+	  file from the module loader's perspective.
+	-->
+	<PropertyGroup>
+		<Version>1.5.0</Version>
+		<TargetFrameworks>net472;net6</TargetFrameworks>
+		<Platforms>x64</Platforms>
+		<LangVersion>10.0</LangVersion>
+		<Nullable>enable</Nullable>
+		<AssemblyName>LessMenusMoreImmersion.McmBridge</AssemblyName>
+		<RootNamespace>LessMenusMoreImmersion.McmBridge</RootNamespace>
+		<BuildForWindows>false</BuildForWindows>
+		<BuildForWindowsStore>false</BuildForWindowsStore>
+		<GameFolder>$(BANNERLORD_GAME_DIR)</GameFolder>
+		<GameBinariesFolder Condition="Exists('$(GameFolder)\bin\Win64_Shipping_Client\Bannerlord.exe')">Win64_Shipping_Client</GameBinariesFolder>
+		<GameBinariesFolder Condition="Exists('$(GameFolder)\bin\Gaming.Desktop.x64_Shipping_Client\Bannerlord.exe')">Gaming.Desktop.x64_Shipping_Client</GameBinariesFolder>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="$(TargetFramework) == 'net472'">
+		<BuildForWindows>true</BuildForWindows>
+	</PropertyGroup>
+	<PropertyGroup Condition="$(TargetFramework) == 'net6'">
+		<BuildForWindowsStore>false</BuildForWindowsStore>
+		<EnableWindowsTargeting>true</EnableWindowsTargeting>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- We only need a couple of TaleWorlds references so nullability/types compile. -->
+		<Reference Include="$(GameFolder)\bin\$(GameBinariesFolder)\TaleWorlds.Library.dll">
+			<HintPath>%(Identity)</HintPath>
+			<Private>False</Private>
+		</Reference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- MCMv5 is a HARD dependency for THIS assembly. That's fine — this DLL is never
+		     loaded unless MCM is present, gated by the main mod's runtime check. -->
+		<PackageReference Include="Bannerlord.MCM" Version="5.11.3" IncludeAssets="compile" />
+	</ItemGroup>
+
+</Project>

@@ -1,4 +1,5 @@
 ﻿using LessMenusMoreImmersion.Behaviors;
+using LessMenusMoreImmersion.Constants;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.GameComponents;
 using TaleWorlds.CampaignSystem.Settlements;
@@ -64,24 +65,24 @@ namespace LessMenusMoreImmersion.Models
                 return base.CanMainHeroDoSettlementAction(settlement, settlementAction, out shouldBeDisabled, out disabledText);
             }
 
-            // Handle 'Trade' action: disable unless access is granted
+            // Handle 'Trade' action: disable unless the marketplace has been discovered.
             if (settlementAction == SettlementAction.Trade)
             {
-                if (behaviorInstance != null && !behaviorInstance.HasAccessToSettlement(settlement))
+                if (behaviorInstance != null && !behaviorInstance.HasFeatureAccess(settlement, SettlementMenuOptions.Features.Trade))
                 {
                     shouldBeDisabled = true;
-                    disabledText = new TextObject("{=U7v8W9x0Y}You don't know the settlement by heart.");
+                    disabledText = new TextObject("{=lmmi_undiscovered}You haven't discovered this part of the settlement yet.");
                     return false;
                 }
             }
 
-            // Handle 'Craft' action: disable unless access is granted
+            // Handle 'Craft' action: disable unless the smithy has been discovered.
             if (settlementAction == SettlementAction.Craft)
             {
-                if (behaviorInstance != null && !behaviorInstance.HasAccessToSettlement(settlement))
+                if (behaviorInstance != null && !behaviorInstance.HasFeatureAccess(settlement, SettlementMenuOptions.Features.Smithy))
                 {
                     shouldBeDisabled = true;
-                    disabledText = new TextObject("{=U7v8W9x0Y}You don't know the settlement by heart.");
+                    disabledText = new TextObject("{=lmmi_undiscovered}You haven't discovered this part of the settlement yet.");
                     return false;
                 }
             }
@@ -100,41 +101,43 @@ namespace LessMenusMoreImmersion.Models
         /// <returns>True if the location can be accessed; otherwise, false.</returns>
         public override bool CanMainHeroAccessLocation(Settlement settlement, string locationId, out bool disableOption, out TextObject? disabledText)
         {
-            var behaviorInstance = Campaign.Current?.GetCampaignBehavior<DisableMenuBehavior>();
+            disableOption = false;
+            disabledText = null;
 
+            var behaviorInstance = Campaign.Current?.GetCampaignBehavior<DisableMenuBehavior>();
             if (behaviorInstance == null)
+                return base.CanMainHeroAccessLocation(settlement, locationId, out disableOption, out disabledText);
+
+            // "center" (take a walk) and "port" (Naval DLC) are always open.
+            if (locationId == "center" || locationId == "port")
+                return base.CanMainHeroAccessLocation(settlement, locationId, out disableOption, out disabledText);
+
+            // Inside an active mission all doors are physically open — don't add a
+            // menu-level tooltip that would contradict what the player can see.
+            if (Mission.Current != null && Mission.Current.Scene != null)
+                return base.CanMainHeroAccessLocation(settlement, locationId, out disableOption, out disabledText);
+
+            // --- Per-feature access (dynamic discovery system) ---
+            // If this location is mapped to a feature, gate on that feature only.
+            if (SettlementMenuOptions.LocationFeatureMap.TryGetValue(locationId, out var requiredFeature))
             {
+                if (!behaviorInstance.HasFeatureAccess(settlement, requiredFeature))
+                {
+                    disableOption = true;
+                    disabledText = new TextObject("{=lmmi_undiscovered}You haven't discovered this part of the settlement yet.");
+                    return false;
+                }
                 return base.CanMainHeroAccessLocation(settlement, locationId, out disableOption, out disabledText);
             }
 
+            // --- Fallback: unmapped locations still require full settlement access ---
             if (!behaviorInstance.HasAccessToSettlement(settlement))
             {
-                // If we are in a mission, allow access to all locations
-                if (Mission.Current != null && Mission.Current.Scene != null)
-                {
-                    disableOption = false;
-                    disabledText = null;
-                    return true; // Doors will be unlocked during missions
-                }
-                else
-                {
-                    // In the settlement menu, allow access only to 'center' (to take a walk)
-                    if (locationId == "center")
-                    {
-                        disableOption = false;
-                        disabledText = null;
-                        return true;
-                    }
-                    else
-                    {
-                        disableOption = true;
-                        disabledText = new TextObject("{=U7v8W9x0Y}You don't know the settlement by heart.");
-                        return false;
-                    }
-                }
+                disableOption = true;
+                disabledText = new TextObject("{=U7v8W9x0Y}You don't know the settlement by heart.");
+                return false;
             }
 
-            // If the player has access, defer to the base implementation
             return base.CanMainHeroAccessLocation(settlement, locationId, out disableOption, out disabledText);
         }
 

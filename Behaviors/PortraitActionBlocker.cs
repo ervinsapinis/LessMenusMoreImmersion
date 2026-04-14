@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using HarmonyLib;
+using LessMenusMoreImmersion.Logging;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Library;
@@ -63,7 +64,8 @@ namespace LessMenusMoreImmersion.Behaviors
             }
             catch (Exception ex)
             {
-                // Silent fail to prevent crashes
+                // Never crash the game from a UI postfix, but do log so we can diagnose.
+                LmmiLog.Error("PortraitActionBlocker.Postfix threw", ex);
             }
         }
 
@@ -115,9 +117,9 @@ namespace LessMenusMoreImmersion.Behaviors
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Continue to fallback if any method fails
+                LmmiLog.Debug($"GetHeroFromWidget reflection path failed: {ex.Message}");
             }
 
             // Fallback: use first notable (may not be accurate)
@@ -150,7 +152,7 @@ namespace LessMenusMoreImmersion.Behaviors
                 var isKnownProperty = typeof(Hero).GetProperty("IsKnownToPlayer");
                 if (isKnownProperty != null)
                 {
-                    return (bool)isKnownProperty.GetValue(isKnownProperty);
+                    return (bool)isKnownProperty.GetValue(hero);
                 }
 
                 // Fallback 2: Check if player has any relation with hero
@@ -169,9 +171,10 @@ namespace LessMenusMoreImmersion.Behaviors
                 // Default: assume not met
                 return false;
             }
-            catch
+            catch (Exception ex)
             {
-                return false; // Default to not met if we can't determine
+                LmmiLog.Debug($"HasPlayerMetHero threw, defaulting to not-met: {ex.Message}");
+                return false;
             }
         }
 
@@ -204,9 +207,9 @@ namespace LessMenusMoreImmersion.Behaviors
                     _marginsApplied = true;
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Silent fail
+                LmmiLog.Debug($"ApplyMargins failed: {ex.Message}");
             }
         }
 
@@ -239,9 +242,9 @@ namespace LessMenusMoreImmersion.Behaviors
                     _marginsApplied = false;
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Silent fail
+                LmmiLog.Debug($"ResetMargins failed: {ex.Message}");
             }
         }
     }

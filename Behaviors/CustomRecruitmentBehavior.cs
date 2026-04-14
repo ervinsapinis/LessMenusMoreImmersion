@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using LessMenusMoreImmersion.Logging;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
@@ -26,9 +27,17 @@ namespace LessMenusMoreImmersion.Behaviors
 
         private void OnSessionLaunched(CampaignGameStarter campaignGameStarter)
         {
-            // Add notable recruitment dialogs
-            AddNotableRecruitmentDialogs(campaignGameStarter);
-            AddNotableDirectRecruitmentDialogs(campaignGameStarter);
+            try
+            {
+                // Add notable recruitment dialogs
+                AddNotableRecruitmentDialogs(campaignGameStarter);
+                AddNotableDirectRecruitmentDialogs(campaignGameStarter);
+                LmmiLog.Debug("CustomRecruitmentMenuBehavior: notable recruitment dialogs registered.");
+            }
+            catch (Exception ex)
+            {
+                LmmiLog.Error("CustomRecruitmentMenuBehavior.OnSessionLaunched failed", ex);
+            }
         }
 
         /// <summary>
@@ -79,14 +88,29 @@ namespace LessMenusMoreImmersion.Behaviors
                     return Hero.MainHero.Gold >= recruitmentCost;
                 },
                 () => {
-                    int cost = GetRecruitmentArrangementCost();
-                    Hero.MainHero.ChangeHeroGold(-cost);
+                    try
+                    {
+                        var settlement = Settlement.CurrentSettlement;
+                        if (settlement == null)
+                        {
+                            LmmiLog.Warning("Recruitment arrangement consequence fired with no current settlement — aborting.");
+                            return;
+                        }
 
-                    // ONLY mark recruitment as arranged - NO settlement access!
-                    var settlementId = Settlement.CurrentSettlement.Id.ToString();
-                    settlementsWithRecruitmentOrganizer[settlementId] = true;
+                        int cost = GetRecruitmentArrangementCost();
+                        Hero.MainHero.ChangeHeroGold(-cost);
 
-                    InformationManager.DisplayMessage(new InformationMessage("You've arranged for willing recruits to be available when you visit."));
+                        // ONLY mark recruitment as arranged - NO settlement access!
+                        var settlementId = settlement.Id.ToString();
+                        settlementsWithRecruitmentOrganizer[settlementId] = true;
+
+                        LmmiLog.Info($"Recruitment arrangement unlocked in '{settlement.Name}' (id={settlementId}) for {cost} gold.");
+                        InformationManager.DisplayMessage(new InformationMessage("You've arranged for willing recruits to be available when you visit."));
+                    }
+                    catch (Exception ex)
+                    {
+                        LmmiLog.Error("Recruitment arrangement consequence threw", ex);
+                    }
                 }
             );
 
@@ -117,36 +141,50 @@ namespace LessMenusMoreImmersion.Behaviors
         /// <returns>The cost amount.</returns>
         private int GetRecruitmentArrangementCost()
         {
-            var settlement = Settlement.CurrentSettlement;
-            if (settlement == null) return 500; // Fallback cost
-
-            int totalCost = 0;
-
-            foreach (var notable in settlement.Notables)
+            try
             {
-                int baseCostPerNotable = 250; // Base cost per notable
-                int relation = (int)notable.GetRelationWithPlayer();
-
-                // Calculate cost for this notable
-                int notableCost = baseCostPerNotable;
-
-                if (relation > 0)
+                var settlement = Settlement.CurrentSettlement;
+                if (settlement == null)
                 {
-                    // Positive relation: discount
-                    notableCost -= (relation * 30);
-                }
-                else if (relation < 0)
-                {
-                    // Negative relation: premium
-                    notableCost += (Math.Abs(relation) * 75);
+                    LmmiLog.Debug("GetRecruitmentArrangementCost: no current settlement, falling back to 500.");
+                    return 500; // Fallback cost
                 }
 
-                // Ensure minimum cost of 50g per notable
-                notableCost = Math.Max(notableCost, 50);
-                totalCost += notableCost;
+                int totalCost = 0;
+
+                foreach (var notable in settlement.Notables ?? Enumerable.Empty<Hero>())
+                {
+                    if (notable == null) continue;
+
+                    int baseCostPerNotable = 250; // Base cost per notable
+                    int relation = (int)notable.GetRelationWithPlayer();
+
+                    // Calculate cost for this notable
+                    int notableCost = baseCostPerNotable;
+
+                    if (relation > 0)
+                    {
+                        // Positive relation: discount
+                        notableCost -= (relation * 30);
+                    }
+                    else if (relation < 0)
+                    {
+                        // Negative relation: premium
+                        notableCost += (Math.Abs(relation) * 75);
+                    }
+
+                    // Ensure minimum cost of 50g per notable
+                    notableCost = Math.Max(notableCost, 50);
+                    totalCost += notableCost;
+                }
+
+                return totalCost;
             }
-
-            return totalCost;
+            catch (Exception ex)
+            {
+                LmmiLog.Error("GetRecruitmentArrangementCost threw", ex);
+                return 500;
+            }
         }
 
         /// <summary>
@@ -154,6 +192,8 @@ namespace LessMenusMoreImmersion.Behaviors
         /// </summary>
         public bool HasRecruitmentOrganizer(Settlement settlement)
         {
+            if (settlement == null) return false;
+
             // Check for auto-unlock first
             if (ShouldAutoUnlockRecruitment(settlement))
             {
@@ -171,7 +211,10 @@ namespace LessMenusMoreImmersion.Behaviors
         /// </summary>
         private bool ShouldAutoUnlockRecruitment(Settlement settlement)
         {
+            if (settlement == null) return false;
+
             var playerClan = Clan.PlayerClan;
+            if (playerClan == null) return false;
 
             // Auto-unlock conditions
             if (playerClan.Tier >= 5 || settlement.OwnerClan == playerClan)
@@ -271,19 +314,34 @@ namespace LessMenusMoreImmersion.Behaviors
         /// </summary>
         private void HandleBulkRecruitment(Hero notable)
         {
-            var availableTroops = GetAvailableRecruits(notable);
-            if (availableTroops.Count == 0)
+            try
             {
-                InformationManager.DisplayMessage(new InformationMessage("I have no willing recruits at the moment."));
-                return;
+                if (notable == null)
+                {
+                    LmmiLog.Warning("HandleBulkRecruitment called with null notable.");
+                    return;
+                }
+
+                var availableTroops = GetAvailableRecruits(notable);
+                if (availableTroops.Count == 0)
+                {
+                    InformationManager.DisplayMessage(new InformationMessage("I have no willing recruits at the moment."));
+                    return;
+                }
+
+                var totalCost = CalculateBulkRecruitmentCost(availableTroops);
+                var troopDescription = GenerateTroopDescription(availableTroops);
+
+                LmmiLog.Debug($"Bulk recruitment offer from '{notable.Name}': {availableTroops.Count} slots, total {totalCost} gold.");
+
+                // Set variables for dialog
+                MBTextManager.SetTextVariable("TROOP_LIST", troopDescription);
+                MBTextManager.SetTextVariable("TOTAL_COST", totalCost);
             }
-
-            var totalCost = CalculateBulkRecruitmentCost(availableTroops);
-            var troopDescription = GenerateTroopDescription(availableTroops);
-
-            // Set variables for dialog
-            MBTextManager.SetTextVariable("TROOP_LIST", troopDescription);
-            MBTextManager.SetTextVariable("TOTAL_COST", totalCost);
+            catch (Exception ex)
+            {
+                LmmiLog.Error("HandleBulkRecruitment threw", ex);
+            }
         }
 
         /// <summary>
@@ -291,25 +349,45 @@ namespace LessMenusMoreImmersion.Behaviors
         /// </summary>
         private void ExecuteBulkRecruitment(Hero notable)
         {
-            var availableTroops = GetAvailableRecruits(notable);
-            var totalCost = CalculateBulkRecruitmentCost(availableTroops);
-
-            if (Hero.MainHero.Gold >= totalCost)
+            try
             {
-                Hero.MainHero.ChangeHeroGold(-totalCost);
-
-                // Add troops to player party and clear slots (like vanilla)
-                foreach (var (troop, count, slotIndex) in availableTroops)
+                if (notable == null)
                 {
-                    MobileParty.MainParty.MemberRoster.AddToCounts(troop, count);
-                    notable.VolunteerTypes[slotIndex] = null; // Clear the slot
+                    LmmiLog.Warning("ExecuteBulkRecruitment called with null notable.");
+                    return;
                 }
 
-                InformationManager.DisplayMessage(new InformationMessage("All recruits have joined your party!"));
+                var availableTroops = GetAvailableRecruits(notable);
+                var totalCost = CalculateBulkRecruitmentCost(availableTroops);
+
+                if (Hero.MainHero.Gold >= totalCost)
+                {
+                    Hero.MainHero.ChangeHeroGold(-totalCost);
+
+                    // Add troops to player party and clear slots (like vanilla)
+                    foreach (var (troop, count, slotIndex) in availableTroops)
+                    {
+                        if (troop == null) continue;
+                        MobileParty.MainParty.MemberRoster.AddToCounts(troop, count);
+
+                        if (notable.VolunteerTypes != null && slotIndex >= 0 && slotIndex < notable.VolunteerTypes.Length)
+                        {
+                            notable.VolunteerTypes[slotIndex] = null; // Clear the slot
+                        }
+                    }
+
+                    LmmiLog.Info($"Bulk-recruited {availableTroops.Count} troops from '{notable.Name}' for {totalCost} gold.");
+                    InformationManager.DisplayMessage(new InformationMessage("All recruits have joined your party!"));
+                }
+                else
+                {
+                    LmmiLog.Debug($"Player lacked gold for bulk recruitment ({Hero.MainHero.Gold}/{totalCost}).");
+                    InformationManager.DisplayMessage(new InformationMessage("You don't have enough gold."));
+                }
             }
-            else
+            catch (Exception ex)
             {
-                InformationManager.DisplayMessage(new InformationMessage("You don't have enough gold."));
+                LmmiLog.Error("ExecuteBulkRecruitment threw", ex);
             }
         }
 
@@ -320,18 +398,28 @@ namespace LessMenusMoreImmersion.Behaviors
         {
             var recruits = new List<(CharacterObject, int, int)>();
 
-            // Check maximum slot index player can access (vanilla eligibility)
-            int maxIndex = Campaign.Current.Models.VolunteerModel.MaximumIndexHeroCanRecruitFromHero(
-                Hero.MainHero, notable);
-
-            // Check each slot up to the max allowed
-            for (int i = 0; i <= maxIndex && i < notable.VolunteerTypes.Length; i++)
+            try
             {
-                if (notable.VolunteerTypes[i] != null)
+                if (notable == null || notable.VolunteerTypes == null)
+                    return recruits;
+
+                // Check maximum slot index player can access (vanilla eligibility)
+                int maxIndex = Campaign.Current.Models.VolunteerModel.MaximumIndexHeroCanRecruitFromHero(
+                    Hero.MainHero, notable, -1);
+
+                // Check each slot up to the max allowed
+                for (int i = 0; i <= maxIndex && i < notable.VolunteerTypes.Length; i++)
                 {
-                    // Each slot has exactly 1 troop (not multiple)
-                    recruits.Add((notable.VolunteerTypes[i], 1, i));
+                    if (notable.VolunteerTypes[i] != null)
+                    {
+                        // Each slot has exactly 1 troop (not multiple)
+                        recruits.Add((notable.VolunteerTypes[i], 1, i));
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                LmmiLog.Error($"GetAvailableRecruits for '{notable?.Name}' threw", ex);
             }
 
             return recruits;
@@ -342,17 +430,27 @@ namespace LessMenusMoreImmersion.Behaviors
         /// </summary>
         private int CalculateBulkRecruitmentCost(List<(CharacterObject troop, int count, int slotIndex)> troops)
         {
-            int totalCost = 0;
-            foreach (var (troop, count, slotIndex) in troops)
+            try
             {
-                // Use proper recruitment cost calculation like vanilla
-                int individualCost = Campaign.Current.Models.PartyWageModel.GetTroopRecruitmentCost(
-                    troop, Hero.MainHero, false);
-                totalCost += individualCost * count;
-            }
+                int totalCost = 0;
+                foreach (var (troop, count, slotIndex) in troops)
+                {
+                    if (troop == null) continue;
 
-            // Apply smaller 5% discount for bulk recruitment
-            return (int)(totalCost * 0.95f);
+                    // Use proper recruitment cost calculation like vanilla
+                    int individualCost = (int)Campaign.Current.Models.PartyWageModel.GetTroopRecruitmentCost(
+                        troop, Hero.MainHero, false).ResultNumber;
+                    totalCost += individualCost * count;
+                }
+
+                // Apply smaller 5% discount for bulk recruitment
+                return (int)(totalCost * 0.95f);
+            }
+            catch (Exception ex)
+            {
+                LmmiLog.Error("CalculateBulkRecruitmentCost threw", ex);
+                return 0;
+            }
         }
 
         /// <summary>

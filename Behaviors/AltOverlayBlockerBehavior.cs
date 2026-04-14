@@ -1,10 +1,13 @@
 ﻿using HarmonyLib;
+using System;
 using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Library;
 using TaleWorlds.MountAndBlade;
 using LessMenusMoreImmersion.Behaviors;
+using LessMenusMoreImmersion.Constants;
+using LessMenusMoreImmersion.Logging;
 using TaleWorlds.Core;
 
 namespace LessMenusMoreImmersion.Behaviors
@@ -29,51 +32,12 @@ namespace LessMenusMoreImmersion.Behaviors
 
         private void OnMissionStarted(IMission mission)
         {
-            var settlement = Settlement.CurrentSettlement;
-            if (settlement == null)
-                return;
-
-            bool shouldBlock = ShouldBlockHighlighting();
-            string currentSettlementId = settlement.StringId;
-
-            // Only show message when status changes or entering new settlement
-            if (shouldBlock != _lastBlockStatus || currentSettlementId != _lastSettlementId)
-            {
-                if (shouldBlock)
-                {
-                    InformationManager.DisplayMessage(
-                        new InformationMessage($"ALT overlay disabled in {settlement.Name} - get introduced first"));
-                }
-                else if (_lastBlockStatus && !shouldBlock) // Was blocked, now enabled
-                {
-                    InformationManager.DisplayMessage(
-                        new InformationMessage($"ALT overlay enabled in {settlement.Name}"));
-                }
-
-                _lastBlockStatus = shouldBlock;
-                _lastSettlementId = currentSettlementId;
-            }
+            // Status-change notification removed — the per-feature blocking fires
+            // dynamically on every tick via HighlightingBlocker, so a one-shot
+            // on-enter message would be misleading (features can unlock mid-session).
         }
 
-        private bool ShouldBlockHighlighting()
-        {
-            // Only in campaign missions
-            if (Campaign.Current == null || Mission.Current == null)
-                return false;
-
-            // Only in settlement missions
-            var settlement = Settlement.CurrentSettlement;
-            if (settlement == null)
-                return false;
-
-            // Check settlement access
-            var accessBehavior = Campaign.Current.GetCampaignBehavior<DisableMenuBehavior>();
-            if (accessBehavior == null)
-                return false;
-
-            bool hasAccess = accessBehavior.HasAccessToSettlement(settlement);
-            return !hasAccess; // Block if no access
-        }
+        private bool ShouldBlockHighlighting() => HighlightingBlocker.ShouldBlockHighlighting();
     }
 
     /// <summary>
@@ -82,30 +46,57 @@ namespace LessMenusMoreImmersion.Behaviors
     /// </summary>
     public static class HighlightingBlocker
     {
+        /// <summary>
+        /// Called every tick while Alt is held. Returns true when nameplate
+        /// rendering should be suppressed for the current scene.
+        ///
+        /// Logic mirrors <see cref="CustomSettlementAccessModel.CanMainHeroAccessLocation"/>:
+        /// - Full settlement access → never block.
+        /// - Current scene maps to a feature → block only until that feature is discovered.
+        /// - Unmapped scene (shouldn't normally occur) → block until full access.
+        /// </summary>
+        /// <summary>
+        /// Returns true only when the player is inside a sub-location scene
+        /// (tavern, smithy, lordshall, etc.) that has NOT been discovered yet.
+        ///
+        /// The town center ("center") is NEVER blocked — companions, passage
+        /// markers and all agents show normally there.
+        /// </summary>
         public static bool ShouldBlockHighlighting()
         {
             try
             {
-                // Only in campaign missions
                 if (Campaign.Current == null || Mission.Current == null)
                     return false;
 
-                // Only in settlement missions
                 var settlement = Settlement.CurrentSettlement;
                 if (settlement == null)
                     return false;
 
-                // Check settlement access
                 var accessBehavior = Campaign.Current.GetCampaignBehavior<DisableMenuBehavior>();
                 if (accessBehavior == null)
                     return false;
 
-                bool hasAccess = accessBehavior.HasAccessToSettlement(settlement);
-                return !hasAccess; // Block if no access
+                // Full access → never block anywhere.
+                if (accessBehavior.HasAccessToSettlement(settlement))
+                    return false;
+
+                var locationId = CampaignMission.Current?.Location?.StringId;
+
+                // Town center / unmapped → never block.
+                if (string.IsNullOrEmpty(locationId) || locationId == "center")
+                    return false;
+
+                // Sub-location with a feature mapping → block only if undiscovered.
+                if (SettlementMenuOptions.LocationFeatureMap.TryGetValue(locationId!, out var feature))
+                    return !accessBehavior.HasFeatureAccess(settlement, feature);
+
+                // Unknown sub-location → don't block.
+                return false;
             }
             catch
             {
-                return false; // Don't block on any error
+                return false;
             }
         }
     }
@@ -136,9 +127,10 @@ internal static class NameMarkerViewPatch
                 }
             }
         }
-        catch
+        catch (Exception ex)
         {
             // If we can't find it, return null and the patch won't apply
+            LmmiLog.Warning($"NameMarkerViewPatch.TargetMethod failed to locate target: {ex.Message}");
         }
 
         return null;
