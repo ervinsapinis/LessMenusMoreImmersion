@@ -154,6 +154,7 @@ namespace LessMenusMoreImmersion.Behaviors
         // Cache for generic properties (Target property depends on runtime subclass)
         private static readonly System.Collections.Generic.Dictionary<Type, PropertyInfo?> _targetPropertiesCache = new();
         private static readonly System.Collections.Generic.Dictionary<Type, FieldInfo?> _identifierFieldsCache = new();
+        private static readonly System.Collections.Generic.HashSet<string> _loggedMarkers = new();
 
         public static void Initialize(Type markerViewType)
         {
@@ -217,20 +218,59 @@ namespace LessMenusMoreImmersion.Behaviors
                         }
                     }
 
-                    // Check if it's a generic marker (e.g., passage to tavern/arena)
-                    // (MissionGenericMarkerTargetVM has an 'Identifier' field/property)
+                    // Since it wasn't an Agent, let's see what it actually is!
+                    // Deep inspection logging for all non-Agent markers
+                    var nameProp = targetType.GetProperty("Name", BindingFlags.Public | BindingFlags.Instance);
+                    var iconTypeProp = targetType.GetProperty("IconType", BindingFlags.Public | BindingFlags.Instance);
+                    
+                    var targetName = nameProp?.GetValue(target) as string ?? "unknown";
+                    var iconType = iconTypeProp?.GetValue(target) as string ?? "unknown";
+                    
+                    // See what the Target property holds, if any
+                    string targetInfo = "none";
+                    if (targetProp != null)
+                    {
+                        var targetObj = targetProp.GetValue(target);
+                        if (targetObj != null)
+                            targetInfo = targetObj.GetType().Name;
+                        else
+                            targetInfo = "null";
+                    }
+
+                    // Does it have an Identifier field?
                     if (!_identifierFieldsCache.TryGetValue(targetType, out var identifierField))
                     {
                         identifierField = targetType.GetField("Identifier", BindingFlags.Public | BindingFlags.Instance);
                         _identifierFieldsCache[targetType] = identifierField;
                     }
+                    string identifierVal = identifierField?.GetValue(target) as string ?? "none";
 
-                    if (identifierField != null)
+                    // Log this unique marker type once
+                    var logKey = $"Marker_{targetType.Name}_{targetName}";
+                    if (!_loggedMarkers.Contains(logKey))
                     {
-                        var identifier = identifierField.GetValue(target) as string;
-                        if (!string.IsNullOrEmpty(identifier))
+                        LmmiLog.Info($"NON-AGENT MARKER: Type='{targetType.Name}', Name='{targetName}', IconType='{iconType}', TargetObj='{targetInfo}', Identifier='{identifierVal}'");
+                        _loggedMarkers.Add(logKey);
+                    }
+
+                    // Temporary hardcoded filter based on Name (since we know the localized names like "The Tavern" etc)
+                    // We will refine this once we see the exact output in the log
+                    if (!string.IsNullOrEmpty(targetName))
+                    {
+                        string lowerName = targetName.ToLowerInvariant();
+                        if (lowerName.Contains("tavern"))
                         {
-                            if (!ShouldShowLocationIdentifier(identifier, accessBehavior, settlement))
+                            if (!accessBehavior.HasFeatureAccess(settlement, SettlementMenuOptions.Features.Backstreet))
+                                _isEnabledProperty!.SetValue(target, false);
+                        }
+                        else if (lowerName.Contains("arena"))
+                        {
+                            if (!accessBehavior.HasFeatureAccess(settlement, SettlementMenuOptions.Features.Arena))
+                                _isEnabledProperty!.SetValue(target, false);
+                        }
+                        else if (lowerName.Contains("lord") || lowerName.Contains("keep") || lowerName.Contains("dungeon") || lowerName.Contains("prison"))
+                        {
+                            if (!accessBehavior.HasFeatureAccess(settlement, SettlementMenuOptions.Features.Keep))
                                 _isEnabledProperty!.SetValue(target, false);
                         }
                     }
