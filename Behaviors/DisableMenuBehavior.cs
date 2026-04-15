@@ -60,8 +60,8 @@ namespace LessMenusMoreImmersion.Behaviors
 
         private void OnGameStarted(CampaignGameStarter campaignGameStarter)
         {
-            LmmiLog.Info("DisableMenuBehavior: OnGameStarted - registering dialogs and events. [v3.1.0]");
-            InformationManager.DisplayMessage(new InformationMessage(new TextObject("{=Eji4qI4xg}Less menus more immersion loaded successfully [v3.1.0].").ToString()));
+            LmmiLog.Info("DisableMenuBehavior: OnGameStarted - registering dialogs and events. [v1.5.0]");
+            InformationManager.DisplayMessage(new InformationMessage(new TextObject("{=Eji4qI4xg}Less menus more immersion loaded successfully [v1.5.0].").ToString()));
 
             try
             {
@@ -106,19 +106,8 @@ namespace LessMenusMoreImmersion.Behaviors
             features.Add(feature);
 
             // Tavern district (Backstreet) discovery implies you now also know how to reach
-            // the common areas. We treat these as bundled to avoid repetitive / buggy escorting.
-            if (feature == SettlementMenuOptions.Features.Backstreet)
-            {
-                // Add silently (no extra discovery popups)
-                if (!features.Contains(SettlementMenuOptions.Features.Alley))
-                    features.Add(SettlementMenuOptions.Features.Alley);
-                if (!features.Contains(SettlementMenuOptions.Features.Waterfront))
-                    features.Add(SettlementMenuOptions.Features.Waterfront);
-                if (!features.Contains(SettlementMenuOptions.Features.Clearing))
-                    features.Add(SettlementMenuOptions.Features.Clearing);
-
-                LmmiLog.Debug($"Backstreet discovered -> also unlocking Alley/Waterfront/Clearing in {settlement.Name}.");
-            }
+            // NOTE: This used to bundle common areas (alley/waterfront/clearing) as well,
+            // but we want only the tavern/backstreet itself to be discoverable via directions.
 
             LmmiLog.Debug($"Discovered feature '{feature}' in {settlement.Name} (id={settlementId}).");
 
@@ -1140,6 +1129,12 @@ namespace LessMenusMoreImmersion.Behaviors
                 () => !HasFeatureAccess(Settlement.CurrentSettlement, SettlementMenuOptions.Features.Keep),
                 () => { _pendingNavLocationId = "lordshall"; _pendingNavFeature = SettlementMenuOptions.Features.Keep; });
 
+            // Tavern / backstreet (escort through tavern passage)
+            starter.AddPlayerLine("lmmi_dirs_to_tavern", "lmmi_dirs_choices", "lmmi_dirs_follow",
+                "{=lmmi_dirs_tavern}The tavern.",
+                () => !HasFeatureAccess(Settlement.CurrentSettlement, SettlementMenuOptions.Features.Backstreet),
+                () => { _pendingNavLocationId = "tavern"; _pendingNavFeature = SettlementMenuOptions.Features.Backstreet; });
+
             starter.AddPlayerLine("lmmi_dirs_to_barber", "lmmi_dirs_choices", "lmmi_dirs_follow",
                 "{=lmmi_dirs_barber}The barber.",
                 () => !HasFeatureAccess(Settlement.CurrentSettlement, SettlementMenuOptions.Features.Barber),
@@ -1212,8 +1207,8 @@ namespace LessMenusMoreImmersion.Behaviors
         {
             if (HasAccessToSettlement(settlement)) return false;
             // Only features that can be discovered via the directions/escort system.
-            // Backstreet + common areas are discovered through exploration / tavern discovery.
-            return !HasFeatureAccess(settlement, SettlementMenuOptions.Features.Trade)
+            return !HasFeatureAccess(settlement, SettlementMenuOptions.Features.Backstreet)
+                || !HasFeatureAccess(settlement, SettlementMenuOptions.Features.Trade)
                 || !HasFeatureAccess(settlement, SettlementMenuOptions.Features.Smithy)
                 || !HasFeatureAccess(settlement, SettlementMenuOptions.Features.Arena)
                 || !HasFeatureAccess(settlement, SettlementMenuOptions.Features.Keep)
