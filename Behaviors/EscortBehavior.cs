@@ -1,14 +1,15 @@
 using System;
 using System.Collections.Generic;
 using TaleWorlds.CampaignSystem;
-using TaleWorlds.CampaignSystem.AgentOrigins;
 using TaleWorlds.CampaignSystem.Settlements;
 using SandBox;
+using System.Linq;
 using TaleWorlds.Core;
 using TaleWorlds.Library;
 using TaleWorlds.Engine;
 using TaleWorlds.MountAndBlade;
 using SandBox.Missions.AgentBehaviors;
+using SandBox.Objects.AreaMarkers;
 using SandBox.Conversation.MissionLogics;
 using SandBox.Missions.MissionLogics;
 using LessMenusMoreImmersion.Constants;
@@ -241,8 +242,46 @@ namespace LessMenusMoreImmersion.Behaviors
                 return null;
             }
 
-            return TryFind(agentHandler.TownPassageProps)
-                ?? TryFind(agentHandler.DisabledPassages);
+            bool isCommonAreaDestination = locationId.StartsWith("alley", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(locationId, "waterfront", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(locationId, "clearing", StringComparison.OrdinalIgnoreCase);
+
+            // PASS 1: For common area destinations, try finding the area marker first.
+            // This avoids escorting to overlapping passage doors (e.g., tavern entrance near an alley).
+            if (isCommonAreaDestination)
+            {
+                var commonAreas = Mission.Current.ActiveMissionObjects.FindAllWithType<SandBox.Objects.AreaMarkers.CommonAreaMarker>();
+                foreach (var area in commonAreas)
+                {
+                    // CommonAreaMarker.Tag returns the Settlement.Alley.Tag (e.g. alley_1, waterfront, clearing)
+                    var tag = area.Tag;
+                    if (!string.IsNullOrEmpty(tag) && string.Equals(tag, locationId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return area.GameEntity.GlobalPosition;
+                    }
+                }
+
+                var commonAreasList = commonAreas as IList<CommonAreaMarker> ?? commonAreas.ToList();
+                if (commonAreasList.Count > 0)
+                {
+                    var summary = string.Join(", ", commonAreasList.Select(area => $"{area.Tag ?? "<null>"}/{area.GameEntity.Name}"));
+                    LmmiLog.Warning($"FindPassagePosition: No CommonAreaMarker matched '{locationId}'. Available markers: {summary}");
+                }
+                else
+                {
+                    LmmiLog.Warning($"FindPassagePosition: No CommonAreaMarkers found for '{locationId}'.");
+                }
+
+                // Don't fall through to passage search — the passage door may overlap with the tavern entrance,
+                // causing the player to accidentally enter the tavern and discover backstreet.
+                return null;
+            }
+
+            // PASS 2: Try finding a passage (works for tavern, arena, smithy, keep, prison).
+            var pos = TryFind(agentHandler.TownPassageProps) ?? TryFind(agentHandler.DisabledPassages);
+            if (pos.HasValue) return pos;
+
+            return null;
         }
 
         /// <summary>
@@ -268,6 +307,37 @@ namespace LessMenusMoreImmersion.Behaviors
                 }
                 catch { continue; }
             }
+            return null;
+        }
+
+        /// <summary>
+        /// Find the barber agent in the current mission using the settlement's Culture.Barber.
+        /// Used as destination for the barber escort.
+        /// </summary>
+        public static Agent? FindBarberAgent(Agent? excludeAgent)
+        {
+            if (Mission.Current == null) return null;
+
+            var settlement = Settlement.CurrentSettlement;
+            var barberChar = settlement?.Culture?.Barber;
+            if (barberChar == null) return null;
+
+            foreach (Agent a in Mission.Current.Agents)
+            {
+                try
+                {
+                    if (!a.IsActive() || a == excludeAgent || a == Agent.Main) continue;
+                    if (a.Character is CharacterObject co && co == barberChar)
+                    {
+                        return a;
+                    }
+                }
+                catch
+                {
+                    continue;
+                }
+            }
+
             return null;
         }
 

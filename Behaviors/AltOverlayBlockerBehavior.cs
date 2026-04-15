@@ -154,7 +154,6 @@ namespace LessMenusMoreImmersion.Behaviors
         // Cache for generic properties (Target property depends on runtime subclass)
         private static readonly System.Collections.Generic.Dictionary<Type, PropertyInfo?> _targetPropertiesCache = new();
         private static readonly System.Collections.Generic.Dictionary<Type, FieldInfo?> _identifierFieldsCache = new();
-        private static readonly System.Collections.Generic.HashSet<string> _loggedMarkers = new();
 
         public static void Initialize(Type markerViewType)
         {
@@ -218,60 +217,78 @@ namespace LessMenusMoreImmersion.Behaviors
                         }
                     }
 
-                    // Since it wasn't an Agent, let's see what it actually is!
-                    // Deep inspection logging for all non-Agent markers
-                    var nameProp = targetType.GetProperty("Name", BindingFlags.Public | BindingFlags.Instance);
-                    var iconTypeProp = targetType.GetProperty("IconType", BindingFlags.Public | BindingFlags.Instance);
-                    
-                    var targetName = nameProp?.GetValue(target) as string ?? "unknown";
-                    var iconType = iconTypeProp?.GetValue(target) as string ?? "unknown";
-                    
-                    // See what the Target property holds, if any
-                    string targetInfo = "none";
-                    if (targetProp != null)
-                    {
-                        var targetObj = targetProp.GetValue(target);
-                        if (targetObj != null)
-                            targetInfo = targetObj.GetType().Name;
-                        else
-                            targetInfo = "null";
-                    }
+                    // Check for specific bannerlord marker types
+                    string typeName = targetType.Name;
 
-                    // Does it have an Identifier field?
-                    if (!_identifierFieldsCache.TryGetValue(targetType, out var identifierField))
+                    if (typeName == "MissionPassageUsePointNameMarkerTargetVM")
                     {
-                        identifierField = targetType.GetField("Identifier", BindingFlags.Public | BindingFlags.Instance);
-                        _identifierFieldsCache[targetType] = identifierField;
-                    }
-                    string identifierVal = identifierField?.GetValue(target) as string ?? "none";
+                        var iconTypeProp = targetType.GetProperty("IconType", BindingFlags.Public | BindingFlags.Instance);
+                        var iconType = iconTypeProp?.GetValue(target) as string;
 
-                    // Log this unique marker type once
-                    var logKey = $"Marker_{targetType.Name}_{targetName}";
-                    if (!_loggedMarkers.Contains(logKey))
-                    {
-                        LmmiLog.Info($"NON-AGENT MARKER: Type='{targetType.Name}', Name='{targetName}', IconType='{iconType}', TargetObj='{targetInfo}', Identifier='{identifierVal}'");
-                        _loggedMarkers.Add(logKey);
+                        if (iconType == "tavern" && !accessBehavior.HasFeatureAccess(settlement, SettlementMenuOptions.Features.Backstreet))
+                            _isEnabledProperty!.SetValue(target, false);
+                        else if (iconType == "arena" && !accessBehavior.HasFeatureAccess(settlement, SettlementMenuOptions.Features.Arena))
+                            _isEnabledProperty!.SetValue(target, false);
+                        else if ((iconType == "lordshall" || iconType == "prison") && !accessBehavior.HasFeatureAccess(settlement, SettlementMenuOptions.Features.Keep))
+                            _isEnabledProperty!.SetValue(target, false);
                     }
-
-                    // Temporary hardcoded filter based on Name (since we know the localized names like "The Tavern" etc)
-                    // We will refine this once we see the exact output in the log
-                    if (!string.IsNullOrEmpty(targetName))
+                    else if (typeName == "MissionCommonAreaMarkerTargetVM")
                     {
-                        string lowerName = targetName.ToLowerInvariant();
-                        if (lowerName.Contains("tavern"))
+                        // Common area markers map to Settlement.Alleys via TargetAlley.Tag
+                        // (e.g. alley_1, waterfront, clearing). Use LocationFeatureMap to
+                        // resolve the specific feature, and allow Backstreet as a bonus unlock.
+                        string requiredFeature = SettlementMenuOptions.Features.Alley;
+
+                        var targetAlleyField = targetType.GetField("TargetAlley", BindingFlags.Public | BindingFlags.Instance);
+                        var targetAlley = targetAlleyField?.GetValue(target) as Alley;
+                        var alleyTag = targetAlley?.Tag;
+
+                        if (!string.IsNullOrEmpty(alleyTag) &&
+                            SettlementMenuOptions.LocationFeatureMap.TryGetValue(alleyTag, out var mappedFeature))
                         {
-                            if (!accessBehavior.HasFeatureAccess(settlement, SettlementMenuOptions.Features.Backstreet))
-                                _isEnabledProperty!.SetValue(target, false);
+                            requiredFeature = mappedFeature;
                         }
-                        else if (lowerName.Contains("arena"))
+
+                        bool hasSpecificFeature = accessBehavior.HasFeatureAccess(settlement, requiredFeature);
+                        bool hasBackstreetBonus = accessBehavior.HasFeatureAccess(settlement, SettlementMenuOptions.Features.Backstreet);
+
+                        if (!hasSpecificFeature && !hasBackstreetBonus)
+                            _isEnabledProperty!.SetValue(target, false);
+                    }
+                    else if (typeName == "MissionWorkshopNameMarkerTargetVM")
+                    {
+                        // Workshops: hide if the player hasn't met the owner (a notable)
+                        // To get the owner, we need the Target property which returns a Workshop
+                        if (targetProp != null)
                         {
-                            if (!accessBehavior.HasFeatureAccess(settlement, SettlementMenuOptions.Features.Arena))
-                                _isEnabledProperty!.SetValue(target, false);
+                            var workshopObj = targetProp.GetValue(target); // TaleWorlds.CampaignSystem.Settlements.Workshops.Workshop
+                            if (workshopObj != null)
+                            {
+                                var ownerProp = workshopObj.GetType().GetProperty("Owner", BindingFlags.Public | BindingFlags.Instance);
+                                var owner = ownerProp?.GetValue(workshopObj) as Hero;
+
+                                if (owner != null && !owner.HasMet)
+                                    _isEnabledProperty!.SetValue(target, false);
+                            }
                         }
-                        else if (lowerName.Contains("lord") || lowerName.Contains("keep") || lowerName.Contains("dungeon") || lowerName.Contains("prison"))
+                    }
+                    else
+                    {
+                        // Check if it's a generic marker with an 'Identifier' field/property
+                        if (!_identifierFieldsCache.TryGetValue(targetType, out var identifierField))
                         {
-                            if (!accessBehavior.HasFeatureAccess(settlement, SettlementMenuOptions.Features.Keep))
-                                _isEnabledProperty!.SetValue(target, false);
+                            identifierField = targetType.GetField("Identifier", BindingFlags.Public | BindingFlags.Instance);
+                            _identifierFieldsCache[targetType] = identifierField;
+                        }
+
+                        if (identifierField != null)
+                        {
+                            var identifier = identifierField.GetValue(target) as string;
+                            if (!string.IsNullOrEmpty(identifier))
+                            {
+                                if (!ShouldShowLocationIdentifier(identifier, accessBehavior, settlement))
+                                    _isEnabledProperty!.SetValue(target, false);
+                            }
                         }
                     }
                 }
@@ -377,7 +394,10 @@ namespace LessMenusMoreImmersion.Behaviors
                 // Companions and clan members always visible
                 if (hero.Clan == Clan.PlayerClan) return true;
 
-                // Other heroes (lords/notables) — only if the Keep is discovered
+                // Town-center notables become visible once introduced.
+                if (hero.IsNotable) return hero.HasMet;
+
+                // Other heroes (e.g. nobles/lords) remain tied to Keep discovery.
                 return accessBehavior.HasFeatureAccess(settlement, SettlementMenuOptions.Features.Keep);
             }
 

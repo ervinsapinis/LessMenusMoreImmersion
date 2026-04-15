@@ -37,6 +37,12 @@ namespace LessMenusMoreImmersion.Constants
             public const string Backstreet = "backstreet";
             public const string Trade = "trade";
             public const string Smithy = "smithy";
+
+            // Mission-only features (don't unlock town menu options)
+            public const string Alley = "alley";
+            public const string Waterfront = "waterfront";
+            public const string Clearing = "clearing";
+            public const string Barber = "barber";
         }
 
         /// <summary>
@@ -76,9 +82,12 @@ namespace LessMenusMoreImmersion.Constants
             { "arena_practice_fight", Features.Arena },
             { "smith",  Features.Smithy },
             { "smithy", Features.Smithy },
-            { "alley_one",   Features.Backstreet },
-            { "alley_two",   Features.Backstreet },
-            { "alley_three", Features.Backstreet },
+            { "alley_1",     Features.Alley },
+            { "alley_2",     Features.Alley },
+            { "alley_3",     Features.Alley },
+            { "waterfront",  Features.Waterfront },
+            { "clearing",    Features.Clearing },
+            { "barber",      Features.Barber },
         };
 
         /// <summary>
@@ -98,6 +107,10 @@ namespace LessMenusMoreImmersion.Constants
                 case Features.Backstreet: return "tavern district";
                 case Features.Trade: return "marketplace";
                 case Features.Smithy: return "smithy";
+                case Features.Alley: return "alley";
+                case Features.Waterfront: return "waterfront";
+                case Features.Clearing: return "clearing";
+                case Features.Barber: return "barber";
                 default: return feature;
             }
         }
