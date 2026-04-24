@@ -60,8 +60,14 @@ namespace LessMenusMoreImmersion.Behaviors
 
         private void OnGameStarted(CampaignGameStarter campaignGameStarter)
         {
-            LmmiLog.Info("DisableMenuBehavior: OnGameStarted - registering dialogs and events. [v1.5.0]");
-            InformationManager.DisplayMessage(new InformationMessage(new TextObject("{=Eji4qI4xg}Less menus more immersion loaded successfully [v1.5.0].").ToString()));
+            var version = typeof(DisableMenuBehavior).Assembly.GetName().Version?.ToString() ?? "unknown";
+            LmmiLog.Info($"DisableMenuBehavior: OnGameStarted - registering dialogs and events. [v{version}]");
+            // Must initialize the guide character BEFORE registering guide dialogs.
+            _localGuide = MBObjectManager.Instance.GetObject<CharacterObject>("local_guide");
+            if (_localGuide == null)
+                LmmiLog.Warning("local_guide character object not found - guide tavern spawns will be skipped.");
+
+            InformationManager.DisplayMessage(new InformationMessage(new TextObject("{=Eji4qI4xg}Less menus more immersion loaded successfully.").ToString() + $" [v{version}]"));
 
             try
             {
@@ -81,10 +87,6 @@ namespace LessMenusMoreImmersion.Behaviors
                 _spawnListenerRegistered = true;
                 LmmiLog.Debug("LocationCharactersAreReadyToSpawn listener registered.");
             }
-
-            _localGuide = MBObjectManager.Instance.GetObject<CharacterObject>("local_guide");
-            if (_localGuide == null)
-                LmmiLog.Warning("local_guide character object not found - guide tavern spawns will be skipped.");
 
             _escortBehavior.OnFeatureUnlocked += OnFeatureUnlocked;
         }
@@ -268,7 +270,30 @@ namespace LessMenusMoreImmersion.Behaviors
                 "village_trader_options",
                 "{=iZHsKXxU6}Very well, let's trade.",
                 null,
-                null
+                () =>
+                {
+                    try
+                    {
+                        var settlement = Settlement.CurrentSettlement;
+                        if (settlement?.Village == null)
+                        {
+                            LmmiLog.Warning("Village trader trade consequence fired with no current settlement/village — aborting trade screen.");
+                            return;
+                        }
+
+                        LmmiLog.Debug($"Opening village trade screen (dialog) for '{settlement.Name}'.");
+                        InventoryScreenHelper.OpenScreenAsTrade(
+                            settlement.ItemRoster,
+                            settlement.Village,
+                            InventoryCategoryType.None,
+                            null
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        LmmiLog.Error("Village trader trade consequence threw while opening trade screen", ex);
+                    }
+                }
             );
 
             campaignGameStarter.AddDialogLine(
@@ -328,12 +353,7 @@ namespace LessMenusMoreImmersion.Behaviors
             MBTextManager.SetTextVariable("ARRANGEMENT_COST", GetVillageArrangementCost());
         }
 
-        private int GetVillageArrangementCost()
-        {
-            int clanTier = Clan.PlayerClan != null ? Clan.PlayerClan.Tier : 0;
-            int baseCost = 100;
-            return baseCost * (clanTier + 1);
-        }
+        private int GetVillageArrangementCost() => LmmiSettingsProvider.VillageArrangementCost;
 
         private bool VillageTraderArrangementOnCondition()
         {
@@ -347,7 +367,111 @@ namespace LessMenusMoreImmersion.Behaviors
 
         protected void AddGuideDialogs(CampaignGameStarter campaignGameStarter)
         {
-            LmmiLog.Debug("AddGuideDialogs: Guide dialogs not yet implemented.");
+            // Guard: guide NPC missing in the XML/object DB
+            if (_localGuide == null)
+            {
+                LmmiLog.Warning("AddGuideDialogs: _localGuide is null — skipping guide dialog registration.");
+                return;
+            }
+
+            bool IsTalkingToLocalGuide()
+            {
+                try
+                {
+                    var partner = CharacterObject.OneToOneConversationCharacter;
+                    if (partner == null) return false;
+                    if (partner != _localGuide) return false;
+
+                    // Prefer to only fire in tavern (where we spawn the guide), but don't be overly strict.
+                    // This also ensures we override generic tavern/mercenary openers.
+                    var locId = CampaignMission.Current?.Location?.StringId;
+                    if (!string.IsNullOrEmpty(locId) && locId != "tavern")
+                        return false;
+
+                    return Settlement.CurrentSettlement?.IsTown == true;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+
+            int GetGuideCost()
+            {
+                int tier = Clan.PlayerClan?.Tier ?? 0;
+                int baseCost = LmmiSettingsProvider.GuideCostBase;
+                return baseCost * (tier + 1);
+            }
+
+            // Use existing localized strings from _Module/ModuleData/Languages/std_module_strings_xml.xml
+            // so dialog text stays in one place.
+
+            bool HasFullAccess() => HasAccessToSettlement(Settlement.CurrentSettlement);
+
+            void SetGuideVars()
+            {
+                var s = Settlement.CurrentSettlement;
+                MBTextManager.SetTextVariable("SETTLEMENT_NAME", s?.Name ?? new TextObject("this town"));
+                MBTextManager.SetTextVariable("COST", GetGuideCost());
+            }
+
+            // Entry line: if already unlocked, show a short “nothing more to show” line.
+            campaignGameStarter.AddDialogLine(
+                "lmmi_local_guide_already_unlocked",
+                "start",
+                "lmmi_local_guide_already_unlocked_player",
+                "{=E5f6G7h8I}Ah, I see thou hast already been shown the wonders of {SETTLEMENT_NAME}. There is naught more to see.",
+                () => IsTalkingToLocalGuide() && HasFullAccess(),
+                () => MBTextManager.SetTextVariable("SETTLEMENT_NAME", Settlement.CurrentSettlement?.Name ?? new TextObject("this town")),
+                1000
+            );
+            campaignGameStarter.AddPlayerLine(
+                "lmmi_local_guide_already_unlocked_ack",
+                "lmmi_local_guide_already_unlocked_player",
+                "close_window",
+                "{=J9k0L1m2N}Indeed, I have seen all there is.",
+                null,
+                null
+            );
+
+            // Entry line: offer to reveal the town.
+            campaignGameStarter.AddDialogLine(
+                "lmmi_local_guide_offer_start",
+                "start",
+                "lmmi_local_guide_offer_player",
+                "{=O3p4Q5r6S}Ho there, sojourner. Thine puzzled face betrays thine nature. Fear thee not, as for the most modest sum, I shall show thee around {SETTLEMENT_NAME}, we shall leave no boulder unturned until thou knows't this corner of earth as thine own. Be thee interested?",
+                () => IsTalkingToLocalGuide() && !HasFullAccess(),
+                () => SetGuideVars(),
+                1000
+            );
+            campaignGameStarter.AddPlayerLine(
+                "lmmi_local_guide_accept",
+                "lmmi_local_guide_offer_player",
+                "lmmi_local_guide_accept_resp",
+                "{=T7u8V9w0X}Yes, I could use your help. [Pay {COST}{GOLD_ICON}]",
+                () => Hero.MainHero.Gold >= GetGuideCost(),
+                () =>
+                {
+                    SetGuideVars();
+                    UnlockSettlementAccess(Settlement.CurrentSettlement, GetGuideCost());
+                }
+            );
+            campaignGameStarter.AddPlayerLine(
+                "lmmi_local_guide_decline",
+                "lmmi_local_guide_offer_player",
+                "close_window",
+                "{=D5e6F7g8H}By heaven's Grace, what are you on about. Not interested.",
+                null,
+                null
+            );
+            campaignGameStarter.AddDialogLine(
+                "lmmi_local_guide_accept_resp",
+                "lmmi_local_guide_accept_resp",
+                "close_window",
+                "{=Y1z2A3b4C}Splendid. Let me show thee the ins and outs of our {SETTLEMENT_NAME}.",
+                null,
+                () => MBTextManager.SetTextVariable("SETTLEMENT_NAME", Settlement.CurrentSettlement?.Name ?? new TextObject("this town"))
+            );
         }
 
         private void UnlockSettlementAccess(Settlement settlement, int cost)
@@ -365,7 +489,10 @@ namespace LessMenusMoreImmersion.Behaviors
                 if (settlementsWithAccess == null) settlementsWithAccess = new Dictionary<string, bool>();
                 settlementsWithAccess[settlementId] = true;
                 LmmiLog.Info($"Full settlement access unlocked for '{settlement.Name}' (id={settlementId}) for {cost} gold.");
-                InformationManager.DisplayMessage(new InformationMessage(new TextObject("{=P3q4R5s6T}You now know your way around {settlement.Name}.").ToString()));
+
+                var msg = new TextObject("{=P3q4R5s6T}You now know your way around {SETTLEMENT_NAME}.");
+                msg.SetTextVariable("SETTLEMENT_NAME", settlement.Name);
+                InformationManager.DisplayMessage(new InformationMessage(msg.ToString()));
             }
             else
             {

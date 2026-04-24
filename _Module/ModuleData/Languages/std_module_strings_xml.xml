@@ -16,7 +16,7 @@
 		<string id="A1b2C3d4E" text="Yes, I am not done yet." />
 		<string id="F5g6H7i8J" text="No. Thank you for your time." />
 		<string id="K9l0M1n2O" text="The trader moves around, maybe you could arrange regular trading with this village." />
-		<string id="P3q4R5s6T" text="You now know your way around {settlement.Name}." />
+		<string id="P3q4R5s6T" text="You now know your way around {SETTLEMENT_NAME}." />
 		<string id="U7v8W9x0Y" text="You don't know the settlement by heart." />
 		<string id="Z1a2B3c4D" text="You don't have enough gold." />
 		<string id="E5f6G7h8I" text="Ah, I see thou hast already been shown the wonders of {SETTLEMENT_NAME}. There is naught more to see." />
@@ -45,5 +45,38 @@
 		<string id="bulk_recruitment_success" text="Excellent! The lads are yours now. Fight well!" />
 		<string id="decline_bulk_recruits" text="Perhaps another time." />
 		<string id="notable_recruitment_ok" text="Very well. Perhaps when you're ready." />
+
+		<!-- === Missing localization keys referenced in code (generated) === -->
+		<string id="FbowXAC0" text="There are no available products right now." />
+		<string id="VN4ctHIU" text="Buy products" />
+		<string id="X8R11a00" text="I'm looking for someone..." />
+		<string id="bmfo7CaO" text="Village shop is not available right now." />
+		<string id="lmmi_already_helped" text="{LMMI_DIRS_ALREADY_HELPED_TEXT}" />
+		<string id="lmmi_arrived" text="{ESCORT_ARRIVAL_TEXT}" />
+		<string id="lmmi_arrived_thanks" text="Thank you, I appreciate it." />
+		<string id="lmmi_busy" text="{LMMI_DIRS_BUSY_TEXT}" />
+		<string id="lmmi_cancel_esc" text="Never mind, I'll find it myself." />
+		<string id="lmmi_dirs_arena" text="The arena." />
+		<string id="lmmi_dirs_ask" text="Can you show me the way somewhere?" />
+		<string id="lmmi_dirs_barber" text="The barber." />
+		<string id="lmmi_dirs_closed" text="{LMMI_DIRS_CLOSED_TEXT}" />
+		<string id="lmmi_dirs_followme" text="{LMMI_DIRS_FOLLOW_TEXT}" />
+		<string id="lmmi_dirs_keep" text="The lord's hall." />
+		<string id="lmmi_dirs_market" text="The marketplace." />
+		<string id="lmmi_dirs_never" text="Never mind." />
+		<string id="lmmi_dirs_smithy" text="The smithy." />
+		<string id="lmmi_dirs_tavern" text="The tavern." />
+		<string id="lmmi_enroute" text="{ESCORT_ENROUTE_TEXT}" />
+		<string id="lmmi_escort_start" text="Follow me to the {LOCATION}!" />
+		<string id="lmmi_feature_discovered" text="You've found {FEATURE} of {SETTLEMENT}." />
+		<string id="lmmi_foreigner" text="{LMMI_DIRS_FOREIGNER_TEXT}" />
+		<string id="lmmi_glad" text="{LMMI_DIRS_GLAD_TEXT}" />
+		<string id="lmmi_greedy" text="{LMMI_DIRS_GREEDY_TEXT}" />
+		<string id="lmmi_greedy_paid_resp" text="{LMMI_DIRS_GREEDY_PAID_TEXT}" />
+		<string id="lmmi_greedy_pay" text="Agreed. Here is the coin." />
+		<string id="lmmi_greedy_refuse" text="I'll find my own way." />
+		<string id="lmmi_keep_going" text="Let's keep going." />
+		<string id="lmmi_repeat_refusal" text="{LMMI_REPEAT_REFUSAL_TEXT}" />
+		<string id="lmmi_undiscovered" text="You haven't discovered this part of settlement yet." />
 	</strings>
 </base>
