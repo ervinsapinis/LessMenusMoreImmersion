@@ -314,7 +314,9 @@ namespace LessMenusMoreImmersion.Behaviors
 
                 GatherCrowd(mission, b);
                 if (_master != null && _master.IsActive())
-                    StreetEventsBehavior.Bark(_master, new TextObject("{=lmmi_castle_spar_begin}Right, lads — make room! First one on his back loses."));
+                    StreetEventsBehavior.Bark(_master, Flavor.Pick("{=lmmi_castle_spar_begin}Right, lads — make room! First one on his back loses.",
+                        "{=lmmi_castle_spar_begin_2}Clear the ring! Fists up — first to hit the dirt loses.",
+                        "{=lmmi_castle_spar_begin_3}Make room, you lot! Let's see what our guest is made of."));
                 LmmiLog.Info($"Castle: bout {index + 1}/{_ring.Count} with {fighter.Troop.Name} (tier {fighter.Troop.Tier}, {foe.HealthLimit:0} hp), "
                              + $"{(b.Wooden ? $"wooden ({b.Style.Name})" : "fists")}{(wager > 0 ? $", {wager} wagered at {b.Odds:0.0}:1" : "")}.");
                 handler.StartCustomFight(new List<Agent> { main }, new List<Agent> { foe }, dropWeapons: false, isItemUseDisabled: false,
@@ -443,12 +445,24 @@ namespace LessMenusMoreImmersion.Behaviors
                 new TextObject("{=lmmi_castle_cheer_2}Guard up, you fool — guard up!"),
                 new TextObject("{=lmmi_castle_cheer_3}Ooh — that one'll leave a mark!"),
                 new TextObject("{=lmmi_castle_cheer_4}Get in close! Close!"),
+                new TextObject("{=lmmi_castle_cheer_8}Watch the left! The left!"),
+                new TextObject("{=lmmi_castle_cheer_9}Stop dancing and hit something!"),
+                new TextObject("{=lmmi_castle_cheer_10}Ha! He felt that one in his grandfather's bones!"),
+                new TextObject("{=lmmi_castle_cheer_11}Keep your feet! Keep your feet!"),
+                new TextObject("{=lmmi_castle_cheer_12}Is that a fight or a dance? Hit!"),
+                new TextObject("{=lmmi_castle_cheer_13}Go for the knees! Nobody fights well without knees!"),
+                new TextObject("{=lmmi_castle_cheer_14}My grandmother hits harder than that!"),
+                new TextObject("{=lmmi_castle_cheer_15}Down! Put them down!"),
                 new TextObject("{=lmmi_castle_cheer_5}Show {?PLAYER.GENDER}her{?}him{\\?} how we fight in {CASTLE}!").SetTextVariable("CASTLE", _castle?.Name ?? TextObject.GetEmpty()),
             };
             if (foreign)
-                options.Add(new TextObject("{=lmmi_castle_cheer_6}Two denars on the {DEMONYM}! ...No? Nobody?").SetTextVariable("DEMONYM", CultureWords.Demonym(Hero.MainHero.Culture)));
+                options.Add(Flavor.Pick("{=lmmi_castle_cheer_6}Two denars on the {DEMONYM}! ...No? Nobody?",
+                    "{=lmmi_castle_cheer_6b}Put the {DEMONYM} in the dirt! Show them how we do it here!",
+                    "{=lmmi_castle_cheer_6c}Come on, it's only a {DEMONYM}! Finish it!").SetTextVariable("DEMONYM", CultureWords.Demonym(Hero.MainHero.Culture)));
             if (b.Wager > 0)
-                options.Add(new TextObject("{=lmmi_castle_cheer_7}My week's pay is on you, lad — don't you dare go down!"));
+                options.Add(Flavor.Pick("{=lmmi_castle_cheer_7}My week's pay is on you, lad — don't you dare go down!",
+                    "{=lmmi_castle_cheer_7b}There's coin riding on this — don't you fall over!",
+                    "{=lmmi_castle_cheer_7c}I bet against you, so go on, fall down!"));
             return options[MBRandom.RandomInt(options.Count)];
         }
 
@@ -494,7 +508,9 @@ namespace LessMenusMoreImmersion.Behaviors
             if (b.Draw)
             {
                 Refund(b.Wager);
-                if (_master != null) StreetEventsBehavior.Bark(_master, new TextObject("{=lmmi_castle_spar_draw}Enough! I'm calling it. Neither of you is going down today — wagers back."));
+                if (_master != null) StreetEventsBehavior.Bark(_master, Flavor.Pick("{=lmmi_castle_spar_draw}Enough! I'm calling it. Neither of you is going down today — wagers back.",
+                        "{=lmmi_castle_spar_draw_2}Break! That's enough. Nobody's winning this one today — wagers back.",
+                        "{=lmmi_castle_spar_draw_3}Stop, stop! You'll be at it till dark. A draw — take your coin back."));
                 SendBack(fighter, kneel: false);
                 return;
             }
@@ -506,10 +522,16 @@ namespace LessMenusMoreImmersion.Behaviors
                 foreach (var f in _ring) f.Beaten = false;
                 Hero.MainHero.AddSkillXp(DefaultSkills.Athletics, 20f + 10f * b.Index);
                 Hero.MainHero.AddSkillXp(skill, 10f + 10f * b.Index);
-                if (_master != null) StreetEventsBehavior.Bark(_master, new TextObject("{=lmmi_castle_spar_lost}Down you go! Don't take it hard — he does this to everyone."));
-                var msg = new TextObject(b.Wager > 0
-                    ? "{=lmmi_castle_spar_lost_purse}You pick yourself up off the dirt. Your {GOLD}{GOLD_ICON} goes round the garrison — and that's your run done for today."
-                    : "{=lmmi_castle_spar_lost_plain}You pick yourself up off the dirt. That's your run done for today — come back tomorrow and start again.");
+                if (_master != null) StreetEventsBehavior.Bark(_master, Flavor.Pick("{=lmmi_castle_spar_lost}Down you go! Don't take it hard — he does this to everyone.",
+                        "{=lmmi_castle_spar_lost_2}And down! Brush yourself off — better fighters than you have kissed that dirt.",
+                        "{=lmmi_castle_spar_lost_3}That's a fall! No shame in it. He's been doing this since he could walk."));
+                var msg = (b.Wager > 0
+                    ? Flavor.Pick("{=lmmi_castle_spar_lost_purse}You pick yourself up off the dirt. Your {GOLD}{GOLD_ICON} goes round the garrison — and that's your run done for today.",
+                        "{=lmmi_castle_spar_lost_purse_2}The ground comes up fast. By the time you're on your feet, your {GOLD}{GOLD_ICON} is already being shared out — and your run's over for today.",
+                        "{=lmmi_castle_spar_lost_purse_3}Flat on your back, and {GOLD}{GOLD_ICON} lighter. That's the end of your run today.")
+                    : Flavor.Pick("{=lmmi_castle_spar_lost_plain}You pick yourself up off the dirt. That's your run done for today — come back tomorrow and start again.",
+                        "{=lmmi_castle_spar_lost_plain_2}Flat on your back. That's the end of your run — try again tomorrow, from the first.",
+                        "{=lmmi_castle_spar_lost_plain_3}You spit out a mouthful of dust. Done for today. Tomorrow you start again."));
                 msg.SetTextVariable("GOLD", b.Wager);
                 InformationManager.DisplayMessage(new InformationMessage(msg.ToString(), Colors.Red));
                 if (foe.IsActive())
@@ -536,12 +558,20 @@ namespace LessMenusMoreImmersion.Behaviors
                     TownStandingBehavior.Adjust(castle, 2f, "became champion of the yard");
                     Cooldown("champ:" + castle.StringId, 7f);
                 }
-                if (_master != null) StreetEventsBehavior.Bark(_master, new TextObject(fresh
-                    ? "{=lmmi_castle_spar_champion}All three! Lads — the champion of the yard! ...And you'll not get another wager out of me this week, thank you."
-                    : "{=lmmi_castle_spar_champion_again}All three again. I'd hire you, if I could afford you."));
-                var msg = new TextObject(payout > 0
-                    ? "{=lmmi_castle_champion_purse}Champion of the yard at {CASTLE}! The garrison roars your name, and {GOLD}{GOLD_ICON} changes hands — most of it to you."
-                    : "{=lmmi_castle_champion_plain}Champion of the yard at {CASTLE}! The garrison roars your name — they'll be talking about this for a month.");
+                if (_master != null) StreetEventsBehavior.Bark(_master, (fresh
+                    ? Flavor.Pick("{=lmmi_castle_spar_champion}All three! Lads — the champion of the yard! ...And you'll not get another wager out of me this week, thank you.",
+                        "{=lmmi_castle_spar_champion_2}Three for three! Somebody fetch a cup for the champion of the yard! ...And no more wagers from you this week.",
+                        "{=lmmi_castle_spar_champion_3}Ha! All three of them! The yard's yours — but my purse is closed to you for a week.")
+                    : Flavor.Pick("{=lmmi_castle_spar_champion_again}All three again. I'd hire you, if I could afford you.",
+                        "{=lmmi_castle_spar_champion_again_2}All three, again! Are you sure you don't want a post here?",
+                        "{=lmmi_castle_spar_champion_again_3}You've done it again. My lads will need a new trade.")));
+                var msg = (payout > 0
+                    ? Flavor.Pick("{=lmmi_castle_champion_purse}Champion of the yard at {CASTLE}! The garrison roars your name, and {GOLD}{GOLD_ICON} changes hands — most of it to you.",
+                        "{=lmmi_castle_champion_purse_2}Champion of the yard at {CASTLE}! They chant your name, and {GOLD}{GOLD_ICON} lands in your purse.",
+                        "{=lmmi_castle_champion_purse_3}All three beaten at {CASTLE}! The garrison cheers — and pays — {GOLD}{GOLD_ICON}, most of it to you.")
+                    : Flavor.Pick("{=lmmi_castle_champion_plain}Champion of the yard at {CASTLE}! The garrison roars your name — they'll be talking about this for a month.",
+                        "{=lmmi_castle_champion_plain_2}Champion of the yard at {CASTLE}! The men are already telling it to the night watch.",
+                        "{=lmmi_castle_champion_plain_3}All three beaten at {CASTLE}! The garrison's cheer shakes the walls."));
                 msg.SetTextVariable("CASTLE", castle.Name);
                 msg.SetTextVariable("GOLD", payout);
                 InformationManager.DisplayMessage(new InformationMessage(msg.ToString(), Colors.Green));
@@ -553,10 +583,16 @@ namespace LessMenusMoreImmersion.Behaviors
             Hero.MainHero.AddSkillXp(DefaultSkills.Athletics, 40f + 20f * b.Index);
             Hero.MainHero.AddSkillXp(skill, 30f + 20f * b.Index);
             TownStandingBehavior.Adjust(castle, 0.5f, "bested the garrison's man in the yard");
-            if (_master != null) StreetEventsBehavior.Bark(_master, new TextObject("{=lmmi_castle_spar_won}Ha! Not bad at all. Someone help him up."));
-            var won1 = new TextObject(payout > 0
-                ? "{=lmmi_castle_spar_won_purse}The yard roars. You collect {GOLD}{GOLD_ICON} from the grumbling garrison."
-                : "{=lmmi_castle_spar_won_plain}The yard roars. The garrison will be talking about that bout for a week.");
+            if (_master != null) StreetEventsBehavior.Bark(_master, Flavor.Pick("{=lmmi_castle_spar_won}Ha! Not bad at all. Someone help him up.",
+                        "{=lmmi_castle_spar_won_2}Well fought! Somebody pick him up and dust him off.",
+                        "{=lmmi_castle_spar_won_3}Ha! Down he goes. Next!"));
+            var won1 = (payout > 0
+                ? Flavor.Pick("{=lmmi_castle_spar_won_purse}The yard roars. You collect {GOLD}{GOLD_ICON} from the grumbling garrison.",
+                        "{=lmmi_castle_spar_won_purse_2}Cheers and groans round the ring. {GOLD}{GOLD_ICON} comes your way.",
+                        "{=lmmi_castle_spar_won_purse_3}A good win — and a good purse. {GOLD}{GOLD_ICON} from the losers.")
+                : Flavor.Pick("{=lmmi_castle_spar_won_plain}The yard roars. The garrison will be talking about that bout for a week.",
+                        "{=lmmi_castle_spar_won_plain_2}Cheers round the ring. Somebody claps you on the back.",
+                        "{=lmmi_castle_spar_won_plain_3}The garrison whoops. They'll be retelling that one at supper."));
             won1.SetTextVariable("GOLD", payout);
             InformationManager.DisplayMessage(new InformationMessage(won1.ToString(), Colors.Green));
             LmmiLog.Info($"Castle: you won bout {b.Index + 1} against {fighter.Troop.Name}{(payout > 0 ? $" (+{payout})" : "")}.");
@@ -589,15 +625,25 @@ namespace LessMenusMoreImmersion.Behaviors
                     var castle = _castle!;
                     bool resent = castle.Culture != Hero.MainHero.Culture
                                   && CultureRelations.Multiplier(castle.Culture?.StringId, Hero.MainHero.Culture?.StringId) > 0f;
-                    var line = new TextObject(LostToday
-                        ? "{=lmmi_castle_master_beaten}Still standing? Good. No more bouts for you today — come back tomorrow and start from the bottom."
+                    var line = (LostToday
+                        ? Flavor.Pick("{=lmmi_castle_master_beaten}Still standing? Good. No more bouts for you today — come back tomorrow and start from the bottom.",
+                        "{=lmmi_castle_master_beaten_2}Back already? Your run's done for today. Rest those bruises.",
+                        "{=lmmi_castle_master_beaten_3}No more for you today. Come back tomorrow, start with the green one.")
                         : WagersRefused
-                            ? "{=lmmi_castle_master_champ}The champion of the yard! The lads are still rubbing their jaws."
+                            ? Flavor.Pick("{=lmmi_castle_master_champ}The champion of the yard! The lads are still rubbing their jaws.",
+                        "{=lmmi_castle_master_champ_2}The champion graces us again! What can I do for you?",
+                        "{=lmmi_castle_master_champ_3}Ah, the one who flattened my best. Here to gloat?")
                             : castle.OwnerClan == Clan.PlayerClan
-                                ? "{=lmmi_castle_master_owner}My {?PLAYER.GENDER}lady{?}lord{\\?}. The men are drilling — care to show them how it's done?"
+                                ? Flavor.Pick("{=lmmi_castle_master_owner}My {?PLAYER.GENDER}lady{?}lord{\\?}. The men are drilling — care to show them how it's done?",
+                        "{=lmmi_castle_master_owner_2}My {?PLAYER.GENDER}lady{?}lord{\\?}. Come to see the lads sweat?",
+                        "{=lmmi_castle_master_owner_3}My {?PLAYER.GENDER}lady{?}lord{\\?}. The garrison's ready — ring or drill, you've only to say.")
                                 : resent
-                                    ? "{=lmmi_castle_master_foreign_ring}A {DEMONYM} in our yard. Three of my lads are waiting in the ring — fists or wooden blades. Let's see how they fight where you come from."
-                                    : "{=lmmi_castle_master_kin_ring}Master-at-arms. Three of my lads are waiting in the ring — fists or wooden blades, your choice. Nobody dies in my yard.");
+                                    ? Flavor.Pick("{=lmmi_castle_master_foreign_ring}A {DEMONYM} in our yard. Three of my lads are waiting in the ring — fists or wooden blades. Let's see how they fight where you come from.",
+                        "{=lmmi_castle_master_foreign_ring_2}A {DEMONYM}, eh? My lads will be glad of a foreign face to punch. Three of them, in the ring.",
+                        "{=lmmi_castle_master_foreign_ring_3}Fancy your chances, {DEMONYM}? Three of mine are waiting. Fists or wooden blades.")
+                                    : Flavor.Pick("{=lmmi_castle_master_kin_ring}Master-at-arms. Three of my lads are waiting in the ring — fists or wooden blades, your choice. Nobody dies in my yard.",
+                        "{=lmmi_castle_master_kin_ring_2}Master-at-arms. Want a bout? Three of my lads, one after another. Fists or wooden blades.",
+                        "{=lmmi_castle_master_kin_ring_3}Three of my best, one at a time. Beat them all and you'll be the talk of the barracks."));
                     line.SetTextVariable("DEMONYM", CultureWords.Demonym(Hero.MainHero.Culture));
                     MBTextManager.SetTextVariable("LMMI_CASTLE_MASTER", line);
                     MBTextManager.SetTextVariable("LMMI_CASTLE_TRAIN_COST", TrainCost);
@@ -620,11 +666,17 @@ namespace LessMenusMoreImmersion.Behaviors
                 {
                     int i = NextFighter;
                     if (i < 0) return false;
-                    var line = new TextObject(i == 0
-                        ? "{=lmmi_castle_next_1}First, the greenest of them: {TROOP}. Fists, or wooden blades?"
+                    var line = (i == 0
+                        ? Flavor.Pick("{=lmmi_castle_next_1}First, the greenest of them: {TROOP}. Fists, or wooden blades?",
+                        "{=lmmi_castle_next_1_2}The green one first: {TROOP}. Go easy — or don't. Fists or wooden blades?",
+                        "{=lmmi_castle_next_1_3}Start with {TROOP}. Still wet behind the ears. Fists, or wooden blades?")
                         : i == 1
-                            ? "{=lmmi_castle_next_2}Next, {TROOP}. A few more winters in this yard than the last one. Fists, or wooden blades?"
-                            : "{=lmmi_castle_next_3}Last, and best: {TROOP}. Nobody's put this one down all season. Fists, or wooden blades?");
+                            ? Flavor.Pick("{=lmmi_castle_next_2}Next, {TROOP}. A few more winters in this yard than the last one. Fists, or wooden blades?",
+                        "{=lmmi_castle_next_2_2}Now {TROOP}. Tougher than the last. Fists, or wooden blades?",
+                        "{=lmmi_castle_next_2_3}{TROOP} next. Seen a few fights, this one. Fists, or wooden blades?")
+                            : Flavor.Pick("{=lmmi_castle_next_3}Last, and best: {TROOP}. Nobody's put this one down all season. Fists, or wooden blades?",
+                        "{=lmmi_castle_next_3_2}The best I've got: {TROOP}. Fists, or wooden blades?",
+                        "{=lmmi_castle_next_3_3}And now {TROOP}. Win this and you're champion. Fists, or wooden blades?"));
                     line.SetTextVariable("TROOP", _ring[i].Troop.Name);
                     MBTextManager.SetTextVariable("LMMI_CASTLE_NEXT", line);
                     return true;
@@ -650,9 +702,13 @@ namespace LessMenusMoreImmersion.Behaviors
                 {
                     int i = NextFighter;
                     if (i < 0) return false;
-                    var line = new TextObject(WagersRefused
-                        ? "{=lmmi_castle_stake_refused}And don't bother reaching for your purse — I'm not taking the champion's coin this week. For the practice, then."
-                        : "{=lmmi_castle_stake_odds}Coin on it? The lads will give you {ODDS} to one against {TROOP}.");
+                    var line = (WagersRefused
+                        ? Flavor.Pick("{=lmmi_castle_stake_refused}And don't bother reaching for your purse — I'm not taking the champion's coin this week. For the practice, then.",
+                        "{=lmmi_castle_stake_refused_2}Keep your purse closed, champion. No coin from you this week. Just for the practice.",
+                        "{=lmmi_castle_stake_refused_3}I'm not betting against you again this week. Fight for the fun of it.")
+                        : Flavor.Pick("{=lmmi_castle_stake_odds}Coin on it? The lads will give you {ODDS} to one against {TROOP}.",
+                        "{=lmmi_castle_stake_odds_2}Want to put coin on it? {ODDS} to one, against {TROOP}.",
+                        "{=lmmi_castle_stake_odds_3}The lads are offering {ODDS} to one against {TROOP}. Interested?"));
                     line.SetTextVariable("ODDS", OddsFor(_ring[i].Troop, i).ToString("0.0"));
                     line.SetTextVariable("TROOP", _ring[i].Troop.Name);
                     MBTextManager.SetTextVariable("LMMI_CASTLE_STAKE", line);
@@ -683,9 +739,13 @@ namespace LessMenusMoreImmersion.Behaviors
                 "{=lmmi_castle_master_go}{LMMI_CASTLE_GO}",
                 () =>
                 {
-                    MBTextManager.SetTextVariable("LMMI_CASTLE_GO", new TextObject(_pendingWooden
-                        ? "{=lmmi_castle_go_wooden}Wooden blades it is. Hard as you like — they won't cut. The rest of your kit stays with me."
-                        : "{=lmmi_castle_go_fists}Ha! That's the spirit. Weapons down — fists only."));
+                    MBTextManager.SetTextVariable("LMMI_CASTLE_GO", (_pendingWooden
+                        ? Flavor.Pick("{=lmmi_castle_go_wooden}Wooden blades it is. Hard as you like — they won't cut. The rest of your kit stays with me.",
+                        "{=lmmi_castle_go_wooden_2}Wooden it is. They sting, but they won't cut. Hand over your steel.",
+                        "{=lmmi_castle_go_wooden_3}Practice blades. Give me your real ones — you'll get them back after.")
+                        : Flavor.Pick("{=lmmi_castle_go_fists}Ha! That's the spirit. Weapons down — fists only.",
+                        "{=lmmi_castle_go_fists_2}Fists! Good. Leave your blades with me.",
+                        "{=lmmi_castle_go_fists_3}Bare knuckles. The way it should be. Weapons down.")));
                     return true;
                 }, null);
 
@@ -697,9 +757,13 @@ namespace LessMenusMoreImmersion.Behaviors
                     var me = ConversationMission.OneToOneConversationAgent;
                     var f = _castle == null || me == null ? null : _ring.FirstOrDefault(r => r.Agent == me);
                     if (f == null) return false;
-                    MBTextManager.SetTextVariable("LMMI_CASTLE_FIGHTER", new TextObject(f.Beaten
-                        ? "{=lmmi_castle_fighter_beaten}You got lucky. Next time, it's your face in the dirt."
-                        : "{=lmmi_castle_fighter_ready}Want a go? Ask the master-at-arms — he sets the bouts."));
+                    MBTextManager.SetTextVariable("LMMI_CASTLE_FIGHTER", (f.Beaten
+                        ? Flavor.Pick("{=lmmi_castle_fighter_beaten}You got lucky. Next time, it's your face in the dirt.",
+                        "{=lmmi_castle_fighter_beaten_2}My jaw's still ringing. Next time, I'll be ready.",
+                        "{=lmmi_castle_fighter_beaten_3}Enjoy it while it lasts. I'll get you next time.")
+                        : Flavor.Pick("{=lmmi_castle_fighter_ready}Want a go? Ask the master-at-arms — he sets the bouts.",
+                        "{=lmmi_castle_fighter_ready_2}Looking for a fight? Talk to the master-at-arms.",
+                        "{=lmmi_castle_fighter_ready_3}The master-at-arms decides who fights. Ask him.")));
                     return true;
                 }, null, 1200);
 
@@ -732,7 +796,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     return false;
                 });
             starter.AddDialogLine("lmmi_castle_master_train_resp", "lmmi_castle_master_train_resp", "close_window",
-                "{=lmmi_castle_master_train_resp}Leave them with me. You'll get them back sore, and better.", null, null);
+                "{=!}{LMMI_CASTLE_TRAIN_RESP}",
+                    () => Flavor.Say("LMMI_CASTLE_TRAIN_RESP",
+                        "{=lmmi_castle_master_train_resp}Leave them with me. You'll get them back sore, and better.",
+                        "{=lmmi_castle_master_train_resp_2}I'll run them ragged. They'll thank me — eventually.",
+                        "{=lmmi_castle_master_train_resp_3}Send them over. I'll knock some sense into them, and some skill."), null);
 
             starter.AddPlayerLine("lmmi_castle_master_drill", "lmmi_castle_master_resp", "lmmi_castle_master_drill_resp",
                 "{=lmmi_castle_master_drill}Drill the garrison. Hard.", () => _castle?.OwnerClan == Clan.PlayerClan,
@@ -764,12 +832,20 @@ namespace LessMenusMoreImmersion.Behaviors
                     return false;
                 });
             starter.AddDialogLine("lmmi_castle_master_drill_resp", "lmmi_castle_master_drill_resp", "close_window",
-                "{=lmmi_castle_master_drill_resp}Yes, my {?PLAYER.GENDER}lady{?}lord{\\?}. They'll curse your name by noon and thank you by the next siege.", null, null);
+                "{=!}{LMMI_CASTLE_DRILL_RESP}",
+                    () => Flavor.Say("LMMI_CASTLE_DRILL_RESP",
+                        "{=lmmi_castle_master_drill_resp}Yes, my {?PLAYER.GENDER}lady{?}lord{\\?}. They'll curse your name by noon and thank you by the next siege.",
+                        "{=lmmi_castle_master_drill_resp_2}At once, my {?PLAYER.GENDER}lady{?}lord{\\?}. They'll hate you for a day and love you for a lifetime.",
+                        "{=lmmi_castle_master_drill_resp_3}Hard it is, my {?PLAYER.GENDER}lady{?}lord{\\?}. I'll have them running the walls in full kit."), null);
 
             starter.AddPlayerLine("lmmi_castle_master_leave", "lmmi_castle_master_resp", "lmmi_castle_master_left",
                 "{=lmmi_castle_master_leave}Another time.", null, null);
             starter.AddDialogLine("lmmi_castle_master_left", "lmmi_castle_master_left", "close_window",
-                "{=lmmi_castle_master_left}The yard's always open.", null, null);
+                "{=!}{LMMI_CASTLE_LEFT}",
+                    () => Flavor.Say("LMMI_CASTLE_LEFT",
+                        "{=lmmi_castle_master_left}The yard's always open.",
+                        "{=lmmi_castle_master_left_2}Come back when you're ready to bleed a little.",
+                        "{=lmmi_castle_master_left_3}As you like. The ring will still be here."), null);
         }
     }
 }

@@ -143,16 +143,24 @@ namespace LessMenusMoreImmersion.Behaviors
                 if (_master != null && _master.IsActive() && !_masterBarked && _bout == null && _master.Position.Distance(main.Position) < 7f)
                 {
                     _masterBarked = true;
-                    StreetEventsBehavior.Bark(_master, new TextObject(castle.OwnerClan == Clan.PlayerClan
-                        ? "{=lmmi_castle_master_hail_owner}Shields up — the {?PLAYER.GENDER}lady{?}lord{\\?}'s watching!"
-                        : "{=lmmi_castle_master_hail}You there! Fancy yourself with your fists? The lads could use a new face to knock down."));
+                    StreetEventsBehavior.Bark(_master, castle.OwnerClan == Clan.PlayerClan
+                        ? Flavor.Pick("{=lmmi_castle_master_hail_owner}Shields up — the {?PLAYER.GENDER}lady{?}lord{\\?}'s watching!",
+                            "{=lmmi_castle_master_hail_owner_2}On your feet, lads! The {?PLAYER.GENDER}lady{?}lord{\\?} of the castle!",
+                            "{=lmmi_castle_master_hail_owner_3}Look sharp — the {?PLAYER.GENDER}lady{?}lord{\\?}'s come to see what we're made of!")
+                        : Flavor.Pick("{=lmmi_castle_master_hail}You there! Fancy yourself with your fists? The lads could use a new face to knock down.",
+                            "{=lmmi_castle_master_hail_2}A visitor! Care to step in the ring? My lads are getting bored of each other's faces.",
+                            "{=lmmi_castle_master_hail_3}You've the look of a fighter. Prove it — the ring's right here."));
                 }
                 if (_castellan != null && _castellan.IsActive() && !_castellanBarked && _castellan.Position.Distance(main.Position) < 6f)
                 {
                     _castellanBarked = true;
-                    var hail = new TextObject(castle.OwnerClan == Clan.PlayerClan
-                        ? "{=lmmi_castle_castellan_hail_owner}My {?PLAYER.GENDER}lady{?}lord{\\?}. Welcome home."
-                        : "{=lmmi_castle_castellan_hail}The castellan of {CASTLE}. If you've business, I'm the one to see.");
+                    var hail = castle.OwnerClan == Clan.PlayerClan
+                        ? Flavor.Pick("{=lmmi_castle_castellan_hail_owner}My {?PLAYER.GENDER}lady{?}lord{\\?}. Welcome home.",
+                            "{=lmmi_castle_castellan_hail_owner_2}Welcome back to {CASTLE}, my {?PLAYER.GENDER}lady{?}lord{\\?}. All's in order.",
+                            "{=lmmi_castle_castellan_hail_owner_3}My {?PLAYER.GENDER}lady{?}lord{\\?}! The walls stand and the men are fed. What are your orders?")
+                        : Flavor.Pick("{=lmmi_castle_castellan_hail}The castellan of {CASTLE}. If you've business, I'm the one to see.",
+                            "{=lmmi_castle_castellan_hail_2}I keep {CASTLE}. If you need something here, ask me — not the guards.",
+                            "{=lmmi_castle_castellan_hail_3}A visitor at {CASTLE}. State your business with me, if you have any.");
                     hail.SetTextVariable("CASTLE", castle.Name);
                     StreetEventsBehavior.Bark(_castellan, hail);
                 }
@@ -349,9 +357,19 @@ namespace LessMenusMoreImmersion.Behaviors
                 CastleStaging.WalkTo(line[i], CastleStaging.Ground(mission, new Vec3(p2.x, p2.y, at.z)), face: sergeant, loop: "act_conversation_closed2_loop");
             }
             v.Cast.AddRange(people);
-            v.Barks.Add((2f, sergeant, new TextObject("{=lmmi_castle_drill_1}Shields UP! Up, I said! You call that a shield wall? My grandmother holds a wall better than that!")));
-            v.Barks.Add((12f, line[0], new TextObject("{=lmmi_castle_drill_2}Yes, sergeant! Sorry, sergeant!")));
-            v.Barks.Add((20f, sergeant, new TextObject("{=lmmi_castle_drill_3}Again! Until your arms fall off — and then again!")));
+            int script = MBRandom.RandomInt(3);   // one exchange, start to finish
+            v.Barks.Add((2f, sergeant, new TextObject(new[] {
+                "{=lmmi_castle_drill_1}Shields UP! Up, I said! You call that a shield wall? My grandmother holds a wall better than that!",
+                "{=lmmi_castle_drill_b1}Spears level! Level, I said — you're not fishing!",
+                "{=lmmi_castle_drill_c1}Step together! Together! You're a wall, not a herd of goats!" }[script])));
+            v.Barks.Add((12f, line[0], new TextObject(new[] {
+                "{=lmmi_castle_drill_2}Yes, sergeant! Sorry, sergeant!",
+                "{=lmmi_castle_drill_b2}Sergeant, my arm's gone numb!",
+                "{=lmmi_castle_drill_c2}We're trying, sergeant!" }[script])));
+            v.Barks.Add((20f, sergeant, new TextObject(new[] {
+                "{=lmmi_castle_drill_3}Again! Until your arms fall off — and then again!",
+                "{=lmmi_castle_drill_b3}Good! Means it's still attached. Again!",
+                "{=lmmi_castle_drill_c3}Trying gets you killed. Doing keeps you breathing. Again!" }[script])));
             return v;
         }
 
@@ -404,8 +422,15 @@ namespace LessMenusMoreImmersion.Behaviors
                 {
                     barked = true;
                     float now = _time - vv.ArrivedAt;
-                    vv.Barks.Add((now, prisoner, new TextObject("{=lmmi_castle_prisoner_1}Water... please, just a mouthful...")));
-                    vv.Barks.Add((now + 5f, guard, new TextObject("{=lmmi_castle_prisoner_2}Keep walking. You'll get your water when the lord says.")));
+                    int script = MBRandom.RandomInt(3);
+                    vv.Barks.Add((now, prisoner, new TextObject(new[] {
+                        "{=lmmi_castle_prisoner_1}Water... please, just a mouthful...",
+                        "{=lmmi_castle_prisoner_b1}Where are you taking me? I've done nothing!",
+                        "{=lmmi_castle_prisoner_c1}My family will pay — just send word, please!" }[script])));
+                    vv.Barks.Add((now + 5f, guard, new TextObject(new[] {
+                        "{=lmmi_castle_prisoner_2}Keep walking. You'll get your water when the lord says.",
+                        "{=lmmi_castle_prisoner_b2}Tell it to the lord. Walk.",
+                        "{=lmmi_castle_prisoner_c2}Everyone's family will pay. Move." }[script])));
                 }
             };
             LmmiLog.Info($"Castle: a prisoner ({who.Name}) is walked across the yard.");
@@ -426,9 +451,19 @@ namespace LessMenusMoreImmersion.Behaviors
                 CastleStaging.WalkTo(men[i], seat, face: men[(i + 1) % men.Count], loop: LoopSitFloor);
             }
             v.Cast.AddRange(men);
-            v.Barks.Add((4f, men[0], new TextObject("{=lmmi_castle_dice_1}Sixes! Pay up, the lot of you.")));
-            v.Barks.Add((14f, men[1], new TextObject("{=lmmi_castle_dice_2}Those dice are loaded, I swear it.")));
-            v.Barks.Add((24f, men[0], new TextObject("{=lmmi_castle_dice_3}Loaded with luck, friend. Another round?")));
+            int script = MBRandom.RandomInt(3);
+            v.Barks.Add((4f, men[0], new TextObject(new[] {
+                "{=lmmi_castle_dice_1}Sixes! Pay up, the lot of you.",
+                "{=lmmi_castle_dice_b1}Snake eyes! Again! The gods hate me.",
+                "{=lmmi_castle_dice_c1}Double fives. That's your week's pay, friend." }[script])));
+            v.Barks.Add((14f, men[1], new TextObject(new[] {
+                "{=lmmi_castle_dice_2}Those dice are loaded, I swear it.",
+                "{=lmmi_castle_dice_b2}The gods just know a fool when they see one.",
+                "{=lmmi_castle_dice_c2}That was my sister's dowry, you thief." }[script])));
+            v.Barks.Add((24f, men[0], new TextObject(new[] {
+                "{=lmmi_castle_dice_3}Loaded with luck, friend. Another round?",
+                "{=lmmi_castle_dice_b3}Shut up and roll.",
+                "{=lmmi_castle_dice_c3}Then she should've married better. Roll!" }[script])));
             return v;
         }
 
@@ -456,8 +491,15 @@ namespace LessMenusMoreImmersion.Behaviors
             v.Cast.Add(courier);
             var news = News(castle);
             v.OnArrive = () => StreetEventsBehavior.Direct(target)?.Hold(face: courier, loop: "act_conversation_closed_loop");
-            v.Barks.Add((0.5f, courier, new TextObject("{=lmmi_castle_courier_1}Riders from the border, castellan! News!")));
-            v.Barks.Add((7f, target, new TextObject("{=lmmi_castle_courier_2}Catch your breath, lad. Then tell the sergeant — and get yourself some bread.")));
+            int script = MBRandom.RandomInt(3);
+            v.Barks.Add((0.5f, courier, new TextObject(new[] {
+                "{=lmmi_castle_courier_1}Riders from the border, castellan! News!",
+                "{=lmmi_castle_courier_b1}Castellan! Urgent word from the road!",
+                "{=lmmi_castle_courier_c1}A message for the castellan! I've ridden all night!" }[script])));
+            v.Barks.Add((7f, target, new TextObject(new[] {
+                "{=lmmi_castle_courier_2}Catch your breath, lad. Then tell the sergeant — and get yourself some bread.",
+                "{=lmmi_castle_courier_b2}Steady, man. Water first, then talk — and keep your voice down.",
+                "{=lmmi_castle_courier_c2}Then sit, before you fall. Speak slowly." }[script])));
             v.AtEnd = () =>
             {
                 if (target.IsActive() && main != null && main.IsActive())
@@ -486,7 +528,9 @@ namespace LessMenusMoreImmersion.Behaviors
                             && p.Position.Distance(at) < 150f)
                 .OrderBy(p => p.Position.Distance(at)).FirstOrDefault();
             if (hostile == null)
-                return new TextObject("{=lmmi_castle_news_quiet}The roads are quiet. Too quiet, if you ask me.");
+                return Flavor.Pick("{=lmmi_castle_news_quiet}The roads are quiet. Too quiet, if you ask me.",
+                    "{=lmmi_castle_news_quiet_2}Nothing on the roads but merchants and mud.",
+                    "{=lmmi_castle_news_quiet_3}Quiet out there. I don't like it.");
             var near = SettlementHelper.FindNearestSettlementToPoint(hostile.Position, s => s.IsTown || s.IsCastle || s.IsVillage);
             int men = hostile.Army != null ? (int)hostile.Army.TotalManCount : hostile.MemberRoster.TotalManCount;
             var line = new TextObject(hostile.Army != null

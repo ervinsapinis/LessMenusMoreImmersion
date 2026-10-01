@@ -76,13 +76,21 @@ namespace LessMenusMoreImmersion.Behaviors
         {
             var lord = castle.OwnerClan?.Leader;
             if (lord == null || !lord.IsAlive)
-                return new TextObject("{=lmmi_castle_lord_none}There's no lord to speak of. We hold the walls for the realm.");
+                return Flavor.Pick("{=lmmi_castle_lord_none}There's no lord to speak of. We hold the walls for the realm.",
+                        "{=lmmi_castle_lord_none_2}No lord holds this place now. We keep the walls for the realm, and wait.",
+                        "{=lmmi_castle_lord_none_3}Lord? There's none. Just us, the walls, and whoever the realm sends next.");
             if (AtWarWithYou(castle))
-                return new TextObject("{=lmmi_castle_lord_war}Where my lord is, is no business of an enemy's. Next question — or the gate.");
+                return Flavor.Pick("{=lmmi_castle_lord_war}Where my lord is, is no business of an enemy's. Next question — or the gate.",
+                        "{=lmmi_castle_lord_war_2}You think I'd tell an enemy where my lord sleeps? Ask something else, or leave.",
+                        "{=lmmi_castle_lord_war_3}My lord's whereabouts are not for your ears. Move on.");
             if (!Trusts(castle))
-                return new TextObject(Resents(castle)
-                    ? "{=lmmi_castle_lord_vague_foreign}Away. And I don't tell a {DEMONYM} more than that."
-                    : "{=lmmi_castle_lord_vague}Away, on the realm's business. I don't tell strangers more than that.")
+                return (Resents(castle)
+                    ? Flavor.Pick("{=lmmi_castle_lord_vague_foreign}Away. And I don't tell a {DEMONYM} more than that.",
+                        "{=lmmi_castle_lord_vague_foreign_2}Gone. That's all a {DEMONYM} gets from me.",
+                        "{=lmmi_castle_lord_vague_foreign_3}My lord's affairs aren't for foreign ears, {DEMONYM}.")
+                    : Flavor.Pick("{=lmmi_castle_lord_vague}Away, on the realm's business. I don't tell strangers more than that.",
+                        "{=lmmi_castle_lord_vague_2}Elsewhere. A stranger doesn't need to know where.",
+                        "{=lmmi_castle_lord_vague_3}On business. If you need to know more, earn my lord's trust first."))
                     .SetTextVariable("DEMONYM", CultureWords.Demonym(Hero.MainHero.Culture));
 
             TextObject line;
@@ -119,7 +127,9 @@ namespace LessMenusMoreImmersion.Behaviors
             }
             else if (lord.LastKnownClosestSettlement != null)
                 line = new TextObject("{=lmmi_castle_lord_last}Travelling. Last we heard, near {PLACE}.").SetTextVariable("PLACE", lord.LastKnownClosestSettlement.Name);
-            else line = new TextObject("{=lmmi_castle_lord_unknown}Nobody tells the castellan anything. Away.");
+            else line = Flavor.Pick("{=lmmi_castle_lord_unknown}Nobody tells the castellan anything. Away.",
+                        "{=lmmi_castle_lord_unknown_2}Couldn't say. The last rider brought no word of my lord.",
+                        "{=lmmi_castle_lord_unknown_3}Wherever my lord is, nobody's thought to tell me.");
             line.SetTextVariable("LORD", lord.Name);
             return line;
         }
@@ -135,9 +145,11 @@ namespace LessMenusMoreImmersion.Behaviors
                 ? "{=lmmi_castle_prisoners_common}And {N} common prisoners eating our bread."
                 : "{=lmmi_castle_prisoners_empty}Otherwise the cells are empty.").SetTextVariable("N", common);
             if (heroes.Count == 0)
-                return new TextObject(common > 0
+                return (common > 0
                     ? "{=lmmi_castle_prisoners_none_common}No one worth a ransom. Just {N} common prisoners eating our bread."
-                    : "{=lmmi_castle_prisoners_none}No one. The cells are empty — the rats are bored.").SetTextVariable("N", common);
+                    : Flavor.Pick("{=lmmi_castle_prisoners_none}No one. The cells are empty — the rats are bored.",
+                        "{=lmmi_castle_prisoners_none_2}Empty cells. Not so much as a cattle thief.",
+                        "{=lmmi_castle_prisoners_none_3}Nobody down there. The jailer's taken up whittling.")).SetTextVariable("N", common);
             var list = string.Join(", ", heroes.Select(h => h.Clan != null && h.Clan.Name != null ? $"{h.Name} ({h.Clan.Name})" : h.Name.ToString()));
             bool yours = heroes.Any(h => h.MapFaction != null && h.MapFaction == Hero.MainHero.MapFaction && h.MapFaction != castle.MapFaction);
             var line = new TextObject(AtWarWithYou(castle) && yours
@@ -153,13 +165,17 @@ namespace LessMenusMoreImmersion.Behaviors
         {
             lairToMark = null;
             if (AtWarWithYou(castle))
-                return new TextObject("{=lmmi_castle_bandits_war}Bandits? Pray they find you before we do.");
+                return Flavor.Pick("{=lmmi_castle_bandits_war}Bandits? Pray they find you before we do.",
+                        "{=lmmi_castle_bandits_war_2}Bandits are the least of your worries here, enemy.",
+                        "{=lmmi_castle_bandits_war_3}Worry about our crossbows, not the bandits.");
             var at = castle.GatePosition;
             var bands = MobileParty.All.Where(p => p.IsActive && p.IsBandit && p.CurrentSettlement == null && p.Position.Distance(at) < 60f)
                 .OrderBy(p => p.Position.Distance(at)).ToList();
             TextObject roads;
             if (bands.Count == 0)
-                roads = new TextObject("{=lmmi_castle_bandits_quiet}No bands on the roads near us — the patrols see to that.");
+                roads = Flavor.Pick("{=lmmi_castle_bandits_quiet}No bands on the roads near us — the patrols see to that.",
+                        "{=lmmi_castle_bandits_quiet_2}The roads are clean. The patrols hang anyone they catch.",
+                        "{=lmmi_castle_bandits_quiet_3}No bandits worth the name nearby. We made sure of it.");
             else
             {
                 var nearest = bands[0];
@@ -176,9 +192,13 @@ namespace LessMenusMoreImmersion.Behaviors
             var lair = Settlement.All.Where(s => s.IsHideout && s.Hideout != null && s.Hideout.IsInfested && s.Position.Distance(at) < 120f)
                 .OrderBy(s => s.Position.Distance(at)).FirstOrDefault();
             TextObject lairLine;
-            if (lair == null) lairLine = new TextObject("{=lmmi_castle_bandits_no_lair}Where they lair, nobody knows. Somewhere far off, I hope.");
+            if (lair == null) lairLine = Flavor.Pick("{=lmmi_castle_bandits_no_lair}Where they lair, nobody knows. Somewhere far off, I hope.",
+                        "{=lmmi_castle_bandits_no_lair_2}Their hole could be anywhere. Nobody's found it yet.",
+                        "{=lmmi_castle_bandits_no_lair_3}No one knows where they hide. Somewhere far, with luck.");
             else if (!Trusts(castle) && Resents(castle))
-                lairLine = new TextObject("{=lmmi_castle_bandits_lair_secret}Where they lair is the garrison's business, not a {DEMONYM}'s.")
+                lairLine = Flavor.Pick("{=lmmi_castle_bandits_lair_secret}Where they lair is the garrison's business, not a {DEMONYM}'s.",
+                        "{=lmmi_castle_bandits_lair_secret_2}Where they hide is for the garrison to know, not a {DEMONYM}.",
+                        "{=lmmi_castle_bandits_lair_secret_3}That's garrison business. A {DEMONYM} doesn't need to know.")
                     .SetTextVariable("DEMONYM", CultureWords.Demonym(Hero.MainHero.Culture));
             else
             {
@@ -333,15 +353,21 @@ namespace LessMenusMoreImmersion.Behaviors
             bool known = TownStandingBehavior.Band(castle) >= StandingBand.Known;
             if (AtWarWithYou(castle))
             {
-                refusal = new TextObject("{=lmmi_castle_vets_war}Our men, for an enemy of the realm? Get out of my sight before I call the guard.");
+                refusal = Flavor.Pick("{=lmmi_castle_vets_war}Our men, for an enemy of the realm? Get out of my sight before I call the guard.",
+                        "{=lmmi_castle_vets_war_2}Men for an enemy? Leave, before I have you thrown from the walls.",
+                        "{=lmmi_castle_vets_war_3}Give our soldiers to our enemy? Get out.");
                 return false;
             }
             if (sameRealm || friend || known) return true;
             float resentment = CultureRelations.Multiplier(castle.Culture?.StringId, Hero.MainHero.Culture?.StringId)
                                * LmmiSettingsProvider.ForeignerPrejudicePercent / 100f;
-            refusal = new TextObject(resentment > 0f && castle.Culture != Hero.MainHero.Culture
-                ? "{=lmmi_castle_vets_foreign}The garrison isn't for hire — least of all to a {DEMONYM}."
-                : "{=lmmi_castle_vets_stranger}My lord doesn't know you. The garrison isn't for hire to strangers.");
+            refusal = (resentment > 0f && castle.Culture != Hero.MainHero.Culture
+                ? Flavor.Pick("{=lmmi_castle_vets_foreign}The garrison isn't for hire — least of all to a {DEMONYM}.",
+                        "{=lmmi_castle_vets_foreign_2}Our soldiers, serving a {DEMONYM}? Not while I keep this castle.",
+                        "{=lmmi_castle_vets_foreign_3}The garrison serves this castle, not some passing {DEMONYM}.")
+                : Flavor.Pick("{=lmmi_castle_vets_stranger}My lord doesn't know you. The garrison isn't for hire to strangers.",
+                        "{=lmmi_castle_vets_stranger_2}You're a stranger to my lord. No men for you.",
+                        "{=lmmi_castle_vets_stranger_3}Earn my lord's trust first. Then we'll talk about soldiers."));
             refusal.SetTextVariable("DEMONYM", CultureWords.Demonym(Hero.MainHero.Culture));
             return false;
         }
@@ -403,11 +429,17 @@ namespace LessMenusMoreImmersion.Behaviors
                     var owner = castle.OwnerClan?.Leader;
                     bool resent = castle.Culture != Hero.MainHero.Culture
                                   && CultureRelations.Multiplier(castle.Culture?.StringId, Hero.MainHero.Culture?.StringId) > 0f;
-                    var line = new TextObject(castle.OwnerClan == Clan.PlayerClan
-                        ? "{=lmmi_castle_castellan_owner}My {?PLAYER.GENDER}lady{?}lord{\\?}. The garrison stands ready. What do you need?"
+                    var line = (castle.OwnerClan == Clan.PlayerClan
+                        ? Flavor.Pick("{=lmmi_castle_castellan_owner}My {?PLAYER.GENDER}lady{?}lord{\\?}. The garrison stands ready. What do you need?",
+                        "{=lmmi_castle_castellan_owner_2}My {?PLAYER.GENDER}lady{?}lord{\\?}. All's well at {CASTLE}. What are your orders?",
+                        "{=lmmi_castle_castellan_owner_3}My {?PLAYER.GENDER}lady{?}lord{\\?}. The walls are manned and the stores counted. How can I serve?")
                         : resent
-                            ? "{=lmmi_castle_castellan_foreign}I keep {CASTLE} for {LORD}. State your business, {DEMONYM}, and be quick about it."
-                            : "{=lmmi_castle_castellan_kin}I keep {CASTLE} for {LORD}. What's your business?");
+                            ? Flavor.Pick("{=lmmi_castle_castellan_foreign}I keep {CASTLE} for {LORD}. State your business, {DEMONYM}, and be quick about it.",
+                        "{=lmmi_castle_castellan_foreign_2}I keep {CASTLE} for {LORD}. A {DEMONYM} at my door — say what you want and be brief.",
+                        "{=lmmi_castle_castellan_foreign_3}{CASTLE} answers to {LORD}, not to {DEMONYM} visitors. What do you want?")
+                            : Flavor.Pick("{=lmmi_castle_castellan_kin}I keep {CASTLE} for {LORD}. What's your business?",
+                        "{=lmmi_castle_castellan_kin_2}I keep {CASTLE} for {LORD}. What can I do for you?",
+                        "{=lmmi_castle_castellan_kin_3}Castellan of {CASTLE}, in {LORD}'s name. Speak."));
                     line.SetTextVariable("CASTLE", castle.Name);
                     line.SetTextVariable("LORD", owner?.Name ?? new TextObject("{=lmmi_castle_no_lord}the realm"));
                     line.SetTextVariable("DEMONYM", CultureWords.Demonym(Hero.MainHero.Culture));
@@ -468,7 +500,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     return false;
                 });
             starter.AddDialogLine("lmmi_castle_castellan_watch_resp", "lmmi_castle_castellan_watch_resp", "lmmi_castle_castellan_resp",
-                "{=lmmi_castle_castellan_watch_resp}Double it is. Nobody'll come near the walls without us knowing — and the roads will feel it too.", null, null);
+                "{=!}{LMMI_CASTELLAN_WATCH}",
+                    () => Flavor.Say("LMMI_CASTELLAN_WATCH",
+                        "{=lmmi_castle_castellan_watch_resp}Double it is. Nobody'll come near the walls without us knowing — and the roads will feel it too.",
+                        "{=lmmi_castle_castellan_watch_resp_2}Double shifts it is. The men won't love it, but the coin will help.",
+                        "{=lmmi_castle_castellan_watch_resp_3}I'll have torches on every tower tonight. Nothing will move out there without us seeing."), null);
 
             starter.AddPlayerLine("lmmi_castle_castellan_stores", "lmmi_castle_castellan_resp", "lmmi_castle_castellan_stores_resp",
                 "{=lmmi_castle_castellan_stores}Lay in stores against a siege. [{LMMI_CASTLE_STORES_COST}{GOLD_ICON}]",
@@ -490,7 +526,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     return false;
                 });
             starter.AddDialogLine("lmmi_castle_castellan_stores_resp", "lmmi_castle_castellan_stores_resp", "lmmi_castle_castellan_resp",
-                "{=lmmi_castle_castellan_stores_resp}I'll send the carts out today. Let them come — we'll still be eating when they're boiling their boots.", null, null);
+                "{=!}{LMMI_CASTELLAN_STORES}",
+                    () => Flavor.Say("LMMI_CASTELLAN_STORES",
+                        "{=lmmi_castle_castellan_stores_resp}I'll send the carts out today. Let them come — we'll still be eating when they're boiling their boots.",
+                        "{=lmmi_castle_castellan_stores_resp_2}The carts go out at first light. We'll have grain to the rafters.",
+                        "{=lmmi_castle_castellan_stores_resp_3}Good thinking. Full granaries win more sieges than tall walls."), null);
 
             // Someone else's castle: veterans the lord can spare.
             starter.AddPlayerLine("lmmi_castle_castellan_vets", "lmmi_castle_castellan_resp", "lmmi_castle_castellan_vets_resp",
@@ -543,7 +583,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     return false;
                 });
             starter.AddDialogLine("lmmi_castle_castellan_vets_done", "lmmi_castle_castellan_vets_done", "lmmi_castle_castellan_resp",
-                "{=lmmi_castle_castellan_vets_done}They'll report to your sergeant. Feed them well — they're used to it.", null, null);
+                "{=!}{LMMI_CASTELLAN_VETS_DONE}",
+                    () => Flavor.Say("LMMI_CASTELLAN_VETS_DONE",
+                        "{=lmmi_castle_castellan_vets_done}They'll report to your sergeant. Feed them well — they're used to it.",
+                        "{=lmmi_castle_castellan_vets_done_2}They're yours now. Good men — bring them back alive if you can.",
+                        "{=lmmi_castle_castellan_vets_done_3}Done. They'll grumble about leaving, but they'll fight for you."), null);
             starter.AddPlayerLine("lmmi_castle_castellan_vets_no_thanks", "lmmi_castle_castellan_vets_deal", "lmmi_castle_castellan_resp",
                 "{=lmmi_castle_castellan_vets_no_thanks}Too rich for me.", null, () => _veterans.Clear());
 
