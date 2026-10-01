@@ -1540,7 +1540,13 @@ namespace LessMenusMoreImmersion.Behaviors
                             storedText = PickOne(
                                 L("lmmi_dirs_busy_1", "Can't you see I'm busy? Find someone else."),
                                 L("lmmi_dirs_busy_2", "I have things to do. Bother someone else."),
-                                L("lmmi_dirs_busy_3", "Not now. I have somewhere to be.")
+                                L("lmmi_dirs_busy_3", "Not now. I have somewhere to be."),
+                                T("{=lmmi_dirs_busy_4}Do I look like a signpost? Move along."),
+                                T("{=lmmi_dirs_busy_5}I've a cart to unload and no time for strangers. Ask someone else."),
+                                T("{=lmmi_dirs_busy_6}Not today. My feet hurt and my patience is worse."),
+                                T("{=lmmi_dirs_busy_7}Ask the beggars, they've nothing better to do."),
+                                T("{=lmmi_dirs_busy_8}I'm late already, and you're making me later."),
+                                T("{=lmmi_dirs_busy_9}Busy. Go and bother a guard, they're paid for it.")
                             );
                             _agentRefusalTypeMap[agent.Index] = CitizenWillingness.TooBusy;
                             _agentRefusalTextMap[agent.Index] = storedText;
@@ -1571,7 +1577,13 @@ namespace LessMenusMoreImmersion.Behaviors
                             storedText = PickOne(
                                 L("lmmi_dirs_already_helped_1", "I've already shown you around. Ask someone else."),
                                 L("lmmi_dirs_already_helped_2", "I helped you once already. I have my own business to attend to."),
-                                L("lmmi_dirs_already_helped_3", "Find another guide, friend. I've done my part.")
+                                L("lmmi_dirs_already_helped_3", "Find another guide, friend. I've done my part."),
+                                T("{=lmmi_dirs_already_helped_4}Lost again? I'm not your nursemaid."),
+                                T("{=lmmi_dirs_already_helped_5}Once was a kindness. Twice is a job, and I'm not hiring out."),
+                                T("{=lmmi_dirs_already_helped_6}You again? Use your eyes this time, they're free."),
+                                T("{=lmmi_dirs_already_helped_7}I showed you once. Were you not listening the first time?"),
+                                T("{=lmmi_dirs_already_helped_8}I live here, I'm not your personal guide. Go on."),
+                                T("{=lmmi_dirs_already_helped_9}Same face, same question. No.")
                             );
                             _agentRefusalTypeMap[agent.Index] = CitizenWillingness.AlreadyHelped;
                             _agentRefusalTextMap[agent.Index] = storedText;
@@ -1620,7 +1632,13 @@ namespace LessMenusMoreImmersion.Behaviors
                     MBTextManager.SetTextVariable("LMMI_DIRS_UNFAMILIAR_TEXT", PickOne(
                         L("lmmi_dirs_unfamiliar_1", "Me? I've never set foot here before either. Ask a local."),
                         L("lmmi_dirs_unfamiliar_2", "I know this town about as well as you do. Which is to say, not at all."),
-                        L("lmmi_dirs_unfamiliar_3", "Don't look at me. I'm as lost as you are.")
+                        L("lmmi_dirs_unfamiliar_3", "Don't look at me. I'm as lost as you are."),
+                        T("{=lmmi_dirs_unfamiliar_4}I only got here this morning. I'm still looking for the privy myself."),
+                        T("{=lmmi_dirs_unfamiliar_5}Couldn't tell you. I'm passing through, same as you."),
+                        T("{=lmmi_dirs_unfamiliar_6}Ha! I've been lost since the gate. Good luck to you."),
+                        T("{=lmmi_dirs_unfamiliar_7}I'm a stranger here myself. Find someone with this town's mud on their boots."),
+                        T("{=lmmi_dirs_unfamiliar_8}No idea. Every street here looks the same to me."),
+                        T("{=lmmi_dirs_unfamiliar_9}Ask someone who lives here. I'm only here till market's done.")
                     ));
                     return true;
                 }, null);
@@ -1633,7 +1651,13 @@ namespace LessMenusMoreImmersion.Behaviors
                     MBTextManager.SetTextVariable("LMMI_DIRS_GLAD_TEXT", PickOne(
                         L("lmmi_dirs_glad_1", "Of course! Where would you like to go?"),
                         L("lmmi_dirs_glad_2", "Happy to help! What are you looking for?"),
-                        L("lmmi_dirs_glad_3", "Sure thing! Where do you need to get to?")
+                        L("lmmi_dirs_glad_3", "Sure thing! Where do you need to get to?"),
+                        T("{=lmmi_dirs_glad_4}Lost? Happens to everyone. Where to?"),
+                        T("{=lmmi_dirs_glad_5}Course I can. Where are you headed?"),
+                        T("{=lmmi_dirs_glad_6}Glad to. Name the place."),
+                        T("{=lmmi_dirs_glad_7}I know every street in this town. Where do you want to go?"),
+                        T("{=lmmi_dirs_glad_8}Come on, then. Where to?"),
+                        T("{=lmmi_dirs_glad_9}Ah, a visitor! Where can I take you?")
                     ));
                     return true;
                 }, null);
@@ -1646,7 +1670,13 @@ namespace LessMenusMoreImmersion.Behaviors
                     MBTextManager.SetTextVariable("LMMI_DIRS_GREEDY_TEXT", PickOne(
                         L("lmmi_dirs_greedy_1", "I know this town well... every back alley and shortcut. For {BRIBE_AMOUNT}{GOLD_ICON}, I'll take you wherever you need to go."),
                         L("lmmi_dirs_greedy_2", "Directions? Nothing's free here. {BRIBE_AMOUNT}{GOLD_ICON} and I'll show you personally."),
-                        L("lmmi_dirs_greedy_3", "You look lost, friend. For {BRIBE_AMOUNT}{GOLD_ICON}, I could help... for a small fee.")
+                        L("lmmi_dirs_greedy_3", "You look lost, friend. For {BRIBE_AMOUNT}{GOLD_ICON}, I could help... for a small fee."),
+                        T("{=lmmi_dirs_greedy_4}Directions cost money, friend. {BRIBE_AMOUNT}{GOLD_ICON}, and I'll walk you there myself."),
+                        T("{=lmmi_dirs_greedy_5}My legs don't walk for free. {BRIBE_AMOUNT}{GOLD_ICON}."),
+                        T("{=lmmi_dirs_greedy_6}I could show you. I could also forget the way. {BRIBE_AMOUNT}{GOLD_ICON} helps my memory."),
+                        T("{=lmmi_dirs_greedy_7}Everything here has a price, the streets too. {BRIBE_AMOUNT}{GOLD_ICON}, and we're off."),
+                        T("{=lmmi_dirs_greedy_8}A stranger with a full purse, lost in a strange town... {BRIBE_AMOUNT}{GOLD_ICON} and you won't be lost long."),
+                        T("{=lmmi_dirs_greedy_9}{BRIBE_AMOUNT}{GOLD_ICON}. Cheaper than wandering into the wrong alley, believe me.")
                     ));
                     return true;
                 }, null);
@@ -1668,7 +1698,13 @@ namespace LessMenusMoreImmersion.Behaviors
                     MBTextManager.SetTextVariable("LMMI_DIRS_GREEDY_PAID_TEXT", PickOne(
                         L("lmmi_dirs_greedy_paid_1", "Excellent. Where to?"),
                         L("lmmi_dirs_greedy_paid_2", "A pleasure doing business. Now, where are we headed?"),
-                        L("lmmi_dirs_greedy_paid_3", "Coin well spent. Where do you need to go?")
+                        L("lmmi_dirs_greedy_paid_3", "Coin well spent. Where do you need to go?"),
+                        T("{=lmmi_dirs_greedy_paid_4}Now we're friends. Where to?"),
+                        T("{=lmmi_dirs_greedy_paid_5}That's the stuff. Where are we off to?"),
+                        T("{=lmmi_dirs_greedy_paid_6}A pleasure. Where are we going?"),
+                        T("{=lmmi_dirs_greedy_paid_7}Coin talks. Where do you want to go?"),
+                        T("{=lmmi_dirs_greedy_paid_8}Lovely. Now, where to?"),
+                        T("{=lmmi_dirs_greedy_paid_9}Paid in full. Name the place.")
                     ));
                     return true;
                 }, null);

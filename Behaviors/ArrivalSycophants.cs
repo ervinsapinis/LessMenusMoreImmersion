@@ -243,6 +243,31 @@ namespace LessMenusMoreImmersion.Behaviors
 
         private enum PetitionPart { Ask, Hint, Yes, No, Thanks, Sulk }
 
+        // More ways of saying the NPC parts above, keyed by the id of the line they vary.
+        private static readonly Dictionary<string, string[]> MorePetition = new Dictionary<string, string[]>
+        {
+            { "lmmi_petition_rival_ask", new[] { "{=lmmi_petition_rival_ask_2}{?PLAYER.GENDER}My lady{?}My lord{\\?}, I've come about that little thing. {LMMI_TARGET.NAME}. Undercutting me, poaching my customers, whispering in every ear in the market. One word from you and {?LMMI_TARGET.GENDER}she{?}he{\\?} would think twice.", "{=lmmi_petition_rival_ask_3}You remember my gift, {?PLAYER.GENDER}my lady{?}my lord{\\?}? Good. Then you'll remember I mentioned {LMMI_TARGET.NAME}. {?LMMI_TARGET.GENDER}She{?}He{\\?} is bleeding my trade dry, and laughing about it. Remind {?LMMI_TARGET.GENDER}her{?}him{\\?} who my friends are." } },
+            { "lmmi_petition_rival_hint", new[] { "{=lmmi_petition_rival_hint_2}In return? Pfah. Nothing. Though if {LMMI_TARGET.NAME} ever gave you cause to frown at {?LMMI_TARGET.GENDER}her{?}him{\\?}, I wouldn't weep. Another day, another day.", "{=lmmi_petition_rival_hint_3}Nothing, I swear it! Well. There is a certain {LMMI_TARGET.NAME} who could do with being taken down a peg. But we'll talk of that later." } },
+            { "lmmi_petition_rival_thanks", new[] { "{=lmmi_petition_rival_thanks_2}Ha! I'd give a month's takings to see {LMMI_TARGET.NAME}'s face when you do. Thank you, {?PLAYER.GENDER}my lady{?}my lord{\\?}.", "{=lmmi_petition_rival_thanks_3}That's a friend! A real friend. The whole market will know whose side you're on." } },
+            { "lmmi_petition_rival_sulk", new[] { "{=lmmi_petition_rival_sulk_2}Oh, I see. The gift was welcome, the giver less so. Good day.", "{=lmmi_petition_rival_sulk_3}My quarrels are my own, are they? I'll remember that when you need a friend in this town." } },
+            { "lmmi_petition_word_ask", new[] { "{=lmmi_petition_word_ask_2}{?PLAYER.GENDER}My lady{?}My lord{\\?}, about that small favor. My petition has sat on {LMMI_TARGET.NAME}'s table for a season, under a pile of other people's. One word from you, and it rises to the top.", "{=lmmi_petition_word_ask_3}Remember the gift? Well, here's where it comes in. {LMMI_TARGET.NAME} decides who trades here and on what terms. Mention my name kindly, that's all. {?LMMI_TARGET.GENDER}She{?}He{\\?} listens to people like you." } },
+            { "lmmi_petition_word_hint", new[] { "{=lmmi_petition_word_hint_2}In return? Bah, nothing. Though {LMMI_TARGET.NAME} might hear a kind word about me from you one day. Only one day.", "{=lmmi_petition_word_hint_3}Nothing! Well, perhaps a word in {LMMI_TARGET.NAME}'s ear, some day. But today is for gifts." } },
+            { "lmmi_petition_word_thanks", new[] { "{=lmmi_petition_word_thanks_2}That's all it takes. One word from the right mouth. Thank you.", "{=lmmi_petition_word_thanks_3}Wonderful! I'll have the ink ready by morning." } },
+            { "lmmi_petition_word_sulk", new[] { "{=lmmi_petition_word_sulk_2}No, no, I understand. A word costs nothing, and still it's too dear. Good day.", "{=lmmi_petition_word_sulk_3}Hm. I'll remember who carries petitions in this town, and who doesn't." } },
+            { "lmmi_petition_son_ask", new[] { "{=lmmi_petition_son_ask_2}{?PLAYER.GENDER}My lady{?}My lord{\\?}, I'll be plain. My boy wants to fight, and he'll run off with the first band of cutthroats that'll have him if I don't find him a better master. Take him into your company. Please.", "{=lmmi_petition_son_ask_3}It's my son, {?PLAYER.GENDER}my lady{?}my lord{\\?}. Strong, stubborn, and bored to death in this town. He worships your banner. Give him a place under it and you'll have a loyal man for life." } },
+            { "lmmi_petition_son_hint", new[] { "{=lmmi_petition_son_hint_2}Nothing! Only... my son sharpens a sword he doesn't own and stares at your banners. One day I might ask you a favor for him. Not today.", "{=lmmi_petition_son_hint_3}Want? No, no. But I've a son who'd follow you into a fire, given half the chance. Another time." } },
+            { "lmmi_petition_son_thanks", new[] { "{=lmmi_petition_son_thanks_2}Thank you! I'll pack him a cloak and some bread. Teach him sense, if you can. I never managed.", "{=lmmi_petition_son_thanks_3}There'll be tears at home tonight, and he'll swear none of them are his. He'll be at your camp before dark." } },
+            { "lmmi_petition_son_sulk", new[] { "{=lmmi_petition_son_sulk_2}No place. Then he'll go to the first brigand who'll have him, and that's on you.", "{=lmmi_petition_son_sulk_3}Not good enough for your company. I'll tell him. He'll take it worse than I do." } },
+            { "lmmi_petition_invest_ask", new[] { "{=lmmi_petition_invest_ask_2}{?PLAYER.GENDER}My lady{?}My lord{\\?}, let me make you richer. A cargo, a buyer, a margin you wouldn't believe. All I need is a partner with {LMMI_AMOUNT}{GOLD_ICON}. Back in a month, with interest. Fat interest.", "{=lmmi_petition_invest_ask_3}A business proposal, {?PLAYER.GENDER}my lady{?}my lord{\\?}. {LMMI_AMOUNT}{GOLD_ICON} from you, the work from me, and in a month we both laugh all the way home. Trust me." } },
+            { "lmmi_petition_invest_hint", new[] { "{=lmmi_petition_invest_hint_2}Nothing! Though I've a little scheme that would make us both fatter, if you've coin to spare. Another time.", "{=lmmi_petition_invest_hint_3}Want? Only a partner, one day, in a venture or two. Nothing today, nothing today." } },
+            { "lmmi_petition_invest_thanks", new[] { "{=lmmi_petition_invest_thanks_2}A wise choice! The wisest. You'll hear from me within the month.", "{=lmmi_petition_invest_thanks_3}Splendid. Leave the worrying to me, and we'll both do the counting when it comes in." } },
+            { "lmmi_petition_invest_sulk", new[] { "{=lmmi_petition_invest_sulk_2}Suit yourself. Sit on it like a hen on a cold egg, then. Coin breeds in the open, not under your bed.", "{=lmmi_petition_invest_sulk_3}Cautious. How very cautious. Good day, {?PLAYER.GENDER}my lady{?}my lord{\\?}." } },
+            { "lmmi_petition_charter_ask", new[] { "{=lmmi_petition_charter_ask_2}{?PLAYER.GENDER}My lady{?}My lord{\\?}, {LMMI_SETTLEMENT} is yours now, and it could be richer. Give my house first call at the market, a charter with your seal on it, and I'll fill your coffers. The other guilds? Let them whine.", "{=lmmi_petition_charter_ask_3}New hands on the reins, {?PLAYER.GENDER}my lady{?}my lord{\\?}, and new rules, I hope. Seal me a charter: my house first at the stalls, before the rest. {LMMI_SETTLEMENT} will prosper, I promise you. The others will hate it, of course. Let them." } },
+            { "lmmi_petition_charter_hint", new[] { "{=lmmi_petition_charter_hint_2}Nothing! Though a charter with your seal on it would let my house make this town rich. Some other day.", "{=lmmi_petition_charter_hint_3}Only that, now the town is yours, you might hear my house out about the market. Not today." } },
+            { "lmmi_petition_charter_thanks", new[] { "{=lmmi_petition_charter_thanks_2}Your seal on it, and my house behind it! Watch this town grow.", "{=lmmi_petition_charter_thanks_3}Ha! Wait till the guild masters hear. Thank you, {?PLAYER.GENDER}my lady{?}my lord{\\?}." } },
+            { "lmmi_petition_charter_sulk", new[] { "{=lmmi_petition_charter_sulk_2}Open to all. Which means open to nobody who matters. Good day.", "{=lmmi_petition_charter_sulk_3}As you say. I'll go back to elbowing the fishmongers for a stall, then." } },
+        };
+
         private static TextObject PetitionText(PetitionAsk ask, PetitionPart part)
         {
             string s = (ask, part) switch
@@ -282,7 +307,8 @@ namespace LessMenusMoreImmersion.Behaviors
                 (PetitionAsk.Concession, PetitionPart.Thanks) => "{=lmmi_petition_charter_thanks}Your town won't regret it. And neither will you.",
                 _ => "{=lmmi_petition_charter_sulk}Open to all. How noble. How... unprofitable. Good day.",
             };
-            return new TextObject(s);
+            string id = s.Substring(2, s.IndexOf('}') - 2);
+            return MorePetition.TryGetValue(id, out var more) ? Flavor.Pick(new[] { s }.Concat(more).ToArray()) : new TextObject(s);
         }
 
         /// <summary>The petition text with this arrival's rival or lord, price and town filled in.</summary>
@@ -305,12 +331,15 @@ namespace LessMenusMoreImmersion.Behaviors
         private void AddTributeDialogs(CampaignGameStarter starter)
         {
             starter.AddDialogLine("lmmi_arrive_tribute_offer", "start", "lmmi_arrive_tribute_resp",
-                "{=lmmi_arrive_tribute_offer}{?PLAYER.GENDER}My lady{?}My lord{\\?}! What an honor. Please, a small token of our esteem: {LMMI_GIFT}. I insist, I insist.",
+                "{=!}{LMMI_TRIBUTE_OFFER}",
                 () =>
                 {
                     if (!IsArrival(ArrivalKind.Tribute) || _arrival!.Gift == null) return false;
                     MBTextManager.SetTextVariable("LMMI_GIFT", _arrival.Gift.Description);
-                    return true;
+                    return Flavor.Say("LMMI_TRIBUTE_OFFER",
+                        "{=lmmi_arrive_tribute_offer}{?PLAYER.GENDER}My lady{?}My lord{\\?}! What an honor. Please, a small token of our esteem: {LMMI_GIFT}. I insist, I insist.",
+                        "{=lmmi_arrive_tribute_offer_2}Welcome, welcome, {?PLAYER.GENDER}my lady{?}my lord{\\?}! You honor our streets. Allow me: {LMMI_GIFT}. No, I won't hear a word against it.",
+                        "{=lmmi_arrive_tribute_offer_3}{?PLAYER.GENDER}My lady{?}My lord{\\?}, a moment! A humble gift from a humble house: {LMMI_GIFT}. Please, take it.");
                 },
                 () =>
                 {
@@ -336,8 +365,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     if (a.HasAsk) Oblige(a.Host, a.Ask, a.Target);
                 });
             starter.AddDialogLine("lmmi_arrive_tribute_owed", "lmmi_arrive_tribute_taken", "close_window",
-                "{=lmmi_arrive_tribute_owed}Not at all, not at all! Only, when the time comes, remember who your friends are. I'll call on you.",
-                null, null);
+                "{=!}{LMMI_TRIBUTE_OWED}",
+                () => Flavor.Say("LMMI_TRIBUTE_OWED",
+                    "{=lmmi_arrive_tribute_owed}Not at all, not at all! Only, when the time comes, remember who your friends are. I'll call on you.",
+                    "{=lmmi_arrive_tribute_owed_2}Enjoy it! And if a friend should ever need a small favor... well. We'll talk.",
+                    "{=lmmi_arrive_tribute_owed_3}It's nothing, nothing. I'll call on you one of these days. Friends do that."), null);
 
             // What's the catch?
             starter.AddPlayerLine("lmmi_arrive_tribute_catch", "lmmi_arrive_tribute_resp", "lmmi_arrive_tribute_hint",
@@ -351,7 +383,9 @@ namespace LessMenusMoreImmersion.Behaviors
                     if (_arrival == null) return false;
                     MBTextManager.SetTextVariable("LMMI_TRIBUTE_HINT", _arrival.HasAsk
                         ? PetitionLine(PetitionPart.Hint)
-                        : new TextObject("{=lmmi_arrive_tribute_nothing}Want? Nothing at all! Only your good opinion, {?PLAYER.GENDER}my lady{?}my lord{\\?}."));
+                        : Flavor.Pick("{=lmmi_arrive_tribute_nothing}Want? Nothing at all! Only your good opinion, {?PLAYER.GENDER}my lady{?}my lord{\\?}.",
+                            "{=lmmi_arrive_tribute_nothing_2}In return? Nothing! Can't someone of your standing simply be welcomed?",
+                            "{=lmmi_arrive_tribute_nothing_3}Nothing, I swear! A friend in high places is reward enough."));
                     return true;
                 }, null);
 
@@ -366,7 +400,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     LmmiLog.Info($"Arrival: you gracefully declined {_arrival.Host.Name}'s gift (relation +1, no obligation).");
                 });
             starter.AddDialogLine("lmmi_arrive_tribute_graced", "lmmi_arrive_tribute_graced", "close_window",
-                "{=lmmi_arrive_tribute_graced}Ha! Nobody's ever turned me down so kindly. As you wish.", null, null);
+                "{=!}{LMMI_TRIBUTE_GRACED}",
+                () => Flavor.Say("LMMI_TRIBUTE_GRACED",
+                    "{=lmmi_arrive_tribute_graced}Ha! Nobody's ever turned me down so kindly. As you wish.",
+                    "{=lmmi_arrive_tribute_graced_2}Well! That's the sweetest no I've ever had. As you like.",
+                    "{=lmmi_arrive_tribute_graced_3}Hah, a silver tongue. Keep your friendship, then, and I'll keep my gift."), null);
 
             // Refuse it: the proud take it as an insult.
             starter.AddPlayerLine("lmmi_arrive_tribute_refuse", "lmmi_arrive_tribute_resp", "lmmi_arrive_tribute_refused",
@@ -377,8 +415,12 @@ namespace LessMenusMoreImmersion.Behaviors
                     bool proud = IsProud(host);
                     ChangeRelationAction.ApplyPlayerRelation(host, proud ? -4 : -1, affectRelatives: false);
                     MBTextManager.SetTextVariable("LMMI_TRIBUTE_REBUFF", proud
-                        ? new TextObject("{=lmmi_arrive_tribute_insulted}You'd refuse me? Here, where the whole street can see? ...As you wish, {?PLAYER.GENDER}my lady{?}my lord{\\?}. I won't trouble you again.")
-                        : new TextObject("{=lmmi_arrive_tribute_refused}Of course, of course. Forgive me. I meant no offense."));
+                        ? Flavor.Pick("{=lmmi_arrive_tribute_insulted}You'd refuse me? Here, where the whole street can see? ...As you wish, {?PLAYER.GENDER}my lady{?}my lord{\\?}. I won't trouble you again.",
+                            "{=lmmi_arrive_tribute_insulted_2}Refused. In front of my neighbors. I'll not forget this, {?PLAYER.GENDER}my lady{?}my lord{\\?}.",
+                            "{=lmmi_arrive_tribute_insulted_3}My gift isn't good enough for you? Fine. Fine. The whole street will hear of it by supper.")
+                        : Flavor.Pick("{=lmmi_arrive_tribute_refused}Of course, of course. Forgive me. I meant no offense.",
+                            "{=lmmi_arrive_tribute_refused_2}Ah. Of course. I was too forward. Forgive me.",
+                            "{=lmmi_arrive_tribute_refused_3}No harm done, no harm done. Another time, perhaps."));
                     LmmiLog.Info($"Arrival: you refused {host.Name}'s gift ({(proud ? "proud, insulted: -4" : "-1")}).");
                 });
             starter.AddDialogLine("lmmi_arrive_tribute_rebuff", "lmmi_arrive_tribute_refused", "close_window",
