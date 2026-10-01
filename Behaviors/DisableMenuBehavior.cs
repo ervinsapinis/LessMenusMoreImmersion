@@ -788,7 +788,13 @@ namespace LessMenusMoreImmersion.Behaviors
                     T("{=lmmi_dirs_foreigner_empire_15}I'd sooner help a mule. At least it doesn't lecture me."),
                     T("{=lmmi_dirs_foreigner_empire_16}Go back to your marble ruins and argue about who's emperor this week."),
                     T("{=lmmi_dirs_foreigner_empire_17}Imperials. Always looking down your noses. Look down this street instead — and keep walking."),
-                    T("{=lmmi_dirs_foreigner_empire_18}My grandfather paid your Empire's taxes in blood. I owe you nothing.")
+                    T("{=lmmi_dirs_foreigner_empire_18}My grandfather paid your Empire's taxes in blood. I owe you nothing."),
+                    T("{=lmmi_dirs_foreigner_empire_19}Run along to your bathhouse, imperial. There's a fat senator waiting to scrub your back."),
+                    T("{=lmmi_dirs_foreigner_empire_20}Your emperors married their own cousins, and it shows on your face."),
+                    T("{=lmmi_dirs_foreigner_empire_21}An imperial. All purple cloak, and nothing much underneath it."),
+                    T("{=lmmi_dirs_foreigner_empire_22}You smell like a senator's armpit — perfume on top, rot underneath."),
+                    T("{=lmmi_dirs_foreigner_empire_23}Go and lie on a couch and have someone feed you grapes, imperial. It's all your kind are good for."),
+                    T("{=lmmi_dirs_foreigner_empire_24}Did your mother powder her face for the legions too? I hear they all did.")
                 );
             }
             if (cultureId == "aserai")
@@ -811,7 +817,13 @@ namespace LessMenusMoreImmersion.Behaviors
                     T("{=lmmi_dirs_foreigner_aserai_15}An Aserai this far north? The desert must finally have had enough of you."),
                     T("{=lmmi_dirs_foreigner_aserai_16}Your sultan's riders raid our borders, and you want my help? Hah."),
                     T("{=lmmi_dirs_foreigner_aserai_17}I'd help you, but then you'd stay. Go on, off with you."),
-                    T("{=lmmi_dirs_foreigner_aserai_18}Shoo. Go and find an oasis to drink dry.")
+                    T("{=lmmi_dirs_foreigner_aserai_18}Shoo. Go and find an oasis to drink dry."),
+                    T("{=lmmi_dirs_foreigner_aserai_19}Go and kiss a scorpion, desert-born. It's the warmest welcome you'll get here."),
+                    T("{=lmmi_dirs_foreigner_aserai_20}The sun's boiled your brains to porridge. Off."),
+                    T("{=lmmi_dirs_foreigner_aserai_21}You've sand in places decent people don't mention, I'd wager. Go and shake it out somewhere else."),
+                    T("{=lmmi_dirs_foreigner_aserai_22}I'd sooner share a bed with a scorpion than a table with you."),
+                    T("{=lmmi_dirs_foreigner_aserai_23}Back to your dunes, and take your flies with you."),
+                    T("{=lmmi_dirs_foreigner_aserai_24}You look like something the desert chewed up and spat out. Twice.")
                 );
             }
             if (cultureId == "khuzait")
@@ -834,7 +846,13 @@ namespace LessMenusMoreImmersion.Behaviors
                     T("{=lmmi_dirs_foreigner_khuzait_15}We pay good coin for walls because of people like you. Move along."),
                     T("{=lmmi_dirs_foreigner_khuzait_16}Ask your horse. You two seem close."),
                     T("{=lmmi_dirs_foreigner_khuzait_17}The steppe's big enough for you, isn't it? Then why are you here?"),
-                    T("{=lmmi_dirs_foreigner_khuzait_18}Felt tents, dung fires and stolen cattle. No, thank you.")
+                    T("{=lmmi_dirs_foreigner_khuzait_18}Felt tents, dung fires and stolen cattle. No, thank you."),
+                    T("{=lmmi_dirs_foreigner_khuzait_19}Your mother was a mare, and your father wasn't fussy."),
+                    T("{=lmmi_dirs_foreigner_khuzait_20}Go and sleep with your horse, nomad. I hear your lot do."),
+                    T("{=lmmi_dirs_foreigner_khuzait_21}You smell like the back end of a horse. The wrong end."),
+                    T("{=lmmi_dirs_foreigner_khuzait_22}Did your horse throw you out of the yurt? Can't say I blame it."),
+                    T("{=lmmi_dirs_foreigner_khuzait_23}Mare's milk and dung smoke. You reek of both."),
+                    T("{=lmmi_dirs_foreigner_khuzait_24}Your kind kiss their horses goodnight. On the mouth, I'm told.")
                 );
             }
             if (cultureId == "nord")
@@ -857,7 +875,13 @@ namespace LessMenusMoreImmersion.Behaviors
                     T("{=lmmi_dirs_foreigner_nord_15}There's a watch on the harbor for your kind. Shall I call them?"),
                     T("{=lmmi_dirs_foreigner_nord_16}Herring and plunder, that's all your lot know. Not here."),
                     T("{=lmmi_dirs_foreigner_nord_17}The tide brought you in. Let it take you out again."),
-                    T("{=lmmi_dirs_foreigner_nord_18}Every spring your ships come, and every spring we bury someone. Leave.")
+                    T("{=lmmi_dirs_foreigner_nord_18}Every spring your ships come, and every spring we bury someone. Leave."),
+                    T("{=lmmi_dirs_foreigner_nord_19}Go and kiss a herring, Nord. It's the only lips you'll get here."),
+                    T("{=lmmi_dirs_foreigner_nord_20}You smell like a fish died in your beard. Twice."),
+                    T("{=lmmi_dirs_foreigner_nord_21}I hear Nords court seals. Lucky seals."),
+                    T("{=lmmi_dirs_foreigner_nord_22}Your longboat leaks, and so does your skull."),
+                    T("{=lmmi_dirs_foreigner_nord_23}Back to the sea, Nord. The fish miss you, and the walruses miss you more."),
+                    T("{=lmmi_dirs_foreigner_nord_24}Salt in the beard and lice in the furs. Lovely.")
                 );
             }
             if (cultureId == "battania")
@@ -880,7 +904,13 @@ namespace LessMenusMoreImmersion.Behaviors
                     T("{=lmmi_dirs_foreigner_battania_15}Your kind sing songs about burning towns like ours. Keep walking."),
                     T("{=lmmi_dirs_foreigner_battania_16}Go and hide in your glens, Battanian."),
                     T("{=lmmi_dirs_foreigner_battania_17}The woods are that way. Don't let the gate hit you on the way out."),
-                    T("{=lmmi_dirs_foreigner_battania_18}Moss on your boots and blood on your hands. No help here.")
+                    T("{=lmmi_dirs_foreigner_battania_18}Moss on your boots and blood on your hands. No help here."),
+                    T("{=lmmi_dirs_foreigner_battania_19}Go and hump a tree, woad raider. It's the only thing that'll have you."),
+                    T("{=lmmi_dirs_foreigner_battania_20}Your druids marry oak trees, and the trees still say no."),
+                    T("{=lmmi_dirs_foreigner_battania_21}Painted blue all over? Even there? Don't answer that."),
+                    T("{=lmmi_dirs_foreigner_battania_22}I can smell the woods on you — and whatever you were doing in them."),
+                    T("{=lmmi_dirs_foreigner_battania_23}Back to your glen. The squirrels must be missing you terribly."),
+                    T("{=lmmi_dirs_foreigner_battania_24}Your sort sleep in the mud with the pigs and call it a clan gathering.")
                 );
             }
             if (cultureId == "sturgia")
@@ -903,7 +933,13 @@ namespace LessMenusMoreImmersion.Behaviors
                     T("{=lmmi_dirs_foreigner_sturgia_15}I'd help you, but you'd forget it by your next cup."),
                     T("{=lmmi_dirs_foreigner_sturgia_16}Fur coat, red nose, empty head. Sturgian, aren't you?"),
                     T("{=lmmi_dirs_foreigner_sturgia_17}Your kind drink till they fall down and call it a feast. Not my concern."),
-                    T("{=lmmi_dirs_foreigner_sturgia_18}Find your own way, northerner. Follow the smell of ale.")
+                    T("{=lmmi_dirs_foreigner_sturgia_18}Find your own way, northerner. Follow the smell of ale."),
+                    T("{=lmmi_dirs_foreigner_sturgia_19}Your mother wrestled a bear once. Lost, I hear — then married it."),
+                    T("{=lmmi_dirs_foreigner_sturgia_20}You northerners bathe once a year, whether you need it or not."),
+                    T("{=lmmi_dirs_foreigner_sturgia_21}There's more vomit than beard on that chin, Sturgian."),
+                    T("{=lmmi_dirs_foreigner_sturgia_22}Go and warm your bed with a bear, snowman. I hear it's a family tradition."),
+                    T("{=lmmi_dirs_foreigner_sturgia_23}Back to your mead-hall and your lice. They'll be lonely without you."),
+                    T("{=lmmi_dirs_foreigner_sturgia_24}You smell like a wet dog that drank a barrel of mead and slept in it.")
                 );
             }
             if (cultureId == "vlandia")
@@ -926,7 +962,13 @@ namespace LessMenusMoreImmersion.Behaviors
                     T("{=lmmi_dirs_foreigner_vlandia_15}Your sort came over the sea with swords and never left. Leave now."),
                     T("{=lmmi_dirs_foreigner_vlandia_16}Vlandians. Iron on the outside, turnip on the inside."),
                     T("{=lmmi_dirs_foreigner_vlandia_17}I don't help people who'd sell their own mothers to the highest bidder."),
-                    T("{=lmmi_dirs_foreigner_vlandia_18}Back to Pravend with you, and take your goats.")
+                    T("{=lmmi_dirs_foreigner_vlandia_18}Back to Pravend with you, and take your goats."),
+                    T("{=lmmi_dirs_foreigner_vlandia_19}Run home to your goats, Vlandian. They'll be missing you. One of them especially."),
+                    T("{=lmmi_dirs_foreigner_vlandia_20}Your knights ride horses and court goats. Or is it the other way round?"),
+                    T("{=lmmi_dirs_foreigner_vlandia_21}You've the face of a goat and the manners of its back end."),
+                    T("{=lmmi_dirs_foreigner_vlandia_22}Lock up the goats, everyone — there's a Vlandian in town."),
+                    T("{=lmmi_dirs_foreigner_vlandia_23}Your king swears oaths the way your mother did: often, and to anyone."),
+                    T("{=lmmi_dirs_foreigner_vlandia_24}Go and woo a nanny-goat, Vlandian. She might even say yes.")
                 );
             }
 
@@ -948,7 +990,13 @@ namespace LessMenusMoreImmersion.Behaviors
                     T("{=lmmi_dirs_foreigner_generic_15}I've got work. You've got legs. Use them."),
                     T("{=lmmi_dirs_foreigner_generic_16}A stranger asking favors. Next you'll want a bed and a hot meal."),
                     T("{=lmmi_dirs_foreigner_generic_17}The last stranger I helped stole my mule."),
-                    T("{=lmmi_dirs_foreigner_generic_18}You'll find nothing but closed doors here, outsider.")
+                    T("{=lmmi_dirs_foreigner_generic_18}You'll find nothing but closed doors here, outsider."),
+                    T("{=lmmi_dirs_foreigner_generic_19}You've the look of someone who sleeps with the pigs, and the smell to prove it."),
+                    T("{=lmmi_dirs_foreigner_generic_20}Your mother should have kept you in the barn."),
+                    T("{=lmmi_dirs_foreigner_generic_21}Go and scratch your fleas somewhere else."),
+                    T("{=lmmi_dirs_foreigner_generic_22}I've stepped in nicer things than you on market day."),
+                    T("{=lmmi_dirs_foreigner_generic_23}Off, before the dogs start sniffing you."),
+                    T("{=lmmi_dirs_foreigner_generic_24}Whatever rock you crawled out from under wants you back.")
             );
         }
 
