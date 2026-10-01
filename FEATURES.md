@@ -19,6 +19,7 @@ wrong, and what the numbers are. For the design reasoning see `DESIGN_BEING_KNOW
   they are.
 - **Crowds** (MCM → General): towns and villages hold twice vanilla's ordinary townsfolk by default (50–400%).
   Scenes still cap it by their spawn points and the game's own civilian-count option (Options → Performance).
+  Only the open streets: taverns, the keep and other indoor places keep vanilla's numbers.
 
 ## 2. What notables think of you (disposition)
 
@@ -72,14 +73,18 @@ rating with the realm counts against it). It now has **names**, you see them, an
 
 | Band | Standing | Walking in | Shops | The watch & magistrate | And |
 |---|---|---|---|---|---|
-| **Honored** | 40+ | "people stop to greet you by name" | markup ×0.8 | fines ×0.5, sentences −2 days | the town's lord hears of you: +1 relation a week (up to 30) |
-| **Respected** | 25+ | "your name is well spoken of" | ×0.88 | fines ×0.75, −1 day | |
-| **Known** | 10+ | "a few faces turn your way" | ×0.95 | fines ×0.9 | |
+| **Honored** | 40+ | "people stop to greet you by name" | 12% cheaper to buy, 12% more when you sell | fines ×0.5, sentences −2 days | the town's lord hears of you: +1 relation a week (up to 30) |
+| **Respected** | 25+ | "your name is well spoken of" | 8% | fines ×0.75, −1 day | |
+| **Known** | 10+ | "a few faces turn your way" | 4% | fines ×0.9 | |
 | a stranger | −10 to 10 | — | — | — | |
-| **Disliked** | −10 or worse | "muttering follows you through the gates" | ×1.12 | fines ×1.25, +1 day | hecklers |
-| **Despised** | −25 or worse | "doors close as you pass" | ×1.25 | fines ×1.5, +2 days | the town's lord hears of it: −1 relation a week |
+| **Disliked** | −10 or worse | "muttering follows you through the gates" | 8% dearer to buy, 8% less when you sell | fines ×1.25, +1 day | hecklers |
+| **Despised** | −25 or worse | "doors close as you pass" | 15% | fines ×1.5, +2 days | the town's lord hears of it: −1 relation a week |
 
-("Markup" is vanilla's trade penalty — the gap between what a shop sells for and what it pays.)
+(Shop prices: every price the trade screen shows, on whatever price model the game is actually running — another mod's
+included. A good name never lets you buy something and sell it straight back at a profit: where the shop's own margin is
+thin (trade goods), the discount shrinks so that the round trip still loses at least 4%. In practice that means the full
+discount on gear and goods you'd keep, and only a little on trade goods. The tavern keeper also serves you by your name:
+see §8.)
 
 **Word travels:** whatever you gain or lose in one place spreads, at a quarter, to up to four towns and castles of the same
 people within a day's ride (a village's own town still gets half). Big deeds (3+) tell you where the word went. Crossing
@@ -147,41 +152,81 @@ On entering a town or village, at most one person may walk up to you:
 | A friend | you've been away 30+ days | a welcome feast, held right there (below) |
 | A friend | someone in town has you marked | a warning: "Don't trust X" |
 | Someone you helped | you did their quest | thanks and a gift |
-| A sycophant | tier 4+ | tribute — and later a petition against a rival |
+| A sycophant | clan tier 4+, rarely | a small gift — and, days later, a favour to ask in return (below) |
 | A cruel notable at Contempt | you arrive | "Finish your business and leave." Ignore it at your peril |
 | Townsfolk | — | beggars, admirers who heard what you did, and **hecklers** who hate your kind (below) |
 | Lords in the hall | — | a snub, flattery, or a quiet word from a real friend |
 
+### Gifts, and what they cost you
+
+A notable who's a *sycophant* (they like your power more than your deeds) may, once your clan is tier 4+, bring you a
+small gift — rarely: at most once a year (84 days) from any one notable and once a season (21 days) from anyone at all,
+and only on a 35% roll (a failed roll waits a week). It's a token, in kind: two amphorae of wine from a merchant, a load
+of tools from an artisan, two sheep from a headman or landowner; anyone else, a small purse (25 and up, never more than a
+tenth of what they have).
+
+| Answer | What happens |
+|---|---|
+| **Take it** | you owe them: 4–8 days later they ask a favour (if you're elsewhere, word reaches you that they'd like a word) |
+| **[Charm 75+] "Your friendship is gift enough."** | +1 relation, Charm xp, nobody owes anybody |
+| **Refuse** | −1 — or −4 from a proud one (Valor + Generosity 1 or more), in front of the whole street |
+
+What they ask for, and what granting it does (refusing costs −2 to −4 with them; ignoring the debt for 20 days after it's
+due costs −4, and they won't bring you anything for two years):
+
+| Favour | Granted |
+|---|---|
+| A word against a rival | +5 with them, −5 with the rival, and the two of them fall out (−5) |
+| A word with the town's lord | +5 and power +10 for them; the lord doesn't like being lobbied (−2, or −1 if they're your friend at 20+) |
+| A place in your company for their son | +6; he joins as the best of their volunteers (needs room in your party) |
+| Money for a venture (500 + 250 per clan tier) | +3; in 20–35 days it pays back 1.3–1.6× (four times in five) or 0.5–0.8×; a treacherous notable's venture pays nothing. Paid back in full: +2 |
+| A trade charter (a town you own) | +8 and power +20 for them; the town's prosperity +150, loyalty −5; the other merchants and artisans −2 with you |
+
 ### The welcome feast
 
 Accept and the screen goes dark. When it comes back a tavern table stands in the square, laid the way vanilla's
-taverns lay one, with real chairs: the host at the far end, your companions (up to 4) and best men (up to 4) seated
-among the host's people — a few tucking into a ham leg, most nursing a mug, some just talking. Eight seats per table; bring four or more of your own and
-there are two tables end to end (16 seats), room permitting. Empty seats are filled with locals, and **the seat at the
-foot of the table is yours** — you start the evening sitting in it (stand up to walk around). Passers-by are kept
-clear of the table, and nothing else happens in the street while you feast.
+taverns lay one, with real chairs: the host at the head, your companions (up to 4) and best men (up to 4) seated
+among the host's people — the eaters with a ham leg, the drinkers with a mug, some just talking. Eight seats per table; bring four or more of your own and
+there are two tables end to end (16 seats), room permitting. Empty seats are filled with locals, and **the seat beside
+the host is yours** — you start the evening sitting in it (stand up to walk around). Passers-by and the watch are kept
+clear of the table (guards step back from it), and nothing else happens in the street while you feast. The host hires
+help: a tavern maid with a jug always (she'll talk), musicians playing the town's own tunes for a host of some
+influence (Power 100+), and a dancer for a powerful one (200+).
 
 Talk to anyone at the table: a word and a cup ("Cheers!"), no errands; companions and notables have something to
 say about the evening and can still be asked about other things. Toast the host (+1 relation). Tell the host you're
 going, or stay about a minute, and the evening fades out — the sun has moved on when it comes back. **Leave too
 soon** (under ~40 s) and the host takes it badly (−1 relation); **walk off** more than 20 m from the table and the
-feast ends, and if it was early, that's −2 and noticed. Effects: morale +10, grain, a quarter of your wounded tended,
+feast ends, and if it was early, that's −2 and noticed. Leaving the scene mid-feast without a goodbye (Tab, a door)
+counts as walking off (−2); the effects still apply, once. Effects: morale +10, grain, a quarter of your wounded tended,
 your own health restored, relation +2. The table only goes on open, walkable ground (not in crop fields); if there's
 none nearby, the feast is held indoors (effects only).
 
 ### Someone to see you (while you wait)
 
 Waiting in a town or village (the vanilla "wait here" menu)? If someone would come looking for you — a friend with a
-feast, a warning, thanks, tribute, a petition — a prompt tells you who. **Meet them** and you walk out into the square,
-where they come straight to you. (At most once every 12 hours per settlement; nobody comes to your door just to
-threaten you.)
+feast, a warning, thanks, tribute, a petition — a prompt tells you who. **Meet them** and the scene opens where they
+are, straight into the conversation, the way visiting a notable from the menu does. (At most once every 12 hours per
+settlement; nobody comes to your door just to threaten you.)
 
 ### Dinner in the lord's hall
 
 A lord who's a genuine friend (the one who crosses the hall because they're glad to see you) may ask you to stay and
-dine. The feast is held at the hall's own tables — nothing is laid out or cleared away: the host sits nearest, **you sit
-beside them**, the lords and ladies in the hall join, and your companions come in. Same evening as a feast in the
-square (toast, talk, leave when you like).
+dine — a Warband-style hall feast. Up to three long tables of eight are laid end to end on the hall's open floor (a
+cramped hall gets fewer, or a smaller table; with no open floor at all, the hall's own chairs are used), about twenty
+seats in all. **The host sits at the head, you two seats down.** Who dines:
+
+- lords in town or a short ride off — not at war with you, not ill-disposed (relation 0+), not caught up in a battle, a
+  siege or an army elsewhere — the host's spouse and clan first;
+- the town's notables (unless they really dislike you, −10), the most powerful first;
+- up to six of your companions, two of theirs to one of yours near the head of the table;
+- the rest of the benches: the best men of the host's household and garrison, and of yours, at the foot.
+
+Those already in the scene walk over; the rest are brought in for the evening. A lord's hall always gets the full help:
+the maid, three musicians and two dancers. The evening is longer (about two and a half minutes; leaving in the first
+70 seconds offends the host). When you say goodbye — or the hour comes, or you wander off — the effects apply and **the
+hall feasts on** around you: everyone stays at the table, talking, until you leave the scene. Same toasts and talk as a
+feast in the square.
 
 ### Hecklers
 
@@ -210,7 +255,7 @@ from), punch one of the men around the girl, or knock the fleeing thief down.
 | **Two youths brawling** | two teenage boys, or two young men of 18–20 (never a man against a boy), really fighting in the street | **talk them down** (vanilla persuasion: Valor, Mercy or Calculating; fail and they go back at it) · knock their heads together yourself (fistfight with both) · let them carry on | One gets knocked out, or the watch runs over and breaks it up; whoever asked you lets you know what they think |
 | **"My brother fell!"** | a man sitting in the street, his leg gone under him | **[Medicine]** look at the leg (chance 20% + Medicine/125, up to 95%): set it and the town talks (+3, Medicine xp); fail and you still help him home (+1) · help him up (+2) · "fetch a physician" | whoever fetched you gets him up and they limp off together |
 | **"They'll break his hands!"** | a moneylender's collectors (the gang's own if any are about) crowding a man against a wall | **pay his debt** (100–250) · **talk them down** (vanilla persuasion: Calculating/Trade, Mercy/Charm, Valor/Leadership) · **fight** · walk away (−2). The gang boss notices: fight or talk them down −1 to −3 relation, pay +1 | they take what they came for and walk off; he's left with nothing |
-| **"Have you seen my little one?"** | a frantic mother (always a woman); her child has wandered off, 45–95 m away | say yes and she leads you to where she *thinks* he went, then it's up to you: you'll hear him crying within 30 m, and he's outlined within 14 m — frightened, cowering. Talk to him (a foreign face may scare him: *"Mama says not to talk to…"*), and he follows you back to her: +3, her thanks, and the two of them go home together. Leave him crying and it's −1 | she finds him herself, gives him an earful, and they go home together |
+| **"Have you seen my little one?"** | a frantic mother (always a woman); her child has wandered off, 60–110 m away | say yes and she leads you to where she *thinks* he went (she stops some 35 m short), then it's up to you: you'll hear him crying only within 25 m, and nothing outlines him — the crying is the clue. You find him frightened, cowering. Talk to him (a foreign face may scare him: *"Mama says not to talk to…"*), and he follows you back to her: +3, her thanks, and the two of them go home together. Leave him crying and it's −1 | she finds him herself, gives him an earful, and they go home together |
 | **The crooked watchman** | one of the watch "fining" someone for nothing, with no other guard in sight | **pay the "fine"** (40) · **talk him down** (Honor/Leadership, Calculating/Roguery, Mercy/Charm; fail and he carries on, +1 for trying) · **"Hands off him."** — a fistfight with the watch: win and he slinks off (crime +5; he won't report it, but he'll know your face), lose and it's a 100 fine or crime · back down | he pockets the coin |
 | **A cutpurse** | a street kid or a beggar who's just lifted a purse, loitering nearby | **Chase him**: he runs only once you've finished talking, outlined in red. Catch him and return the purse, call the guard (a guard walks him off), or [Roguery] split it with him · **[Roguery 60+]** stare him down and he drops it · cover her rent (50) · shrug | He strolls off with it |
 
@@ -221,10 +266,11 @@ Villages get their own kind of trouble (and the watch, the moneylenders and the 
 | Event | What you see | Your options | If you leave it |
 |---|---|---|---|
 | **The boundary stone** | two neighbours at each other's throats over a stone moved in the night | **the old law** (stone goes back: +2, headman +1) · **[Charm] split the strip** (20% + Charm/150: +3 — or they won't hear of it and come to blows) · **a tenth of the crop** to the other (+2, headman +2) · **[Roguery] sell your judgment** (+40 gold, −2) · walk away (−1) | they settle it with their fists |
-| **The harvest** | a storm's coming and half the crop is still standing | **lend a hand**: they lead you to the field; the screen goes dark, the sun moves on, and you come back with sacks of the village's crop (2, or 4 with 20+ men), Athletics xp, +3 and headman +2 · **your men help** (9+ fit men: +2, a sack) · "not today" (no shame — it's work) | — |
-| **Looters at the flock** | 3–5 looters at the edge of the village, driving off the sheep | **fight** — with weapons (they have clubs and knives; you're beaten down at about 12% health, never killed): win and it's +5, headman +2, a dropped purse, and the village grows · **send your men** (9+: +3) · refuse (−1) | half the flock is gone (the village shrinks) |
+| **The harvest** | a storm's coming and half the crop is still standing | **lend a hand**: they lead you to the field; dark, and you're in it beside the man who asked and a neighbour or two, swinging a scythe the way they do; dark again, and the afternoon has gone (the scene's clock and the sun move on 4 hours). You come back with sacks of the village's crop (2, or 4 with 20+ fit men), Athletics xp, +3, headman +2, and the village grows a little · **your men help** (9+ fit men: four of them work the field while you watch, 3 hours; +2, headman +1, a sack — and morale −4: they grumble) · "not today" (no shame — it's work) | — |
+| **Looters at the flock** | 3–5 looters at the edge of the village, driving off the sheep | **fight** — with weapons (they have clubs and knives; you're beaten down at about 12% health, never killed): win and it's +5, headman +2, a dropped purse, and the village grows · **"my men will see to it"** (5+ fit regular troops): a real fight — 4–6 of your men (more if your party is big) line up facing the looters and go at it; watch or join in. Men knocked down are really wounded, men killed are really dead. Win: +3, headman +1, and the flock comes home (though a third of the time a couple of sheep go over the hill with the looters). Lose: morale −5, −3 with every notable there, and half the flock is gone · refuse (−1) | half the flock is gone (the village shrinks) |
 
-The dispute and the harvest can be setups like any plea; the looters are bandits already.
+The dispute and the harvest can be setups like any plea; the looters are bandits already. After the looters, win or lose,
+the whole village calms down, and whoever fetched you comes back.
 
 ### Setups
 
@@ -245,7 +291,7 @@ swinging at each other. You find out when you get there:
 
 Whoever brought you slips away, and the toughs (2–4, more as your clan grows; the gang's own if any are about)
 surround you. **Pay** (15% of your purse, 50–400) · **talk your way out** (vanilla persuasion: Valor, Calculating,
-Generosity) · **come and take it** (fistfight) · **run** — and they come after you: caught, and it's a beating with no
+Generosity) · **come and take it** (fistfight) · **run** — and they come after you, flat out: caught, and it's a beating with no
 more talk (and the robbery if you lose); get 30 m clear, or to within 10 m of a guard, or last 25 s, and they give up —
 but half the street saw you run (standing −1; leaving the scene with them at your heels counts too). A foreigner in a
 town that resents your people may get no talk at all — just the beating. Lose the fight and they take half again as much; win and the street hears you're no easy prey
@@ -275,15 +321,28 @@ take the fine (100). Talk your way out and you still get the credit (and the tha
 | "You'll have to take me." | resisting arrest (crime +15): up to four guards come for you, weapons out. The only way out is **escape** — you can't just walk off the scene with a guard within 12 m; get clear, then leave. Every guard you knock down is +10 crime, every one you kill +25. Get away and you're out of the town with the watch at your heels; go down (or get caught at the gate) and you wake in the cells |
 
 **The cells.** Vanilla would let you go at once if you're not at war with the town's realm; a street sentence keeps
-you in until it's served (no release, ransom or escape meanwhile). The magistrate's sentence:
+you in until it's served. Vanilla's own captivity still runs meanwhile — a chance to escape, the jailer's ransom offers —
+and escaping or being ransomed ends the sentence. Word of it reaches the owning clan: −2 relation with every grown member
+(−5 if you killed any of the watch). The magistrate's sentence:
 
 - **Went quietly:** a night, plus a day per 20 crime rating you have with that realm.
-- **Resisted:** 2 days, plus a day per 10 crime rating, **+2 per guard you knocked down, +5 per guard you killed**
-  (up to 90 days).
-- **Killed 3 or more of the watch** (MCM, 1–10): **the headsman** at dawn — your heir carries on. A great house (clan tier
-  3+) buys its neck instead: double the sentence and a blood price of 500 per man to the town's lord. With
-  **"You can be executed"** off, it's the double sentence.
+- **Resisted:** 2 days, plus a day per 10 crime rating, **+2 per guard you knocked down, +5 per guard you killed**.
+- Your standing in the town adds or takes off up to 2 days (see the bands above); 1 to 90 days in all.
 - Served: you're shoved out at the gate, and the crime from that incident is wiped.
+
+**Killing the watch.** Kill 2 or more of them (MCM, 1–10) and the sentence is doubled — and then it depends on who you
+are and whose town it is. When the gallows is possible, the watchman warns you as you resist: *"Kill one of my men and
+you'll hang for it."*
+
+| You are | The town's owner | What happens |
+|---|---|---|
+| **Noble**: a vassal of a realm (not a mercenary), or clan tier 3+ | anyone | double time and a blood price of 500 per man killed; the owner doesn't forget they were their men (−10) |
+| a commoner | **cruel** (Mercy below 0) | **the headsman** at dawn — your heir carries on |
+| a commoner | neither cruel nor merciful | the headsman — unless you pay **blood money, 2000 per man killed** (offered once, in the cells): then it's the double time |
+| a commoner | **merciful**, or your friend (30+) | double time, then **a flogging** (you leave at about 15% health) and **banishment** (your standing there drops to Despised) |
+
+With **"You can be executed"** off, a commoner gets the flogging and banishment instead of the headsman (in a town you
+own: just the double time).
 
 After any street fight, the bystanders it frightened calm down and go back to their day. **Leaving mid-fight** (Tab)
 is allowed: you ran, and the street will talk (standing −1). Resisting arrest, Tab always works — but with a guard
@@ -312,20 +371,39 @@ a little standing.
 
 A castle is a garrison, not a market. In the courtyard:
 
-- **The master-at-arms** (the best of the garrison) hails you as you come near:
-  - **a bout** with one of his men — bare-handed, first to fall, an opponent as good as your level (Athletics and
-    One-Handed xp; +1 standing if you win);
-  - **a wager** on it (100: the odds follow the man's tier, 1.7–2 to 1);
-  - **train your companions** (100 each; +150 xp in their best combat skill; every 3 days);
-  - in **your own castle, drill the garrison** (40 + Leadership/2 xp per man, weekly).
-- **The castellan**:
+- **The practice ring.** From the moment you walk into the yard, the master-at-arms (the best of the garrison) stands at
+  the edge of a ring with three of his men around it, greenest to best (about tier 2, 4 and 5 — from the garrison, or the
+  culture's own troops if it has none that fit). **"Put me in the ring"** and you fight them in order:
+  - **fists, or wooden weapons** the way the training field does it (a wooden sword and shield, a wooden two-hander or a
+    blunt practice spear, to suit each fighter); your own weapons are put away and handed back after. The yard gathers
+    round to cheer. First one down loses — nobody is killed or knocked senseless;
+  - **a stake** on each bout: none, 100 or 300; win and it comes back at 1.3 + 0.2 × the man's tier + 0.15 × his place in
+    line (about 1.5× for the green one, up to about 2.8× for the best);
+  - each win: Athletics and weapon xp (more for each fighter), +0.5 standing;
+  - **beat all three** and you're **champion of the yard**: lots of xp and +2 standing — and the master won't take your
+    coin at that castle for a week (bouts for nothing are still on);
+  - **lose** and your run is over until tomorrow, when you start again from the first.
+- **The master-at-arms** also:
+  - **trains your companions** (100 each; +150 xp in their best combat skill; every 3 days);
+  - in **your own castle, drills the garrison** (40 + Leadership/2 xp per man, weekly).
+- **The castellan** tells you what a castle knows — how much depends on who you are (an enemy gets nothing, a resented
+  stranger little):
   - **news from the roads** — the nearest hostile lord or army and where it was seen;
+  - **where the lord is** — in the hall, at another fief, in the field, or a captive;
+  - **prisoners of note** in the cells;
+  - **bandits about** — bands within a day's ride, and the nearest lair, which he **marks on your map** unless you're a
+    resented stranger;
+  - **the castle itself** — who holds it for whom, its villages and how they fare, its walls, and (if he trusts you) its
+    garrison;
   - in someone else's castle, **veterans the lord can spare**: up to five tier-3+ men from the garrison (never more than
     an eighth of it), at twice their recruiting cost, half of it to the lord — if you're of the same realm, the lord's
     friend (10+) or known in the castle; never if you're at war (a resented foreigner is turned away); weekly;
-  - in **your own castle, a report**: garrison, prisoners, food, loyalty, security.
+  - in **your own castle, a report** (garrison, prisoners, food, loyalty, security) and orders: **double the watch**
+    (150 + 2 per man of the garrison, at most 600: security +10; weekly) and **lay in stores** against a siege (up to 40
+    food, 12 a unit; weekly).
 - **The garrison's day** around you, every minute or so: a sergeant bawling at recruits, a prisoner walked across the yard,
-  men dicing by the wall, a courier running in with news (you overhear it).
+  men dicing by the wall, a courier running in with news (you overhear it). They're the soldiers already in the yard,
+  walking over; if there aren't enough, more come in from somewhere you can't see — nobody appears out of thin air.
 
 (Town street events and street life don't happen in castle yards.)
 
@@ -333,17 +411,46 @@ A castle is a garrison, not a market. In the courtyard:
 
 In a town's or castle's hall, now and then (daily at most):
 
-- **Before the lord** (their house's lord present): a petitioner comes in — seed grain taken with the tax, a son pressed
-  into the garrison, a poacher dragged in by the watch, a widow's field claimed by her brother-in-law — and pleads. The
-  lord rules in about 25 seconds as their nature bids (the merciful or generous grant it, the cruel refuse, the rest
-  either way). Before then you can **talk to the lord**: **speak for the petitioner** (vanilla persuasion: Mercy/Charm,
-  Calculating/Trade, Honor/Leadership — win: granted, +3 standing, +1 with a lord who isn't cruel; lose: −2 with the
-  lord), or **back the lord** (+1 relation, −1 standing).
-- **In your own hall** they come to you, and you rule: seed grain (pay 200 / return half / refuse), the pressed son
-  (send him home / keep him), the poacher (hang / fine / pardon), the widow (hers / custom), soldiers quartered on a
-  household (pay 150 and discipline / tell him to feed them), a feud between two notables (for one / for the other /
-  [Charm] make them share it). Each moves the town's **loyalty and security**, your purse, notables' relations and
-  standing; turning them away costs a point of loyalty.
+- **The cases** (each with two or three different pleas, so the same kind of case doesn't always sound the same): seed
+  grain taken with the tax, a son pressed into the garrison, a poacher dragged in by the watch, a widow's field claimed
+  by her brother-in-law, a merchant's cart seized at the gate, a runaway apprentice (the boy in tow), a bride price
+  never paid, bandits on one of the town's villages, a debtor begging for time, a smith after the sole right to forge,
+  a mother whose son killed a man in a brawl, a guard accused of taking bribes (he's brought along); in your own hall
+  also soldiers quartered on a household and a feud between two notables. Which comes up depends on the place: a town
+  brings carts, guilds, debts and the watch, a castle its villages and woods (no apprentices or charters there); bandits
+  only where there are villages, more with a lair nearby; bribes and blood more in a lawless town (security under 40);
+  pressed men before a lord only in wartime; and custom — imperial guilds and debts, Aserai caravans and bride prices,
+  Khuzait herds and raiders, Vlandian forest law and levies, Sturgian blood, Battanian clan law. Never the same kind
+  twice running.
+- **Before the lord** (their house's lord present): the petitioner comes in and pleads. The lord rules in about 25
+  seconds as their nature bids — the merciful or generous grant most pleas, the cruel refuse; an honorable lord sets right
+  a wrong done (a seized cart, a bought guard, an unpaid bride price), a brave one sends riders after bandits, a calculating
+  one sells the smith his charter; the rest either way. Before then you can **talk to the lord**: **speak for the
+  petitioner** (vanilla persuasion, with arguments that fit the case — mercy for the desperate, justice for a wrong, sense
+  for a bargain; win: granted, +3 standing, +1 with a lord who isn't cruel; lose: −2 with the lord), or **back the lord**
+  (+1 relation, −1 standing).
+- **In your own hall** they come to you, and you rule. Each ruling moves something real:
+
+  | Case | Your rulings |
+  |---|---|
+  | Seed grain | pay 200 for seed / return half / refuse |
+  | A pressed son | send him home / keep him |
+  | The poacher | hang / fine (+30 to you) / pardon |
+  | The widow | the field is hers / custom gives it to the brother |
+  | Soldiers quartered | pay 150 and discipline the man / tell them to feed the soldiers |
+  | A feud between notables | for one / for the other / [Charm] make them share it |
+  | A seized cart | give it back (the merchants like it; prosperity up) / pay the toll (+50) / goods forfeit (+200; the merchants won't forget, prosperity down) |
+  | A runaway apprentice | back to his master / back, but the beatings stop / free, and paid for his years (the guild is furious) |
+  | A bride price | paid in full / what's paid is paid / you pay the difference (150) |
+  | Bandits on a village | send riders (150: security +5, the nearest lair marked on your map) / silver for the village's spears (100: its militia +8) / refuse (the village shrinks) |
+  | A debtor | forgive it / one more season / pay now or the bailiffs (+120; prosperity down) |
+  | A smith's charter | sell it (+300, the guild pleased, prosperity down) / refuse (prosperity up) |
+  | A son who killed a man | he hangs / blood money and he goes free / a year on the walls (he joins the garrison) / you pay the blood price (300) |
+  | A bribe-taking guard | strip him of his post (the gang that paid him won't like it) / fine him into your treasury (+80) / dismiss the complaint |
+
+  Each moves the town's **loyalty, security or prosperity**, your purse, notables' relations (the merchant, guild,
+  gang or headman the case touches) and your standing; turning a petitioner away costs a point of loyalty.
+- **A feast wins:** while a feast is on, a pending petition waits (the petitioner steps aside) and carries on after.
 - **Gossip**: lords in the hall talk every minute or so — a war dragging on, a lord rotting in someone's dungeon, the
   biggest army in the field — and, if the town has a name for you, about you.
 
@@ -372,21 +479,56 @@ people, and where you've done nothing for it, some won't dice with your kind at 
   wounds too) or not (a lord's guard can see them off). There's a chance they find out who paid (−15, and it spreads to their
   family).
 
-### Camp (Ctrl+T)
+### The tavern keeper
 
-Warband's "take a walk around", back. On the map (not in a settlement, battle, an army someone else leads, or at sea),
-**Ctrl+T makes camp** where you stand, on that spot's own battle terrain: tents in your people's style, one to three
-fires, your companions and up to 24 of your men around them (sitting, standing, talking among themselves — about the
-food if it's short, the march if morale's low, the last fight if it's high), two sentries at the edge. Time doesn't pass
-(it never does in a scene). Walk among them and talk to any of your men:
+In a town's tavern the keeper serves you as the town speaks of you (your standing band, §3). Vanilla's own options
+(work, companions, the owner's clan) stay.
 
-- **How are the men?** — morale, food, the wounded.
-- **A cask of wine** (2 per man, at least 20): morale +5 and a cheer; daily.
-- **[Leadership] a war story** (30% + Leadership/200): morale +3 and Leadership xp — or someone starts snoring; daily.
-- **A bout** with him, fists only: Athletics xp for you, xp for him, morale +1.
-- **Drill** (everyone, 20 + Leadership/5 xp per man; morale −2); daily.
+- **Despised:** *"Not in my house."* — unless you pay 100 over the odds to be served this visit.
+- **Known or better:** the first cup of the day is on the house.
+- **A round for the house** on your coin: 40 + the town's prosperity/25 (half again if you're disliked or worse); once a
+  week; the town remembers it (+1 standing, +0.5 if they'd rather you hadn't).
+- **News, for a price:** armies on the move nearby (50), who in town would like to see you hurt — and, at Known or
+  better, whether sellswords have been asking after you and whose coin; at Respected, lords nearby who'd drink to your
+  end (60), what the notables make of you (30), where the town's lord is these days (25). Dearer in a rich town; at Honored
+  it's free, Respected half price, Known ¾, Disliked or worse double — and he won't talk about his regulars (who hates you,
+  the notables) to the likes of you. Once paid, the same question is free for the rest of the day.
+- **A room for the night** (15 + prosperity/250, same markup; once a day): the screen goes dark and you wake rested —
+  20% of your health back if you're disliked or worse, 35% as a stranger or Known, 50% at Respected or better.
+
+### Camp
+
+Warband's "take a walk around", back. On the map, **Ctrl+T** or the **Camp button on the map bar** (next to Party) makes
+camp where you stand, on that spot's own battle terrain — **once a day** (not in a settlement, an encounter, an army
+someone else leads, captivity, or at sea; the button says why). Tents in your people's style, one to three fires, your
+companions and up to 24 of your men around them (sitting, standing, talking among themselves — about the food if it's
+short, the march if morale's low, the last fight if it's high), two sentries at the edge; the fires crackle and, with ten
+or more of you, the camp murmurs like a crowd. Time doesn't pass (it never does in a scene). Walk among them and talk to
+any of your men:
+
+- **How are the men keeping?** — a soldier's answer in three breaths: their spirits and what's behind them; the last fight
+  and what's wrong in the column; the wagons — how long the food lasts, what's in it, and what each people misses from
+  home.
+- **A cask** from the wagons, wine or beer (one unit per 25 men, at least one; a short pour gives less): morale +2, +3 after
+  a fight won in the last three days, +5 after one lost; halved if spirits are already high (70+), one less if the taste of
+  home is already at its cap; the men cheer with their victory cry. Once a camp.
+- **[Leadership] a war story**: the men get up and gather round you in a half-circle, and it's **vanilla persuasion** —
+  two successes, from the charge (Leadership/Valor), the fallen (Charm/Mercy) or the trick that won it (Tactics/
+  Calculating); tell them about your last fight (within 30 days) or an old one. Land it: they roar, morale +3, Leadership xp
+  (50). Lose them: yawns, and someone starts snoring (15 xp). Once a camp, and not again the same day.
+- **A bout** with him, fists only: Athletics xp for you (50 win, 20 loss), xp for him, morale +1. Three a camp — then
+  *"Come on, captain, who'll strike camp at this rate?"*
+- **Drill**: they fall in in ranks before you, take up their own arms and go through the motions to a sergeant's orders,
+  then back to the fires — 20 + Leadership/5 xp per fit man, Leadership xp for you; morale +2 after a quiet week, −2 if
+  they've fought in the last 7 days (they've bled enough). Once a camp, and not again the same day.
 
 Companions are there too, with their usual conversations. **Tab** breaks camp.
+
+**A taste of home** (on the map, all the time): every people that makes up 15% or more of your men has favourite stores —
+Vlandians cheese, meat and beer; Sturgians fish and meat; the Empire olives, grapes and wine; the Aserai dates and olives;
+Khuzaits meat and butter; Battanians meat and cheese; Nords fish and beer. Any of them in the wagons lifts morale by +1,
++1.5 or +2 by that people's share (30% / 50%), +5 at most in all; a big group (40%+) with none of its favourites costs 1.
+It's its own line in the morale tooltip.
 
 ## 9. When grudges turn violent
 
@@ -420,14 +562,21 @@ wander far enough and they won't find you (though the contract still has ten day
 **In the street.** They find you in the next town or village centre you walk (20–60 s in): **3–6 soldiers of the
 sender's culture** (3 for a small clan, up to 6 at tier 5+), **tier 2 for a nobody, 3 at clan tier 2–3, 4 at tier 4,
 5 beyond**, armed but on foot and without bows, walking straight up to you. Their leader says who sent them and what
-for. **"Come and try it."** — a real fight with weapons (you have whatever you walk the streets with; you're beaten down
-at about 12% health, never killed) · **outbid** whoever paid (twice the fee: sellswords are loyal to coin) · **give in**
-("Get it over with." / "I'll come quietly."). Walk out of the conversation and they take that as an answer. Win and their
-leader's purse holds half the fee (standing +2; the sender −5). Run (Tab) and they'll try again tomorrow.
+for. **"Come and try it."** — a real fight with weapons (you have whatever you walk the streets with; you take real
+blows and are beaten down at about 12% health, never killed; knocked out by a fall or anything else, it still counts as
+losing) · **outbid** whoever paid (below) · **give in** ("Get it over with." / "I'll come quietly."). Walk out of the
+conversation and they take that as an answer. Win and their leader's purse holds half the fee (standing +2; the sender
+−5). Run (Tab) and they'll try again tomorrow.
+
+**Buying them off** isn't cheap: twice the fee, plus a share of what you carry (they know who you are) — a quarter of your
+purse for a nobody, up to two-fifths for a great house — and more the more whoever paid hates you (×1 at relation −25 up to
+×2.5 at −100), never more than four-fifths of your purse. Some won't sell at all: a cruel enemy (Mercy below 0) at −70 or
+worse is paying for something coin can't undo, and a cunning lord at war with you has promised them a cut of your ransom.
+Paid off, they walk well away down the street (60–100 m) before they're gone.
 
 **On the road.** Stay out of towns for 3 days after they're hired and they come for you on the map instead: a
-"Hired Swords" party about as big as yours (never against more than 100, an army, or at sea), same choices. The
-contract lapses after 10 days.
+"Hired Swords" party about as big as yours (never against more than 100, an army, or at sea), same choices. Other parties
+leave the band alone, and none is sent while you're in an army. The contract lapses after 10 days.
 
 **If you lose (or give in):**
 
@@ -438,7 +587,8 @@ contract lapses after 10 days.
   - otherwise they **humiliate** you, take a fifth of your purse, and let you go;
   - a **cruel** one (Mercy below 0) at **−60 or worse** wants you **dead**. **Plead for your life** — vanilla persuasion,
     Hard (Very Hard at −80), two successes needed: a ransom (Trade/Calculating), what killing a bound captive says of
-    them (Leadership/Honor), mercy (Charm/Mercy — hopeless with the merciless), or a threat (Roguery/Valor). Win and
+    them (Leadership/Honor), mercy (Charm/Mercy — hopeless with the merciless), or a threat (Roguery/Valor) — their face
+    and gestures follow how it's going. Win and
     you're held or sent off poorer (relation +5); lose and you're executed — your heir carries on, as with any death.
     Or **"Get it over with."**: a brave enemy (Valor) may respect it, half the time. MCM **You can be executed** off:
     they hold you or strip your purse instead.
