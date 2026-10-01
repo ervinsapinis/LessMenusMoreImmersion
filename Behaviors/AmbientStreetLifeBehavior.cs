@@ -220,24 +220,42 @@ namespace LessMenusMoreImmersion.Behaviors
                 new[] { "{=lmmi_life_quarrel_1}You short-weighted me, you thief!", "{=lmmi_life_quarrel_2}Prove it! Go on, prove it!" },
                 new[] { "{=lmmi_life_quarrel_3}That's my stall, and everyone knows it!", "{=lmmi_life_quarrel_4}Your stall? Your grandfather lost it at dice!" },
                 new[] { "{=lmmi_life_quarrel_5}You owe me for the barley, and you know it.", "{=lmmi_life_quarrel_6}After the harvest! I told you — after the harvest!" },
+                new[] { "{=lmmi_life_quarrel_7}That goat ate my cabbages!", "{=lmmi_life_quarrel_8}Then fence your cabbages!" },
+                new[] { "{=lmmi_life_quarrel_9}Watered wine! You sold me watered wine!", "{=lmmi_life_quarrel_10}It's not my fault you can't hold it!" },
+                new[] { "{=lmmi_life_quarrel_11}Your boy broke my shutter with his stick!", "{=lmmi_life_quarrel_12}My boy was with me all morning!" },
+                new[] { "{=lmmi_life_quarrel_13}Three coppers for an egg? Robbery!", "{=lmmi_life_quarrel_14}Then lay your own eggs!" },
+                new[] { "{=lmmi_life_quarrel_15}You moved the boundary stone. I saw you.", "{=lmmi_life_quarrel_16}I never! The rain shifted it!" },
+                new[] { "{=lmmi_life_quarrel_17}That's my bucket. My mark's burned on the bottom.", "{=lmmi_life_quarrel_18}You can't even make your mark!" },
             },
             [Kind.Preacher] = new[]
             {
                 new[] { "{=lmmi_life_preach_1}Repent! Heaven sees every coin you cheat your neighbor of!", "{=lmmi_life_preach_2}Give to the poor, and be given to in turn!" },
                 new[] { "{=lmmi_life_preach_3}The rains fail because this city has forgotten its duty!", "{=lmmi_life_preach_4}Lords make war and the poor bury their sons. Remember that!" },
+                new[] { "{=lmmi_life_preach_5}The war is a judgment! Mend your ways before it comes to your door!", "{=lmmi_life_preach_6}Feed the hungry, for tomorrow you may be one of them!" },
+                new[] { "{=lmmi_life_preach_7}Gold rusts and silk rots! What will you carry to your grave?", "{=lmmi_life_preach_8}The merchant who cheats on his scales cheats his own soul!" },
+                new[] { "{=lmmi_life_preach_9}Pride brought down the Empire, and it'll bring down this town too!", "{=lmmi_life_preach_10}Open your hands to the poor — aye, and your purses too!" },
+                new[] { "{=lmmi_life_preach_11}Turn from the tavern and the dice! They eat your children's bread!", "{=lmmi_life_preach_12}Every lie you tell is a stone in your shoe on the last road!" },
             },
             [Kind.Drunks] = new[]
             {
                 new[] { "{=lmmi_life_drunk_1}...and I said to him, I said — who're you calling a goat?", "{=lmmi_life_drunk_2}You're my besht friend. You know that? My besht friend." },
                 new[] { "{=lmmi_life_drunk_3}One more! Jusht one more, then home.", "{=lmmi_life_drunk_4}Your wife'll have your hide." },
+                new[] { "{=lmmi_life_drunk_5}I could take him. I could take the whole watch.", "{=lmmi_life_drunk_6}Sit down before you fall down." },
+                new[] { "{=lmmi_life_drunk_7}Shing with me! Oh, the miller's daughter...", "{=lmmi_life_drunk_8}Not that one again. Not that one." },
+                new[] { "{=lmmi_life_drunk_9}Where'sh my horse? I had a horse.", "{=lmmi_life_drunk_10}You came on foot, you fool." },
+                new[] { "{=lmmi_life_drunk_11}I love thish town. I love all of you.", "{=lmmi_life_drunk_12}You said that about the last town, and they threw you out." },
             },
             [Kind.MovedAlong] = new[]
             {
                 new[] { "{=lmmi_life_moved_1}Move along, you. Go on — not in front of the stalls.", "{=lmmi_life_moved_2}Please... just a coin..." },
+                new[] { "{=lmmi_life_moved_3}Up, you. You can't sleep here.", "{=lmmi_life_moved_4}Where else am I to go?" },
+                new[] { "{=lmmi_life_moved_5}Off the steps. The merchants are complaining.", "{=lmmi_life_moved_6}I'm going, I'm going..." },
             },
             [Kind.Dance] = new[]
             {
                 new[] { "{=lmmi_life_dance_1}Hey! Hey! Faster!", "{=lmmi_life_dance_2}Ha! Look at him go!" },
+                new[] { "{=lmmi_life_dance_3}Clap, then! Clap along!", "{=lmmi_life_dance_4}Go on! Go on!" },
+                new[] { "{=lmmi_life_dance_5}Ha! Not bad at all!", "{=lmmi_life_dance_6}Another! Play another!" },
             },
         };
 

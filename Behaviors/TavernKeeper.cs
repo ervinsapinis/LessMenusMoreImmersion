@@ -117,13 +117,16 @@ namespace LessMenusMoreImmersion.Behaviors
         {
             // Despised: out. (Unless you pay over the odds.)
             starter.AddDialogLine("lmmi_keeper_greet_despised", "start", "lmmi_keeper_out",
-                "{=lmmi_keeper_greet_despised}You. ...No. Not in my house. Take your trouble somewhere else, before somebody breaks a jug over your head.[if:convo_angry][ib:closed]",
+                "{=!}{LMMI_KEEPER_OUT}",
                 () =>
                 {
                     if (!TalkingToKeeper() || BandHere != StandingBand.Despised || _servedDespisedIn == Mission.Current) return false;
                     MBTextManager.SetTextVariable("LMMI_KEEPER_FEE", ServeDespisedFee);
                     LmmiLog.Info($"Tavern: the keeper of {Here?.Name} won't serve you (despised).");
-                    return true;
+                    return Flavor.Say("LMMI_KEEPER_OUT",
+                        "{=lmmi_keeper_greet_despised}You. ...No. Not in my house. Take your trouble somewhere else, before somebody breaks a jug over your head.[if:convo_angry][ib:closed]",
+                        "{=lmmi_keeper_greet_despised_2}Out. I'm not serving you, and nobody here wants you drinking next to them.[if:convo_angry][ib:closed]",
+                        "{=lmmi_keeper_greet_despised_3}You've a nerve walking in here. Turn around and walk out again.[if:convo_angry][ib:closed]");
                 }, null, 111);
             starter.AddPlayerLine("lmmi_keeper_out_go", "lmmi_keeper_out", "close_window",
                 "{=lmmi_keeper_out_go}Fine. I'm going.", null, null);
@@ -136,7 +139,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     LmmiLog.Info($"Tavern: paid {ServeDespisedFee} to be served while despised.");
                 }, 100, (out TextObject why) => CanPay(ServeDespisedFee, out why));
             starter.AddDialogLine("lmmi_keeper_out_paid", "lmmi_keeper_out_paid", "tavernkeeper_talk",
-                "{=lmmi_keeper_out_paid}...Hmph. Drink it quick, keep your head down, and go when it's gone.[if:convo_annoyed][ib:closed2]", null, null);
+                "{=!}{LMMI_KEEPER_OUT_PAID}",
+                    () => Flavor.Say("LMMI_KEEPER_OUT_PAID",
+                        "{=lmmi_keeper_out_paid}...Hmph. Drink it quick, keep your head down, and go when it's gone.[if:convo_annoyed][ib:closed2]",
+                        "{=lmmi_keeper_out_paid_2}...Coin's coin. One drink. Then out.[if:convo_annoyed][ib:closed2]",
+                        "{=lmmi_keeper_out_paid_3}Fine. Sit in the corner and keep your mouth shut.[if:convo_annoyed][ib:closed2]"), null);
 
             // Everyone else he knows of: his own greeting (strangers get vanilla's).
             starter.AddDialogLine("lmmi_keeper_greet", "start", "tavernkeeper_talk", "{=lmmi_keeper_greet}{LMMI_KEEPER_GREET}",
@@ -146,11 +153,21 @@ namespace LessMenusMoreImmersion.Behaviors
                     var band = BandHere;
                     TextObject? line = band switch
                     {
-                        StandingBand.Despised => new TextObject("{=lmmi_keeper_greet_served}Still here? Drink up and go.[if:convo_annoyed][ib:closed]"),
-                        StandingBand.Disliked => new TextObject("{=lmmi_keeper_greet_disliked}What'll it be? Coin first — and don't complain about the wine.[if:convo_annoyed][ib:closed]"),
-                        StandingBand.Known when KeeperReady("cup") => new TextObject("{=lmmi_keeper_greet_known}{PLAYER.NAME}, isn't it? Heard you've done right by {SETTLEMENT}. Sit — the first cup's on the house.[if:convo_calm_friendly][ib:normal]"),
-                        StandingBand.Respected when KeeperReady("cup") => new TextObject("{=lmmi_keeper_greet_respected}{PLAYER.NAME}! Good to see you again. First cup's on me — and from the good barrel, not what I pour the soldiers.[if:convo_relaxed_happy][ib:hip]"),
-                        StandingBand.Honored when KeeperReady("cup") => new TextObject("{=lmmi_keeper_greet_honored}Make room there! {PLAYER.NAME}, welcome back — {SETTLEMENT} owes you, and so do I. Your cup's on the house tonight.[if:convo_delighted][ib:hip]"),
+                        StandingBand.Despised => Flavor.Pick("{=lmmi_keeper_greet_served}Still here? Drink up and go.[if:convo_annoyed][ib:closed]",
+                            "{=lmmi_keeper_greet_served_2}You paid, so you drink. Then you go.[if:convo_annoyed][ib:closed]",
+                            "{=lmmi_keeper_greet_served_3}Your cup. Don't make me regret taking your coin.[if:convo_annoyed][ib:closed2]"),
+                        StandingBand.Disliked => Flavor.Pick("{=lmmi_keeper_greet_disliked}What'll it be? Coin first — and don't complain about the wine.[if:convo_annoyed][ib:closed]",
+                            "{=lmmi_keeper_greet_disliked_2}Coin on the counter first. Then we'll see what's left in the barrel.[if:convo_annoyed][ib:closed]",
+                            "{=lmmi_keeper_greet_disliked_3}Oh. You. What'll it be — and keep your voice down.[if:convo_bored][ib:closed]"),
+                        StandingBand.Known when KeeperReady("cup") => Flavor.Pick("{=lmmi_keeper_greet_known}{PLAYER.NAME}, isn't it? Heard you've done right by {SETTLEMENT}. Sit — the first cup's on the house.[if:convo_calm_friendly][ib:normal]",
+                            "{=lmmi_keeper_greet_known_2}{PLAYER.NAME}! The one who did right by {SETTLEMENT}. First cup's free — don't tell the others.[if:convo_calm_friendly][ib:normal]",
+                            "{=lmmi_keeper_greet_known_3}Ah, I know that face. Sit down — this one's on the house.[if:convo_calm_friendly][ib:normal]"),
+                        StandingBand.Respected when KeeperReady("cup") => Flavor.Pick("{=lmmi_keeper_greet_respected}{PLAYER.NAME}! Good to see you again. First cup's on me — and from the good barrel, not what I pour the soldiers.[if:convo_relaxed_happy][ib:hip]",
+                            "{=lmmi_keeper_greet_respected_2}{PLAYER.NAME}! Come in, come in. Your usual seat's free, and the first cup's on me.[if:convo_relaxed_happy][ib:hip]",
+                            "{=lmmi_keeper_greet_respected_3}There's a friend of {SETTLEMENT}! Sit — I've kept a jug of the good stuff back for you.[if:convo_relaxed_happy][ib:hip]"),
+                        StandingBand.Honored when KeeperReady("cup") => Flavor.Pick("{=lmmi_keeper_greet_honored}Make room there! {PLAYER.NAME}, welcome back — {SETTLEMENT} owes you, and so do I. Your cup's on the house tonight.[if:convo_delighted][ib:hip]",
+                            "{=lmmi_keeper_greet_honored_2}Everyone, look who's here! {PLAYER.NAME}! Drink, eat, ask for anything — tonight it's on me.[if:convo_delighted][ib:hip]",
+                            "{=lmmi_keeper_greet_honored_3}{PLAYER.NAME}! {SETTLEMENT} hasn't had a better friend in years. Sit, sit — your cup's on the house.[if:convo_delighted][ib:hip]"),
                         _ => null,
                     };
                     if (line == null) return false;
@@ -162,8 +179,9 @@ namespace LessMenusMoreImmersion.Behaviors
                 {
                     if (BandHere < StandingBand.Known) return;
                     KeeperHold("cup", 1f);
-                    InformationManager.DisplayMessage(new InformationMessage(new TextObject(
-                        "{=lmmi_keeper_free_cup}The keeper pours you a cup on the house.").ToString()));
+                    InformationManager.DisplayMessage(new InformationMessage(Flavor.Pick("{=lmmi_keeper_free_cup}The keeper pours you a cup on the house.",
+                        "{=lmmi_keeper_free_cup_2}The keeper slides a cup across to you. 'On the house.'",
+                        "{=lmmi_keeper_free_cup_3}A full cup appears in front of you. The keeper waves away your coin.").ToString()));
                 }, 110);
 
             // A round for the house.
@@ -197,9 +215,13 @@ namespace LessMenusMoreImmersion.Behaviors
                 "{=lmmi_keeper_round_resp}{LMMI_KEEPER_ROUND_LINE}",
                 () =>
                 {
-                    var line = new TextObject(BandHere <= StandingBand.Disliked
-                        ? "{=lmmi_keeper_round_grudging}...Drinks on {PLAYER.NAME}, then. The good barrel's empty, mind — they'll get the watered stuff, and they'll know whose it was.[if:convo_bored][ib:closed]"
-                        : "{=lmmi_keeper_round_cheer}Drinks for the house — on {PLAYER.NAME}! ...Hear that? They'll be singing your name by midnight, and not the rude verses.[if:convo_happy][ib:confident]");
+                    var line = (BandHere <= StandingBand.Disliked
+                        ? Flavor.Pick("{=lmmi_keeper_round_grudging}...Drinks on {PLAYER.NAME}, then. The good barrel's empty, mind — they'll get the watered stuff, and they'll know whose it was.[if:convo_bored][ib:closed]",
+                            "{=lmmi_keeper_round_grudging_2}...A round from {PLAYER.NAME}. They'll drink it. Don't expect them to thank you.[if:convo_bored][ib:closed]",
+                            "{=lmmi_keeper_round_grudging_3}Your coin, their throats. Don't expect a song about it.[if:convo_bored][ib:closed]")
+                        : Flavor.Pick("{=lmmi_keeper_round_cheer}Drinks for the house — on {PLAYER.NAME}! ...Hear that? They'll be singing your name by midnight, and not the rude verses.[if:convo_happy][ib:confident]",
+                            "{=lmmi_keeper_round_cheer_2}A round on {PLAYER.NAME}! Cups up, everybody![if:convo_happy][ib:confident]",
+                            "{=lmmi_keeper_round_cheer_3}You hear that? {PLAYER.NAME}'s buying! Somebody start a song![if:convo_happy][ib:confident]"));
                     MBTextManager.SetTextVariable("LMMI_KEEPER_ROUND_LINE", line);
                     return true;
                 }, null);
@@ -211,13 +233,23 @@ namespace LessMenusMoreImmersion.Behaviors
                 "{=lmmi_keeper_rumors_resp}{LMMI_KEEPER_RUMORS}",
                 () =>
                 {
-                    MBTextManager.SetTextVariable("LMMI_KEEPER_RUMORS", new TextObject(BandHere switch
+                    MBTextManager.SetTextVariable("LMMI_KEEPER_RUMORS", (BandHere switch
                     {
-                        StandingBand.Honored => "{=lmmi_keeper_rumors_honored}For you? Ask away — no charge.[if:convo_calm_friendly][ib:hip]",
-                        StandingBand.Respected => "{=lmmi_keeper_rumors_respected}A thing or two. For a friend, cheap.[if:convo_calm_friendly][ib:normal]",
-                        StandingBand.Known => "{=lmmi_keeper_rumors_known}Depends what you're after. Ears cost money, but I'll not fleece you.[if:convo_nonchalant][ib:normal]",
-                        StandingBand.Disliked => "{=lmmi_keeper_rumors_disliked}News costs. For you, it costs double.[if:convo_annoyed][ib:closed]",
-                        _ => "{=lmmi_keeper_rumors_stranger}Depends what you're after — and what it's worth to you.[if:convo_nonchalant][ib:closed]",
+                        StandingBand.Honored => Flavor.Pick("{=lmmi_keeper_rumors_honored}For you? Ask away — no charge.[if:convo_calm_friendly][ib:hip]",
+                            "{=lmmi_keeper_rumors_honored_2}Anything you want to know, it's yours. Free.[if:convo_calm_friendly][ib:hip]",
+                            "{=lmmi_keeper_rumors_honored_3}For you? Not a copper. Ask.[if:convo_calm_friendly][ib:hip]"),
+                        StandingBand.Respected => Flavor.Pick("{=lmmi_keeper_rumors_respected}A thing or two. For a friend, cheap.[if:convo_calm_friendly][ib:normal]",
+                            "{=lmmi_keeper_rumors_respected_2}I hear things. For you, they come cheap.[if:convo_calm_friendly][ib:normal]",
+                            "{=lmmi_keeper_rumors_respected_3}Ask away. Friend's prices.[if:convo_calm_friendly][ib:normal]"),
+                        StandingBand.Known => Flavor.Pick("{=lmmi_keeper_rumors_known}Depends what you're after. Ears cost money, but I'll not fleece you.[if:convo_nonchalant][ib:normal]",
+                            "{=lmmi_keeper_rumors_known_2}I might. Information costs, but I'll be fair.[if:convo_nonchalant][ib:normal]",
+                            "{=lmmi_keeper_rumors_known_3}A few things. They'll cost you a little.[if:convo_nonchalant][ib:normal]"),
+                        StandingBand.Disliked => Flavor.Pick("{=lmmi_keeper_rumors_disliked}News costs. For you, it costs double.[if:convo_annoyed][ib:closed]",
+                            "{=lmmi_keeper_rumors_disliked_2}I know things. You'll pay through the nose for them.[if:convo_annoyed][ib:closed]",
+                            "{=lmmi_keeper_rumors_disliked_3}Maybe. For you, the price is doubled. Take it or leave it.[if:convo_annoyed][ib:closed]"),
+                        _ => Flavor.Pick("{=lmmi_keeper_rumors_stranger}Depends what you're after — and what it's worth to you.[if:convo_nonchalant][ib:closed]",
+                            "{=lmmi_keeper_rumors_stranger_2}Maybe. What's it worth to you?[if:convo_nonchalant][ib:closed]",
+                            "{=lmmi_keeper_rumors_stranger_3}I hear plenty. Nothing's free, though.[if:convo_nonchalant][ib:closed]"),
                     }));
                     return true;
                 }, null);
@@ -296,13 +328,23 @@ namespace LessMenusMoreImmersion.Behaviors
             starter.AddDialogLine("lmmi_keeper_room_resp", "lmmi_keeper_room_resp", "close_window", "{=lmmi_keeper_room_resp}{LMMI_KEEPER_ROOM_LINE}",
                 () =>
                 {
-                    MBTextManager.SetTextVariable("LMMI_KEEPER_ROOM_LINE", new TextObject(BandHere switch
+                    MBTextManager.SetTextVariable("LMMI_KEEPER_ROOM_LINE", (BandHere switch
                     {
-                        StandingBand.Honored => "{=lmmi_keeper_room_honored}The best room in the house, and not a copper for it. I'll have them bring up hot water.[if:convo_happy][ib:hip]",
-                        StandingBand.Respected => "{=lmmi_keeper_room_respected}The room at the top of the stairs — the quiet one. Sleep well.[if:convo_calm_friendly][ib:normal]",
-                        StandingBand.Disliked => "{=lmmi_keeper_room_disliked}Room at the back, over the stable. Mind the fleas.[if:convo_bored][ib:closed]",
-                        StandingBand.Despised => "{=lmmi_keeper_room_despised}Room at the back, over the stable. Gone by sunrise.[if:convo_annoyed][ib:closed]",
-                        _ => "{=lmmi_keeper_room_stranger}Up the stairs, second door. Sheets are clean — mostly.[if:convo_nonchalant][ib:normal]",
+                        StandingBand.Honored => Flavor.Pick("{=lmmi_keeper_room_honored}The best room in the house, and not a copper for it. I'll have them bring up hot water.[if:convo_happy][ib:hip]",
+                            "{=lmmi_keeper_room_honored_2}My own room, if you want it — I'll sleep in the cellar. No charge.[if:convo_happy][ib:hip]",
+                            "{=lmmi_keeper_room_honored_3}Best bed in town, and it's yours. Breakfast too.[if:convo_happy][ib:hip]"),
+                        StandingBand.Respected => Flavor.Pick("{=lmmi_keeper_room_respected}The room at the top of the stairs — the quiet one. Sleep well.[if:convo_calm_friendly][ib:normal]",
+                            "{=lmmi_keeper_room_respected_2}The corner room — it's warm, and nobody snores next door. Rest well.[if:convo_calm_friendly][ib:normal]",
+                            "{=lmmi_keeper_room_respected_3}A good room for a good guest. Top of the stairs.[if:convo_calm_friendly][ib:normal]"),
+                        StandingBand.Disliked => Flavor.Pick("{=lmmi_keeper_room_disliked}Room at the back, over the stable. Mind the fleas.[if:convo_bored][ib:closed]",
+                            "{=lmmi_keeper_room_disliked_2}There's a cot by the kitchen. Take it or leave it.[if:convo_bored][ib:closed]",
+                            "{=lmmi_keeper_room_disliked_3}Back room. The roof leaks. That's what's left.[if:convo_bored][ib:closed]"),
+                        StandingBand.Despised => Flavor.Pick("{=lmmi_keeper_room_despised}Room at the back, over the stable. Gone by sunrise.[if:convo_annoyed][ib:closed]",
+                            "{=lmmi_keeper_room_despised_2}Stable loft. Out before anyone sees you.[if:convo_annoyed][ib:closed]",
+                            "{=lmmi_keeper_room_despised_3}You can sleep in the woodshed. Be gone before the cock crows.[if:convo_annoyed][ib:closed]"),
+                        _ => Flavor.Pick("{=lmmi_keeper_room_stranger}Up the stairs, second door. Sheets are clean — mostly.[if:convo_nonchalant][ib:normal]",
+                            "{=lmmi_keeper_room_stranger_2}End of the hall. Lock the door if you've anything worth stealing.[if:convo_nonchalant][ib:normal]",
+                            "{=lmmi_keeper_room_stranger_3}Room's upstairs. Bed's hard, blankets are thin, price is fair.[if:convo_nonchalant][ib:normal]"),
                     }));
                     return true;
                 }, null);
@@ -325,7 +367,9 @@ namespace LessMenusMoreImmersion.Behaviors
             catch (Exception ex)
             {
                 LmmiLog.Error($"Tavern: the keeper's news ({topic}) threw", ex);
-                return new TextObject("{=lmmi_keeper_rumor_nothing}Nothing worth the coin, truth be told.[if:convo_undecided_closed][ib:closed]");
+                return Flavor.Pick("{=lmmi_keeper_rumor_nothing}Nothing worth the coin, truth be told.[if:convo_undecided_closed][ib:closed]",
+                            "{=lmmi_keeper_rumor_nothing_2}Quiet lately. Nothing worth selling you.[if:convo_undecided_closed][ib:closed]",
+                            "{=lmmi_keeper_rumor_nothing_3}Haven't heard a thing. Come back in a few days.[if:convo_undecided_closed][ib:closed]");
             }
         }
 
@@ -348,7 +392,9 @@ namespace LessMenusMoreImmersion.Behaviors
                 .OrderBy(a => a.LeaderParty.Position.Distance(at))
                 .FirstOrDefault();
             if (army == null || army.LeaderParty.Position.Distance(at) > 250f)
-                return new TextObject("{=lmmi_keeper_armies_none}No host I've heard of — not this side of the hills, anyway. Quiet times. Long may they last.[if:convo_relaxed_happy][ib:normal]");
+                return Flavor.Pick("{=lmmi_keeper_armies_none}No host I've heard of — not this side of the hills, anyway. Quiet times. Long may they last.[if:convo_relaxed_happy][ib:normal]",
+                            "{=lmmi_keeper_armies_none_2}No armies about. The roads are as quiet as I've seen them.[if:convo_relaxed_happy][ib:normal]",
+                            "{=lmmi_keeper_armies_none_3}Not a banner for days in any direction. Enjoy it.[if:convo_relaxed_happy][ib:normal]");
 
             var near = Near(army.LeaderParty.Position);
             if (BandHere < StandingBand.Known)
@@ -406,7 +452,9 @@ namespace LessMenusMoreImmersion.Behaviors
                         .SetTextVariable("LORDS", string.Join(" & ", lords.Select(l => l.Name.ToString()))).ToString());
             }
             if (parts.Count == 0)
-                return new TextObject("{=lmmi_keeper_enemies_none}Nobody I'd lose sleep over. You've a quiet name in {SETTLEMENT}.[if:convo_calm_friendly][ib:normal]")
+                return Flavor.Pick("{=lmmi_keeper_enemies_none}Nobody I'd lose sleep over. You've a quiet name in {SETTLEMENT}.[if:convo_calm_friendly][ib:normal]",
+                            "{=lmmi_keeper_enemies_none_2}Nobody's cursing your name in here, not that I've heard.[if:convo_calm_friendly][ib:normal]",
+                            "{=lmmi_keeper_enemies_none_3}No grudges against you in {SETTLEMENT}. Rare, that.[if:convo_calm_friendly][ib:normal]")
                     .SetTextVariable("SETTLEMENT", here.Name);
             return new TextObject("{=lmmi_keeper_enemies}{LIST}[if:convo_grave][ib:closed]").SetTextVariable("LIST", string.Join(" ", parts));
         }
@@ -429,7 +477,9 @@ namespace LessMenusMoreImmersion.Behaviors
                     .SetTextVariable("NAME", n.Name).ToString());
             }
             if (parts.Count == 0)
-                return new TextObject("{=lmmi_keeper_notables_none}Nobody of note in town just now.[if:convo_nonchalant][ib:normal]");
+                return Flavor.Pick("{=lmmi_keeper_notables_none}Nobody of note in town just now.[if:convo_nonchalant][ib:normal]",
+                            "{=lmmi_keeper_notables_none_2}The town's big folk are all away. Nobody to ask.[if:convo_nonchalant][ib:normal]",
+                            "{=lmmi_keeper_notables_none_3}None of the notables are about. Try another day.[if:convo_nonchalant][ib:normal]");
             return new TextObject("{=lmmi_keeper_notables}Let me think. {LIST}.[if:convo_thinking][ib:normal]").SetTextVariable("LIST", string.Join("; ", parts));
         }
 
@@ -438,7 +488,9 @@ namespace LessMenusMoreImmersion.Behaviors
         {
             var here = Here!;
             var owner = here.OwnerClan?.Leader;
-            if (owner == null) return new TextObject("{=lmmi_keeper_rumor_nothing}Nothing worth the coin, truth be told.[if:convo_undecided_closed][ib:closed]");
+            if (owner == null) return Flavor.Pick("{=lmmi_keeper_rumor_nothing}Nothing worth the coin, truth be told.[if:convo_undecided_closed][ib:closed]",
+                            "{=lmmi_keeper_rumor_nothing_2}Quiet lately. Nothing worth selling you.[if:convo_undecided_closed][ib:closed]",
+                            "{=lmmi_keeper_rumor_nothing_3}Haven't heard a thing. Come back in a few days.[if:convo_undecided_closed][ib:closed]");
             TextObject line;
             if (owner.IsPrisoner)
                 line = new TextObject("{=lmmi_keeper_lord_prisoner}{OWNER}? A prisoner, last I heard — {CAPTOR} has the keeping of that one.[if:convo_grave][ib:closed]")
@@ -456,7 +508,9 @@ namespace LessMenusMoreImmersion.Behaviors
                         : "{=lmmi_keeper_lord_road}{OWNER}? Out on the road with a warband — near {NEAR}, last I heard.[if:convo_nonchalant][ib:normal]")
                     .SetTextVariable("NEAR", Near(party.Position));
             }
-            else line = new TextObject("{=lmmi_keeper_lord_unknown}{OWNER}? Couldn't tell you. Nobody's seen hide nor hair.[if:convo_undecided_closed][ib:closed]");
+            else line = Flavor.Pick("{=lmmi_keeper_lord_unknown}{OWNER}? Couldn't tell you. Nobody's seen hide nor hair.[if:convo_undecided_closed][ib:closed]",
+                            "{=lmmi_keeper_lord_unknown_2}{OWNER}? No idea. Nobody's said a word in weeks.[if:convo_undecided_closed][ib:closed]",
+                            "{=lmmi_keeper_lord_unknown_3}{OWNER}? Gone off somewhere. Ask a soldier.[if:convo_undecided_closed][ib:closed]");
             return line.SetTextVariable("OWNER", owner.Name);
         }
 
@@ -508,9 +562,13 @@ namespace LessMenusMoreImmersion.Behaviors
             var main = Agent.Main;
             if (main != null && main.IsActive())
                 main.Health = Math.Min(main.HealthLimit, main.Health + main.HealthLimit * _restHeal);
-            InformationManager.DisplayMessage(new InformationMessage(new TextObject(_restHeal < 0.3f
-                ? "{=lmmi_keeper_rested_fleas}You sleep badly, and scratch in your sleep. Still — you're stiff, but rested."
-                : "{=lmmi_keeper_rested}You sleep like the dead. You wake stiff, but rested.").ToString()));
+            InformationManager.DisplayMessage(new InformationMessage((_restHeal < 0.3f
+                ? Flavor.Pick("{=lmmi_keeper_rested_fleas}You sleep badly, and scratch in your sleep. Still — you're stiff, but rested.",
+                            "{=lmmi_keeper_rested_fleas_2}The bed's alive with fleas, and the man next door snores. You're rested, more or less.",
+                            "{=lmmi_keeper_rested_fleas_3}Cold draughts and a lumpy straw mattress. You wake stiff — but rested.")
+                : Flavor.Pick("{=lmmi_keeper_rested}You sleep like the dead. You wake stiff, but rested.",
+                            "{=lmmi_keeper_rested_2}You sleep through the night without stirring. You wake rested.",
+                            "{=lmmi_keeper_rested_3}A real bed, a quiet room. You wake feeling more yourself.")).ToString()));
             LmmiLog.Info($"Tavern: a night's rest ({before} → {hero.HitPoints} hp).");
         }
 

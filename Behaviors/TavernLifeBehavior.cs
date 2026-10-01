@@ -86,16 +86,24 @@ namespace LessMenusMoreImmersion.Behaviors
                 int pay = Math.Min(Hero.MainHero.Gold, stake * 2);
                 Hero.MainHero.ChangeHeroGold(-pay);
                 TownStandingBehavior.Adjust(Settlement.CurrentSettlement, -2f, "caught cheating at dice");
-                _result = new TextObject("{=lmmi_dice_caught}Hold on — let me see those. ...LOADED! Cheat! You'll pay double, or I'll have the whole room on you!");
+                _result = Flavor.Pick("{=lmmi_dice_caught}Hold on — let me see those. ...LOADED! Cheat! You'll pay double, or I'll have the whole room on you!",
+                    "{=lmmi_dice_caught_2}Wait. Wait! These dice are weighted! Pay double, cheat, or I'll break your fingers!",
+                    "{=lmmi_dice_caught_3}Ha! Thought I wouldn't notice? Loaded dice! Double, now, or we take it out of your hide!");
                 LmmiLog.Info($"Tavern: caught cheating at dice ({pay} paid).");
                 return;
             }
             bool won = mine > theirs;
             Hero.MainHero.ChangeHeroGold(won ? stake : -stake);
             if (won) _wins++;
-            _result = new TextObject(won
-                ? "{=lmmi_dice_won}{MINE} against {THEIRS}. ...Yours. Curse your luck."
-                : "{=lmmi_dice_lost}{MINE} against {THEIRS} — mine! Better luck next round.");
+            _result = won
+                ? Flavor.Pick("{=lmmi_dice_won}{MINE} against {THEIRS}. ...Yours. Curse your luck.",
+                    "{=lmmi_dice_won_2}Your {MINE} to my {THEIRS}. Take it — and choke on it.",
+                    "{=lmmi_dice_won_3}{MINE}? Against my {THEIRS}? The gods hate me tonight.",
+                    "{=lmmi_dice_won_4}{MINE} beats {THEIRS}. Fine. Fine! It's yours.")
+                : Flavor.Pick("{=lmmi_dice_lost}{MINE} against {THEIRS} — mine! Better luck next round.",
+                    "{=lmmi_dice_lost_2}Your {MINE} to my {THEIRS}. Pay up, friend.",
+                    "{=lmmi_dice_lost_3}{THEIRS}! Ha! Your {MINE} won't cut it.",
+                    "{=lmmi_dice_lost_4}{MINE} against {THEIRS}. The coin's mine, I think.");
             _result.SetTextVariable("MINE", mine);
             _result.SetTextVariable("THEIRS", theirs);
             LmmiLog.Info($"Tavern: dice for {stake}{(cheat ? " (loaded)" : "")}: {mine} vs {theirs} — {(won ? "won" : "lost")}.");
@@ -121,18 +129,28 @@ namespace LessMenusMoreImmersion.Behaviors
                 () =>
                 {
                     TextObject? line = null;
-                    if (_wins >= WinsPerVisit) line = new TextObject("{=lmmi_dice_refuse_wins}Not with you. You've cleaned out half the room tonight.");
+                    if (_wins >= WinsPerVisit) line = Flavor.Pick("{=lmmi_dice_refuse_wins}Not with you. You've cleaned out half the room tonight.",
+                        "{=lmmi_dice_refuse_wins_2}Play with you again? I'd sooner hand you my purse and save us both the time.",
+                        "{=lmmi_dice_refuse_wins_3}No more. You've the gods' own luck tonight, and I've a family to feed.");
                     else if (Refuses())
                     {
-                        line = new TextObject("{=lmmi_dice_refuse_foreign}I don't dice with {DEMONYM}s. Find your own kind.");
+                        line = Flavor.Pick("{=lmmi_dice_refuse_foreign}I don't dice with {DEMONYM}s. Find your own kind.",
+                            "{=lmmi_dice_refuse_foreign_2}Dice with a {SLUR}? Not in this life.",
+                            "{=lmmi_dice_refuse_foreign_3}Your kind cheat at everything. Go and roll with your own.",
+                            "{=lmmi_dice_refuse_foreign_4}No {DEMONYM} coin on my table. Off with you.");
                         line.SetTextVariable("DEMONYM", CultureWords.Demonym(Hero.MainHero.Culture));
+                        line.SetTextVariable("SLUR", CultureWords.Slur(Hero.MainHero.Culture));
                     }
                     if (line == null) return false;
                     MBTextManager.SetTextVariable("LMMI_DICE_REFUSAL", line);
                     return true;
                 }, null, 110);
             starter.AddDialogLine("lmmi_dice_answer", "lmmi_dice_answer", "lmmi_dice_stakes",
-                "{=lmmi_dice_answer}Always. What's the stake?", null, null);
+                "{=!}{LMMI_DICE_ANSWER}",
+                    () => Flavor.Say("LMMI_DICE_ANSWER",
+                        "{=lmmi_dice_answer}Always. What's the stake?",
+                        "{=lmmi_dice_answer_2}Ha! Sit down. What are we playing for?",
+                        "{=lmmi_dice_answer_3}Feeling lucky? What's the stake, then?"), null);
 
             void Stake(string id, string text, int stake, bool cheat, Func<bool>? extra = null)
             {
