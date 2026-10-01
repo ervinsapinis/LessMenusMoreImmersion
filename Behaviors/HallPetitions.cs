@@ -139,6 +139,50 @@ namespace LessMenusMoreImmersion.Behaviors
                 "{=lmmi_court_deny_bribes}A guard's word against a townsman's grudge? Bring me proof, or don't waste my time."),
         };
 
+        /// <summary>More ways for the petitioner to take your ruling (keyed by the ruling's id; the first reply is given with the ruling).</summary>
+        private static readonly Dictionary<string, string[]> MoreReplies = new Dictionary<string, string[]>
+        {
+            ["lmmi_court_grain_pay"] = new[] { "{=lmmi_court_grain_pay_resp_2}We'll sow every grain of it. Thank you, {?PLAYER.GENDER}my lady{?}my lord{\\?}!", "{=lmmi_court_grain_pay_resp_3}This is more than the tax took. The gods see what you've done." },
+            ["lmmi_court_grain_half"] = new[] { "{=lmmi_court_grain_half_resp_2}Half's better than none. We'll manage.", "{=lmmi_court_grain_half_resp_3}...Half. We'll eat less and sow what we can." },
+            ["lmmi_court_grain_no"] = new[] { "{=lmmi_court_grain_no_resp_2}...We'll starve, then. As you command.", "{=lmmi_court_grain_no_resp_3}...The village will remember this winter." },
+            ["lmmi_court_pressed_free"] = new[] { "{=lmmi_court_pressed_free_resp_2}My boy, home! Bless you!", "{=lmmi_court_pressed_free_resp_3}I'll light a candle for you every night." },
+            ["lmmi_court_pressed_keep"] = new[] { "{=lmmi_court_pressed_keep_resp_2}...He's a good boy. Don't waste him.", "{=lmmi_court_pressed_keep_resp_3}...As you say. Gods watch over him." },
+            ["lmmi_court_poacher_hang"] = new[] { "{=lmmi_court_poacher_hang_resp_2}Mercy! My children — who'll feed my children?", "{=lmmi_court_poacher_hang_resp_3}No... no, I beg you..." },
+            ["lmmi_court_poacher_fine"] = new[] { "{=lmmi_court_poacher_fine_resp_2}A fine. Yes. I'll pay it, somehow.", "{=lmmi_court_poacher_fine_resp_3}Thank you. I'll stay out of the woods." },
+            ["lmmi_court_poacher_free"] = new[] { "{=lmmi_court_poacher_free_resp_2}Free? Thank you — thank you!", "{=lmmi_court_poacher_free_resp_3}My children will eat tonight. Bless you." },
+            ["lmmi_court_widow_hers"] = new[] { "{=lmmi_court_widow_hers_resp_2}My husband would thank you, if he could.", "{=lmmi_court_widow_hers_resp_3}The field is mine. Thank you — truly." },
+            ["lmmi_court_widow_custom"] = new[] { "{=lmmi_court_widow_custom_resp_2}...Custom. Of course. Custom.", "{=lmmi_court_widow_custom_resp_3}...Then I've nothing. As you say." },
+            ["lmmi_court_quartered_pay"] = new[] { "{=lmmi_court_quartered_pay_resp_2}Thank you. I'll sleep easier tonight.", "{=lmmi_court_quartered_pay_resp_3}Fair, and more than fair. Thank you." },
+            ["lmmi_court_quartered_no"] = new[] { "{=lmmi_court_quartered_no_resp_2}...Feed them. Yes.", "{=lmmi_court_quartered_no_resp_3}...Then we'll go hungry so they don't." },
+            ["lmmi_court_feud_a"] = new[] { "{=lmmi_court_feud_a_resp_2}As you rule.", "{=lmmi_court_feud_a_resp_3}So be it. They'll hear it from me." },
+            ["lmmi_court_feud_b"] = new[] { "{=lmmi_court_feud_b_resp_2}As you rule.", "{=lmmi_court_feud_b_resp_3}So be it. They'll hear it from me." },
+            ["lmmi_court_feud_split"] = new[] { "{=lmmi_court_feud_split_resp_2}...Share the loss? They'll grumble, but they'll listen to you.", "{=lmmi_court_feud_split_resp_3}...I'll tell them. I can't promise they'll like it." },
+            ["lmmi_court_cart_return"] = new[] { "{=lmmi_court_cart_return_resp_2}My cart! My living! Thank you!", "{=lmmi_court_cart_return_resp_3}Honest justice. I'd almost forgotten what it looked like." },
+            ["lmmi_court_cart_toll"] = new[] { "{=lmmi_court_cart_toll_resp_2}...Robbery, but lawful robbery. Here.", "{=lmmi_court_cart_toll_resp_3}...I'll pay. And I'll remember." },
+            ["lmmi_court_cart_forfeit"] = new[] { "{=lmmi_court_cart_forfeit_resp_2}That's everything I own! Everything!", "{=lmmi_court_cart_forfeit_resp_3}Thieves, the lot of you — the hall included!" },
+            ["lmmi_court_apprentice_back"] = new[] { "{=lmmi_court_apprentice_back_resp_2}Good. The guild thanks you.", "{=lmmi_court_apprentice_back_resp_3}The indenture holds, as it should." },
+            ["lmmi_court_apprentice_terms"] = new[] { "{=lmmi_court_apprentice_terms_resp_2}...Fair. I'll go easier on him.", "{=lmmi_court_apprentice_terms_resp_3}...No beatings. I'll find other ways to teach him." },
+            ["lmmi_court_apprentice_free"] = new[] { "{=lmmi_court_apprentice_free_resp_2}Seven years of bread and board, wasted!", "{=lmmi_court_apprentice_free_resp_3}You'll regret meddling with the guilds!" },
+            ["lmmi_court_bride_full"] = new[] { "{=lmmi_court_bride_full_resp_2}In full! Thank you — we can grow old in peace now.", "{=lmmi_court_bride_full_resp_3}Justice! Thank you!" },
+            ["lmmi_court_bride_half"] = new[] { "{=lmmi_court_bride_half_resp_2}...Half. Better than nothing, I suppose.", "{=lmmi_court_bride_half_resp_3}...As you say. I'll swallow it." },
+            ["lmmi_court_bride_pay"] = new[] { "{=lmmi_court_bride_pay_resp_2}From your own purse? Gods bless you!", "{=lmmi_court_bride_pay_resp_3}I don't know what to say. Thank you!" },
+            ["lmmi_court_bandits_riders"] = new[] { "{=lmmi_court_bandits_riders_resp_2}Riders! At last! Thank you!", "{=lmmi_court_bandits_riders_resp_3}We'll guide them to the camp ourselves." },
+            ["lmmi_court_bandits_militia"] = new[] { "{=lmmi_court_bandits_militia_resp_2}We'll defend ourselves. Thank you.", "{=lmmi_court_bandits_militia_resp_3}Silver for spears — the lads will be proud." },
+            ["lmmi_court_bandits_no"] = new[] { "{=lmmi_court_bandits_no_resp_2}...We pay our taxes for nothing, then.", "{=lmmi_court_bandits_no_resp_3}...I'll tell the village. They won't be surprised." },
+            ["lmmi_court_debtor_forgive"] = new[] { "{=lmmi_court_debtor_forgive_resp_2}Forgiven! I — thank you!", "{=lmmi_court_debtor_forgive_resp_3}My family is saved. Thank you!" },
+            ["lmmi_court_debtor_season"] = new[] { "{=lmmi_court_debtor_season_resp_2}One season. I'll make it count.", "{=lmmi_court_debtor_season_resp_3}Thank you. I won't fail you." },
+            ["lmmi_court_debtor_collect"] = new[] { "{=lmmi_court_debtor_collect_resp_2}...There goes my living.", "{=lmmi_court_debtor_collect_resp_3}...As you command. My family will go hungry." },
+            ["lmmi_court_monopoly_grant"] = new[] { "{=lmmi_court_monopoly_grant_resp_2}The charter! Thank you!", "{=lmmi_court_monopoly_grant_resp_3}A wise decision. The guild is grateful." },
+            ["lmmi_court_monopoly_refuse"] = new[] { "{=lmmi_court_monopoly_refuse_resp_2}...As you say. We'll compete, then.", "{=lmmi_court_monopoly_refuse_resp_3}...The tinkers will ruin this town." },
+            ["lmmi_court_blood_hang"] = new[] { "{=lmmi_court_blood_hang_resp_2}My son! Not my son!", "{=lmmi_court_blood_hang_resp_3}Please, I beg you, please—" },
+            ["lmmi_court_blood_money"] = new[] { "{=lmmi_court_blood_money_resp_2}Thank you. We'll find the coin.", "{=lmmi_court_blood_money_resp_3}Blood money. Yes. Thank you." },
+            ["lmmi_court_blood_walls"] = new[] { "{=lmmi_court_blood_walls_resp_2}He'll serve. He'll live. Thank you.", "{=lmmi_court_blood_walls_resp_3}A year on the walls. Better than the rope." },
+            ["lmmi_court_blood_pay"] = new[] { "{=lmmi_court_blood_pay_resp_2}You'd pay for my son? Bless you!", "{=lmmi_court_blood_pay_resp_3}I'll never forget this. Never." },
+            ["lmmi_court_bribes_punish"] = new[] { "{=lmmi_court_bribes_punish_resp_2}Finally! Justice!", "{=lmmi_court_bribes_punish_resp_3}The street will drink to you tonight." },
+            ["lmmi_court_bribes_fine"] = new[] { "{=lmmi_court_bribes_fine_resp_2}...Clever. For you.", "{=lmmi_court_bribes_fine_resp_3}...Justice, of a sort." },
+            ["lmmi_court_bribes_dismiss"] = new[] { "{=lmmi_court_bribes_dismiss_resp_2}...I see how it is.", "{=lmmi_court_bribes_dismiss_resp_3}...The watch will laugh about this for a month." },
+        };
+
         private static int VariantsOf(PetitionKind kind) => Pleas.TryGetValue(kind, out var v) ? v.Length : 1;
 
         /// <summary>

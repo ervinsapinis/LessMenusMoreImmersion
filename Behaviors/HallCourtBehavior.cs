@@ -313,9 +313,19 @@ namespace LessMenusMoreImmersion.Behaviors
             var judge = p.JudgeAgent;
             if (judge != null && judge.IsActive() && Near(judge)) StreetEventsBehavior.Bark(judge, RulingLine(p, granted));
             if (Near(p.Petitioner))
-                StreetEventsBehavior.Bark(p.Petitioner, new TextObject(granted
-                    ? "{=lmmi_court_thanks}Bless you, my lord — bless you!"
-                    : "{=lmmi_court_despair}...Then heaven help us."));
+            {
+                // "my lord" only to a lord; the other thanks follow the judge.
+                var reply = granted
+                    ? p.Judge != null && p.Judge.IsFemale
+                        ? Flavor.Pick("{=lmmi_court_thanks_2}Bless you, {LORD} — bless you!", "{=lmmi_court_thanks_3}Thank you, {LORD}! The gods keep you!",
+                            "{=lmmi_court_thanks_4}{LORD}, I'll pray for you every night of my life!")
+                        : Flavor.Pick("{=lmmi_court_thanks}Bless you, my lord — bless you!", "{=lmmi_court_thanks_2}Bless you, {LORD} — bless you!",
+                            "{=lmmi_court_thanks_3}Thank you, {LORD}! The gods keep you!", "{=lmmi_court_thanks_4}{LORD}, I'll pray for you every night of my life!")
+                    : Flavor.Pick("{=lmmi_court_despair}...Then heaven help us.", "{=lmmi_court_despair_2}...As you say. Gods help us.",
+                        "{=lmmi_court_despair_3}...I see. Justice is for other people, then.", "{=lmmi_court_despair_4}...Then there's no justice in this hall.");
+                reply.SetTextVariable("LORD", Lord(p.Judge));
+                StreetEventsBehavior.Bark(p.Petitioner, reply);
+            }
             if (granted && interceded)
             {
                 StreetEventsBehavior.MarkGrateful(p.Petitioner);
@@ -425,39 +435,67 @@ namespace LessMenusMoreImmersion.Behaviors
             var enemy = Kingdom.All.Where(k => !k.IsEliminated && realm != null && k != realm && FactionManager.IsAtWarAgainstFaction(k, realm))
                 .OrderBy(_ => MBRandom.RandomFloat).FirstOrDefault();
             if (enemy != null)
-                options.Add(new TextObject("{=lmmi_gossip_war}The war with {KINGDOM} drags on. Every week, more widows — and still the council talks of glory.")
+                options.Add(Flavor.Pick("{=lmmi_gossip_war}The war with {KINGDOM} drags on. Every week, more widows — and still the council talks of glory.",
+                        "{=lmmi_gossip_war_2}Another levy for the war with {KINGDOM}. My villages have no young men left to send.",
+                        "{=lmmi_gossip_war_3}{KINGDOM} again. You'd think someone would tire of burying sons.")
                     .SetTextVariable("KINGDOM", enemy.Name));
             else if (realm != null)
-                options.Add(new TextObject("{=lmmi_gossip_peace}Peace. Enjoy it. It never lasts past the harvest."));
+                options.Add(Flavor.Pick("{=lmmi_gossip_peace}Peace. Enjoy it. It never lasts past the harvest.",
+                        "{=lmmi_gossip_peace_2}No war this season. My sword arm's going soft.",
+                        "{=lmmi_gossip_peace_3}Peace, they call it. I call it the time we spend sharpening for the next one."));
 
             // A lord in someone's dungeon.
             var prisoner = Hero.AllAliveHeroes.Where(h => h.IsLord && h.IsPrisoner && h.PartyBelongedToAsPrisoner?.Settlement != null && h != speaker)
                 .OrderBy(_ => MBRandom.RandomFloat).FirstOrDefault();
             if (prisoner != null)
-                options.Add(new TextObject("{=lmmi_gossip_prisoner}They say {PRISONER} is rotting in the cells at {PLACE}. Nobody's paid the ransom.")
+                options.Add(Flavor.Pick("{=lmmi_gossip_prisoner}They say {PRISONER} is rotting in the cells at {PLACE}. Nobody's paid the ransom.",
+                        "{=lmmi_gossip_prisoner_2}{PRISONER} sits in a cell at {PLACE}, and the family won't pay. Shameful.",
+                        "{=lmmi_gossip_prisoner_3}Heard about {PRISONER}? Locked up at {PLACE}. Could happen to any of us.")
                     .SetTextVariable("PRISONER", prisoner.Name).SetTextVariable("PLACE", prisoner.PartyBelongedToAsPrisoner.Settlement.Name));
 
             // An army on the move.
             var army = MobileParty.All.Where(p => p.IsActive && p.Army != null && p.Army.LeaderParty == p && p.LeaderHero != null)
                 .OrderByDescending(p => p.Army.TotalManCount).FirstOrDefault();
             if (army != null)
-                options.Add(new TextObject("{=lmmi_gossip_army}{LEADER} has an army in the field — {MEN} strong, last I heard. Someone's going to bleed.")
+                options.Add(Flavor.Pick("{=lmmi_gossip_army}{LEADER} has an army in the field — {MEN} strong, last I heard. Someone's going to bleed.",
+                        "{=lmmi_gossip_army_2}{LEADER} is marching with {MEN} men. Pity the villages on the way.",
+                        "{=lmmi_gossip_army_3}They say {LEADER} has gathered {MEN} spears. That's no hunting party.")
                     .SetTextVariable("LEADER", army.LeaderHero.Name).SetTextVariable("MEN", (int)army.Army.TotalManCount));
 
             // You.
             var band = TownStandingBehavior.Band(settlement);
             if (band != StandingBand.Unknown)
             {
-                var deed = new TextObject(band switch
+                var deed = (band switch
                 {
-                    StandingBand.Honored => "{=lmmi_gossip_you_honored}the town would follow {?PLAYER.GENDER}her{?}him{\\?} into a fire",
-                    StandingBand.Respected => "{=lmmi_gossip_you_respected}{?PLAYER.GENDER}she's{?}he's{\\?} a friend to this place",
-                    StandingBand.Known => "{=lmmi_gossip_you_known}{?PLAYER.GENDER}she's{?}he's{\\?} done right by the town",
-                    StandingBand.Disliked => "{=lmmi_gossip_you_disliked}{?PLAYER.GENDER}she's{?}he's{\\?} nothing but trouble",
-                    _ => "{=lmmi_gossip_you_despised}{?PLAYER.GENDER}she{?}he{\\?} should've been run out of the gates long ago",
+                    StandingBand.Honored => Flavor.Pick("{=lmmi_gossip_you_honored}the town would follow {?PLAYER.GENDER}her{?}him{\\?} into a fire",
+                        "{=lmmi_gossip_you_honored_2}the town would give {?PLAYER.GENDER}her{?}him{\\?} anything {?PLAYER.GENDER}she{?}he{\\?} asked for",
+                        "{=lmmi_gossip_you_honored_3}the whole town drinks to {?PLAYER.GENDER}her{?}his{\\?} health"),
+                    StandingBand.Respected => Flavor.Pick("{=lmmi_gossip_you_respected}{?PLAYER.GENDER}she's{?}he's{\\?} a friend to this place",
+                        "{=lmmi_gossip_you_respected_2}the townsfolk speak well of {?PLAYER.GENDER}her{?}him{\\?}",
+                        "{=lmmi_gossip_you_respected_3}{?PLAYER.GENDER}she's{?}he's{\\?} earned the town's respect"),
+                    StandingBand.Known => Flavor.Pick("{=lmmi_gossip_you_known}{?PLAYER.GENDER}she's{?}he's{\\?} done right by the town",
+                        "{=lmmi_gossip_you_known_2}{?PLAYER.GENDER}she's{?}he's{\\?} helped a few people here",
+                        "{=lmmi_gossip_you_known_3}{?PLAYER.GENDER}she's{?}he's{\\?} making a name for {?PLAYER.GENDER}herself{?}himself{\\?}"),
+                    StandingBand.Disliked => Flavor.Pick("{=lmmi_gossip_you_disliked}{?PLAYER.GENDER}she's{?}he's{\\?} nothing but trouble",
+                        "{=lmmi_gossip_you_disliked_2}people cross the street when {?PLAYER.GENDER}she{?}he{\\?} comes",
+                        "{=lmmi_gossip_you_disliked_3}the town would be glad to see the back of {?PLAYER.GENDER}her{?}him{\\?}"),
+                    _ => Flavor.Pick("{=lmmi_gossip_you_despised}{?PLAYER.GENDER}she{?}he{\\?} should've been run out of the gates long ago",
+                        "{=lmmi_gossip_you_despised_2}they spit when {?PLAYER.GENDER}her{?}his{\\?} name comes up",
+                        "{=lmmi_gossip_you_despised_3}half the town would pay to see {?PLAYER.GENDER}her{?}him{\\?} hanged"),
                 });
-                options.Add(new TextObject("{=lmmi_gossip_you}That's {PLAYER.NAME}, over there. They say {DEED}.").SetTextVariable("DEED", deed));
+                options.Add(Flavor.Pick("{=lmmi_gossip_you}That's {PLAYER.NAME}, over there. They say {DEED}.",
+                        "{=lmmi_gossip_you_2}See that one? {PLAYER.NAME}. Word is {DEED}.",
+                        "{=lmmi_gossip_you_3}{PLAYER.NAME} is in the hall. The talk in town is that {DEED}.").SetTextVariable("DEED", deed));
             }
+            // Small talk, any day.
+            options.Add(Flavor.Pick(
+                "{=lmmi_gossip_harvest}The harvest looks thin this year. Prices will climb before winter.",
+                "{=lmmi_gossip_taxes}The steward wants another tax. On what, I asked. On breathing, nearly.",
+                "{=lmmi_gossip_wine}This wine's gone sour. Our host must be saving the good barrels for someone else.",
+                "{=lmmi_gossip_marriage}There's talk of a marriage between two of the great houses. Somebody's buying an alliance.",
+                "{=lmmi_gossip_roads}The roads aren't safe. My steward lost three carts to bandits last month.",
+                "{=lmmi_gossip_horses}I paid a fortune for a Khuzait horse. It bit me. Twice."));
             return options.Count == 0 ? null : options[MBRandom.RandomInt(options.Count)];
         }
 
@@ -483,12 +521,15 @@ namespace LessMenusMoreImmersion.Behaviors
         private void AddInterceptDialogs(CampaignGameStarter starter)
         {
             starter.AddDialogLine("lmmi_court_lord", "start", "lmmi_court_lord_resp",
-                "{=lmmi_court_lord}I'm hearing a petition. Unless you've something to add to it?",
+                "{=!}{LMMI_COURT_LORD_LINE}",
                 () =>
                 {
                     var p = _petition;
                     return p != null && !p.PlayerJudges && p.Spoken && !p.Resolved && p.Judge != null
-                           && Hero.OneToOneConversationHero == p.Judge && !p.Paused && !FeastBehavior.IsBusy;
+                           && Hero.OneToOneConversationHero == p.Judge && !p.Paused && !FeastBehavior.IsBusy && Flavor.Say("LMMI_COURT_LORD_LINE",
+                        "{=lmmi_court_lord}I'm hearing a petition. Unless you've something to add to it?",
+                        "{=lmmi_court_lord_2}A petition's before me. Have you something to say about it?",
+                        "{=lmmi_court_lord_3}I'm sitting in judgment. Speak, if you've a stake in this.");
                 }, null, 1300);
 
             starter.AddPlayerLine("lmmi_court_intercede", "lmmi_court_lord_resp", _intercede.Entry,
@@ -502,10 +543,18 @@ namespace LessMenusMoreImmersion.Behaviors
                     var listener = lord.CharacterObject;
                     float st = TownStandingBehavior.Get(p.Settlement);
                     _intercede.Start(InterceptArguments(p.Kind).Select(a => NativePersuasion.Argument(a.Skill, a.Trait, a.Text, listener, 0f, st)).ToArray(),
-                        new TextObject("{=lmmi_court_opening}Go on. Briefly."),
-                        new TextObject("{=lmmi_court_again}And?"),
-                        new TextObject("{=lmmi_court_won}...Very well. You make a fair point."),
-                        new TextObject("{=lmmi_court_lost}Enough. You forget whose hall this is."),
+                        Flavor.Pick("{=lmmi_court_opening}Go on. Briefly.",
+                            "{=lmmi_court_opening_2}Make it quick.",
+                            "{=lmmi_court_opening_3}I'm listening. For now."),
+                        Flavor.Pick("{=lmmi_court_again}And?",
+                            "{=lmmi_court_again_2}Go on.",
+                            "{=lmmi_court_again_3}Anything else?"),
+                        Flavor.Pick("{=lmmi_court_won}...Very well. You make a fair point.",
+                            "{=lmmi_court_won_2}...Hm. Perhaps you're right. I'll grant it.",
+                            "{=lmmi_court_won_3}...Fine. You've given me reason enough."),
+                        Flavor.Pick("{=lmmi_court_lost}Enough. You forget whose hall this is.",
+                            "{=lmmi_court_lost_2}That's enough. My hall, my judgment.",
+                            "{=lmmi_court_lost_3}You've said your piece. It changes nothing."),
                         onWon: () =>
                         {
                             var p2 = _petition;
@@ -536,7 +585,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     TownStandingBehavior.Adjust(p.Settlement, -1f, "backed the lord against a petitioner");
                 });
             starter.AddDialogLine("lmmi_court_backed", "lmmi_court_backed", "close_window",
-                "{=lmmi_court_backed}Quite so.", null, null);
+                "{=!}{LMMI_COURT_BACKED}",
+                    () => Flavor.Say("LMMI_COURT_BACKED",
+                        "{=lmmi_court_backed}Quite so.",
+                        "{=lmmi_court_backed_2}Indeed.",
+                        "{=lmmi_court_backed_3}Good. Someone here understands the law."), null);
 
             starter.AddPlayerLine("lmmi_court_nothing", "lmmi_court_lord_resp", "close_window",
                 "{=lmmi_court_nothing}Nothing. Carry on.", null, null);
@@ -559,7 +612,9 @@ namespace LessMenusMoreImmersion.Behaviors
                     why = new TextObject("{=lmmi_cant_afford_alms}You don't have that much on you.");
                     return false;
                 }));
-            starter.AddDialogLine(id + "_resp", id + "_resp", "close_window", reply, null, null);
+            var replies = MoreReplies.TryGetValue(id, out var more) ? new[] { reply }.Concat(more).ToArray() : new[] { reply };
+            starter.AddDialogLine(id + "_resp", id + "_resp", "close_window", "{=!}{LMMI_COURT_REPLY}",
+                () => Flavor.Say("LMMI_COURT_REPLY", replies), null);
         }
 
         /// <summary>Your own court: petitioners come to you.</summary>
@@ -671,7 +726,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     Judged(pp => Move(pp.Settlement, loyalty: -1f, why: "turned a petitioner away"));
                 });
             starter.AddDialogLine("lmmi_court_own_later_resp", "lmmi_court_own_later_resp", "close_window",
-                "{=lmmi_court_own_later_resp}...Yes, {?PLAYER.GENDER}my lady{?}my lord{\\?}.", null, null);
+                "{=!}{LMMI_COURT_LATER}",
+                    () => Flavor.Say("LMMI_COURT_LATER",
+                        "{=lmmi_court_own_later_resp}...Yes, {?PLAYER.GENDER}my lady{?}my lord{\\?}.",
+                        "{=lmmi_court_own_later_resp_2}...I'll come back, then. Thank you, {?PLAYER.GENDER}my lady{?}my lord{\\?}.",
+                        "{=lmmi_court_own_later_resp_3}...As you say. Another day."), null);
         }
 
         // ---- Save / load: "key;readyAtHours" separated by '|' ----
