@@ -51,11 +51,37 @@ namespace LessMenusMoreImmersion.Behaviors
         public string? TargetFeature => _feature;
 
         /// <summary>
+        /// Returns true if the agent looks compatible with vanilla EscortAgentBehavior.
+        ///
+        /// Some scene mods (e.g. Alive Scenes) may spawn agents that don't have the required
+        /// CampaignAgentComponent / AgentNavigator / InterruptingBehaviorGroup, in which case
+        /// the escort can never start.
+        /// </summary>
+        public static bool IsAgentEscortCapable(Agent? npcAgent)
+        {
+            if (npcAgent == null) return false;
+            if (!npcAgent.IsActive()) return false;
+            if (!npcAgent.IsHuman) return false;
+
+            var navigator = npcAgent.GetComponent<CampaignAgentComponent>()?.AgentNavigator;
+            var group = navigator?.GetBehaviorGroup<SandBox.Missions.AgentBehaviors.InterruptingBehaviorGroup>();
+            return group != null;
+        }
+
+        /// <summary>
         /// Start escorting the player to the given destination.
         /// Uses vanilla EscortAgentBehavior with Vec3 target — the position-based Initialize overload.
+        /// Returns false if the NPC cannot be escorted (missing navigator / behavior group) or setup fails.
         /// </summary>
-        public void StartEscort(Agent npcAgent, Vec3 destination, string feature, Settlement settlement)
+        public bool StartEscort(Agent npcAgent, Vec3 destination, string feature, Settlement settlement)
         {
+            if (!IsAgentEscortCapable(npcAgent))
+            {
+                LmmiLog.Warning($"StartEscort: Agent '{npcAgent?.Name}' (id={npcAgent?.Index}) is not escort-capable (missing navigator/behavior group?)");
+                Cleanup();
+                return false;
+            }
+
             if (_escortActive)
             {
                 LmmiLog.Warning("StartEscort: Already active, cancelling previous.");
@@ -78,12 +104,20 @@ namespace LessMenusMoreImmersion.Behaviors
                 if (_npcAgent.IsUsingGameObject)
                     _npcAgent.StopUsingGameObject(true);
 
-                AddPositionEscort(_npcAgent, destination, OnTargetReached);
+                if (!AddPositionEscort(_npcAgent, destination, OnTargetReached))
+                {
+                    LmmiLog.Warning("StartEscort: Failed to add/initialize escort behavior.");
+                    Cleanup();
+                    return false;
+                }
+
+                return true;
             }
             catch (Exception ex)
             {
                 LmmiLog.Error("StartEscort: Exception during setup", ex);
                 Cleanup();
+                return false;
             }
         }
 
@@ -91,7 +125,7 @@ namespace LessMenusMoreImmersion.Behaviors
         /// Mirrors the vanilla EscortAgentBehavior.AddEscortAgentBehavior pattern
         /// but uses the Vec3? Initialize overload for position-based escorts.
         /// </summary>
-        private static void AddPositionEscort(Agent npcAgent, Vec3 targetPosition,
+        private static bool AddPositionEscort(Agent npcAgent, Vec3 targetPosition,
             EscortAgentBehavior.OnTargetReachedDelegate onTargetReached)
         {
             var navigator = npcAgent.GetComponent<CampaignAgentComponent>()?.AgentNavigator;
@@ -100,7 +134,7 @@ namespace LessMenusMoreImmersion.Behaviors
             if (group == null)
             {
                 LmmiLog.Warning($"AddPositionEscort: No InterruptingBehaviorGroup on agent {npcAgent.Name}");
-                return;
+                return false;
             }
 
             bool isNew = group.GetBehavior<EscortAgentBehavior>() == null;
@@ -116,6 +150,8 @@ namespace LessMenusMoreImmersion.Behaviors
             escort.Initialize(Agent.Main, targetPosition, onTargetReached);
 
             LmmiLog.Info($"AddPositionEscort: Behavior added/initialized. isNew={isNew}");
+
+            return true;
         }
 
         /// <summary>

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using HarmonyLib;
 using LessMenusMoreImmersion.Constants;
+using LessMenusMoreImmersion.Contacts;
 using LessMenusMoreImmersion.Logging;
 using LessMenusMoreImmersion.Settings;
 using TaleWorlds.CampaignSystem;
@@ -36,6 +38,9 @@ namespace LessMenusMoreImmersion.Behaviors
 
         [NonSerialized] private EscortBehavior _escortBehavior = new EscortBehavior();
 
+        /// <summary>An escort is walking the player somewhere (or about to) — other scripted scenes should wait.</summary>
+        public bool IsEscortActive => _escortBehavior.IsActive || _performEscortSetupPending;
+
         private static readonly Dictionary<Occupation, string> OccupationFeatureMap = new Dictionary<Occupation, string>
         {
             { Occupation.Tavernkeeper, SettlementMenuOptions.Features.Backstreet },
@@ -56,6 +61,86 @@ namespace LessMenusMoreImmersion.Behaviors
             CampaignEvents.OnNewGameCreatedEvent.AddNonSerializedListener(this, OnGameStarted);
             CampaignEvents.OnGameLoadedEvent.AddNonSerializedListener(this, OnGameStarted);
             CampaignEvents.MissionTickEvent.AddNonSerializedListener(this, OnMissionTick);
+            CampaignEvents.GameMenuOpened.AddNonSerializedListener(this, OnGameMenuOpened);
+        }
+
+        private static readonly FieldInfo? _menuItemsField =
+            typeof(GameMenu).GetField("_menuItems", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        [NonSerialized] private readonly HashSet<GameMenuOption> _gatedOptions = new HashSet<GameMenuOption>();
+
+        private void OnGameMenuOpened(MenuCallbackArgs args)
+        {
+            try
+            {
+                var gameMenu = args.MenuContext?.GameMenu;
+                if (gameMenu == null)
+                {
+                    LmmiLog.Debug("OnGameMenuOpened: gameMenu is null, skipping.");
+                    return;
+                }
+
+                LmmiLog.Debug($"OnGameMenuOpened: menu='{gameMenu.StringId}'");
+
+                var settlement = MobileParty.MainParty?.CurrentSettlement ?? Settlement.CurrentSettlement;
+                if (settlement == null)
+                {
+                    LmmiLog.Debug("OnGameMenuOpened: no settlement context, skipping.");
+                    return;
+                }
+
+                if (_menuItemsField == null)
+                {
+                    LmmiLog.Warning("OnGameMenuOpened: '_menuItems' field not found — BL API may have changed.");
+                    return;
+                }
+
+                var menuItems = _menuItemsField.GetValue(gameMenu) as List<GameMenuOption>;
+                if (menuItems == null)
+                {
+                    LmmiLog.Debug("OnGameMenuOpened: _menuItems returned null.");
+                    return;
+                }
+
+                LmmiLog.Debug($"OnGameMenuOpened: {menuItems.Count} items in menu '{gameMenu.StringId}' at {settlement.Name}");
+
+                int gatedCount = 0;
+                foreach (var option in menuItems)
+                {
+                    if (option == null) continue;
+                    if (!SettlementMenuOptions.OptionFeatureMap.TryGetValue(option.IdString, out var requiredFeature))
+                        continue;
+
+                    bool hasAccess = HasFeatureAccess(settlement, requiredFeature);
+                    LmmiLog.Debug($"  option='{option.IdString}' feature='{requiredFeature}' hasAccess={hasAccess}");
+                    if (!hasAccess) gatedCount++;
+
+                    // Menu options live for the whole session and are shared by every settlement,
+                    // so wrap each one once and decide at evaluation time for the current settlement.
+                    // A wrapper that always disables would keep the option locked after discovery.
+                    if (!_gatedOptions.Add(option)) continue;
+
+                    var originalCondition = option.OnCondition;
+                    option.OnCondition = (MenuCallbackArgs a) =>
+                    {
+                        bool original = originalCondition == null || originalCondition(a);
+                        var current = MobileParty.MainParty?.CurrentSettlement ?? Settlement.CurrentSettlement;
+                        if (current != null && !HasFeatureAccess(current, requiredFeature))
+                        {
+                            a.IsEnabled = false;
+                            a.Tooltip = new TextObject("{=lmmi_undiscovered}You haven't discovered this part of the settlement yet.");
+                        }
+                        return original;
+                    };
+                }
+
+                if (gatedCount > 0)
+                    LmmiLog.Info($"OnGameMenuOpened: gated {gatedCount} options in '{gameMenu.StringId}' at {settlement.Name}");
+            }
+            catch (Exception ex)
+            {
+                LmmiLog.Error("OnGameMenuOpened threw", ex);
+            }
         }
 
         private void OnGameStarted(CampaignGameStarter campaignGameStarter)
@@ -501,30 +586,58 @@ namespace LessMenusMoreImmersion.Behaviors
             }
         }
 
+        /// <summary>Test tool: know every part of this settlement.</summary>
+        public void GrantFullAccess(Settlement settlement)
+        {
+            if (settlementsWithAccess == null) settlementsWithAccess = new Dictionary<string, bool>();
+            settlementsWithAccess[settlement.Id.ToString()] = true;
+        }
+
+        // This runs many times a frame while menus are drawn: log only when the answer changes.
+        [NonSerialized] private string? _lastAccessLog;
+
+        private void AccessLog(string message)
+        {
+            if (message == _lastAccessLog) return;
+            _lastAccessLog = message;
+            LmmiLog.Debug(message);
+        }
+
         public bool HasAccessToSettlement(Settlement settlement)
         {
-            if (settlement == null) return true;
+            if (settlement == null) { AccessLog("HasAccessToSettlement: settlement null → true"); return true; }
 
             var playerClan = Clan.PlayerClan;
-            if (playerClan == null) return true;
+            if (playerClan == null) { AccessLog("HasAccessToSettlement: playerClan null → true"); return true; }
 
             if (settlement.OwnerClan == playerClan)
+            {
+                AccessLog($"HasAccessToSettlement: player owns {settlement.Name} → true");
                 return true;
+            }
 
             int fullTier = LmmiSettingsProvider.FullAccessClanTier;
             if (playerClan.Tier >= fullTier)
+            {
+                AccessLog($"HasAccessToSettlement: clan tier {playerClan.Tier} >= fullTier {fullTier} → true");
                 return true;
+            }
 
             int kingdomTier = LmmiSettingsProvider.KingdomAccessClanTier;
             if (settlement.OwnerClan?.Kingdom != null &&
                 playerClan.Kingdom != null &&
                 settlement.OwnerClan.Kingdom == playerClan.Kingdom &&
                 playerClan.Tier >= kingdomTier)
+            {
+                AccessLog($"HasAccessToSettlement: same kingdom, tier {playerClan.Tier} >= {kingdomTier} → true");
                 return true;
+            }
 
             var settlementId = settlement.Id.ToString();
-            if (settlementsWithAccess == null) return false;
-            return settlementsWithAccess.ContainsKey(settlementId) && settlementsWithAccess[settlementId];
+            if (settlementsWithAccess == null) { AccessLog($"HasAccessToSettlement: {settlement.Name} no access data → false"); return false; }
+            bool result = settlementsWithAccess.ContainsKey(settlementId) && settlementsWithAccess[settlementId];
+            AccessLog($"HasAccessToSettlement: {settlement.Name} lookup → {result}");
+            return result;
         }
 
         public bool HasFeatureAccess(Settlement settlement, string feature)
@@ -599,7 +712,8 @@ namespace LessMenusMoreImmersion.Behaviors
             TooBusy,
             Foreigner,
             Glad,
-            Greedy
+            Greedy,
+            Unfamiliar   // a hero who doesn't know this place any better than you (e.g. a companion)
         }
 
         private static string PickOne(params string[] options)
@@ -610,7 +724,28 @@ namespace LessMenusMoreImmersion.Behaviors
             return options[MBRandom.RandomInt(options.Length)];
         }
 
-        private static string GetForeignerInsultText()
+        private static string L(string id, string fallback)
+        {
+            // Include fallback text to keep English defaults even if XML is missing.
+            // Translators can override via _Module/ModuleData/Languages/*.xml.
+            return new TextObject("{=" + id + "}" + fallback).ToString();
+        }
+
+        private static string L(string id, string fallback, string var1Name, TextObject var1Value)
+        {
+            var t = new TextObject("{=" + id + "}" + fallback);
+            t.SetTextVariable(var1Name, var1Value);
+            return t.ToString();
+        }
+
+        private static string L(string id, string fallback, string var1Name, string var1Value)
+        {
+            var t = new TextObject("{=" + id + "}" + fallback);
+            t.SetTextVariable(var1Name, var1Value);
+            return t.ToString();
+        }
+
+        internal static string GetForeignerInsultText()
         {
             string cultureId = Hero.MainHero?.Culture?.StringId ?? string.Empty;
             cultureId = cultureId?.ToLowerInvariant() ?? string.Empty;
@@ -633,64 +768,88 @@ namespace LessMenusMoreImmersion.Behaviors
             if (cultureId == "empire")
             {
                 return PickOne(
-                    "Ugh, imperials... haven't you polluted enough of the world? Get lost.",
-                    "Another imperial thinking they own the place. We bow to no emperor here.",
-                    "Take your imperial arrogance elsewhere. You're not wanted."
+                    L("lmmi_dirs_foreigner_empire_1", "Ugh, imperials... haven't you polluted enough of the world? Get lost."),
+                    L("lmmi_dirs_foreigner_empire_2", "Another imperial thinking they own the place. We bow to no emperor here."),
+                    L("lmmi_dirs_foreigner_empire_3", "Take your imperial arrogance elsewhere. You're not wanted."),
+                    L("lmmi_dirs_foreigner_empire_4", "Another imperial come to tell us how things were done in the old days? Spare me."),
+                    L("lmmi_dirs_foreigner_empire_5", "The Empire is dead, and you're what's left of it. Keep walking."),
+                    L("lmmi_dirs_foreigner_empire_6", "Keep your purple airs to yourself, imperial.")
                 );
             }
             if (cultureId == "aserai")
             {
                 return PickOne(
-                    "Crawl back to whatever sandhole you came out of, dog.",
-                    "We don't serve desert rats here. Go peddle your wares elsewhere.",
-                    "The stink of the Nahasa follows you, stranger. Move along."
+                    L("lmmi_dirs_foreigner_aserai_1", "Crawl back to whatever sandhole you came out of, dog."),
+                    L("lmmi_dirs_foreigner_aserai_2", "We don't serve desert rats here. Go peddle your wares elsewhere."),
+                    L("lmmi_dirs_foreigner_aserai_3", "The stink of the Nahasa follows you, stranger. Move along."),
+                    L("lmmi_dirs_foreigner_aserai_4", "The desert sent us another one. Keep walking."),
+                    L("lmmi_dirs_foreigner_aserai_5", "Go sell your spices to someone who cares, Aserai."),
+                    L("lmmi_dirs_foreigner_aserai_6", "Your kind haggles over everything. Not here, and not with me.")
                 );
             }
             if (cultureId == "khuzait")
             {
                 return PickOne(
-                    "We have no love for horse fondlers here, stranger. Go back to your decrepit steppe.",
-                    "A Khuzait? In our town? Go back to your yurt, nomad.",
-                    "I can smell the horse dung from here. Off with you."
+                    L("lmmi_dirs_foreigner_khuzait_1", "We have no love for horse fondlers here, stranger. Go back to your decrepit steppe."),
+                    L("lmmi_dirs_foreigner_khuzait_2", "A Khuzait? In our town? Go back to your yurt, nomad."),
+                    L("lmmi_dirs_foreigner_khuzait_3", "I can smell the horse dung from here. Off with you."),
+                    L("lmmi_dirs_foreigner_khuzait_4", "Another steppe rider. Where's your horse? Or did you eat it?"),
+                    L("lmmi_dirs_foreigner_khuzait_5", "Khuzaits burn our villages, and then they come asking for favors. Leave."),
+                    L("lmmi_dirs_foreigner_khuzait_6", "You smell of mare's milk and smoke. Off with you.")
                 );
             }
             if (cultureId == "nord")
             {
                 return PickOne(
-                    "How about I call the guards and have you thrown out? Go back to the sea, you are not welcome here.",
-                    "Another sea raider crawled ashore, did they? Get lost.",
-                    "Take your longboat and shove off, Nord. We've nothing for you."
+                    L("lmmi_dirs_foreigner_nord_1", "How about I call the guards and have you thrown out? Go back to the sea, you are not welcome here."),
+                    L("lmmi_dirs_foreigner_nord_2", "Another sea raider crawled ashore, did they? Get lost."),
+                    L("lmmi_dirs_foreigner_nord_3", "Take your longboat and shove off, Nord. We've nothing for you."),
+                    L("lmmi_dirs_foreigner_nord_4", "A Nord. Did the sea spit you out, or did you swim?"),
+                    L("lmmi_dirs_foreigner_nord_5", "We know what Nords do to coastal towns. Keep your axe where I can see it."),
+                    L("lmmi_dirs_foreigner_nord_6", "Go back to your cold fjords and your colder gods.")
                 );
             }
             if (cultureId == "battania")
             {
                 return PickOne(
-                    "Sure... wait, what is that accent... We do not tolerate filthy barbarians here. Leave, while you can.",
-                    "A forest dweller? In civilized lands? Go hug a tree somewhere else.",
-                    "I don't deal with painted savages. Away with you."
+                    L("lmmi_dirs_foreigner_battania_1", "Sure... wait, what is that accent... We do not tolerate filthy barbarians here. Leave, while you can."),
+                    L("lmmi_dirs_foreigner_battania_2", "A forest dweller? In civilized lands? Go hug a tree somewhere else."),
+                    L("lmmi_dirs_foreigner_battania_3", "I don't deal with painted savages. Away with you."),
+                    L("lmmi_dirs_foreigner_battania_4", "Battanian. Go back to your woods and your standing stones."),
+                    L("lmmi_dirs_foreigner_battania_5", "Painted face, empty head. Move along."),
+                    L("lmmi_dirs_foreigner_battania_6", "Your people stole cattle from my grandfather. I haven't forgotten.")
                 );
             }
             if (cultureId == "sturgia")
             {
                 return PickOne(
-                    $"Hahaha, what? Your wits really have frozen, stranger. Crawl back to {sturgiaRuler}'s lap.",
-                    "You Sturgians are all the same — half-drunk and lost. Find your own way.",
-                    "Go back to your frozen wasteland, snowman. We don't help your kind."
+                    L("lmmi_dirs_foreigner_sturgia_1", "Hahaha, what? Your wits really have frozen, stranger. Crawl back to {STURGIA_RULER}'s lap.", "STURGIA_RULER", sturgiaRuler),
+                    L("lmmi_dirs_foreigner_sturgia_2", "You Sturgians are all the same — half-drunk and lost. Find your own way."),
+                    L("lmmi_dirs_foreigner_sturgia_3", "Go back to your frozen wasteland, snowman. We don't help your kind."),
+                    L("lmmi_dirs_foreigner_sturgia_4", "Sturgian. Drunk already, or just born that way?"),
+                    L("lmmi_dirs_foreigner_sturgia_5", "Go back to your snow and your mead-halls."),
+                    L("lmmi_dirs_foreigner_sturgia_6", "Your princes couldn't hold their own borders. Why should I help you?")
                 );
             }
             if (cultureId == "vlandia")
             {
                 return PickOne(
-                    "Ahh, a passionate Vlandian... I'll be sure to give my regards to the next goat I see. Now leave before I call the guards.",
-                    "A Vlandian, eh? Don't you have some peasants to tax or a field to plow? Off with you.",
-                    "I've had enough of Vlandian 'knights' stumbling through our streets. Find your own way."
+                    L("lmmi_dirs_foreigner_vlandia_1", "Ahh, a passionate Vlandian... I'll be sure to give my regards to the next goat I see. Now leave before I call the guards."),
+                    L("lmmi_dirs_foreigner_vlandia_2", "A Vlandian, eh? Don't you have some peasants to tax or a field to plow? Off with you."),
+                    L("lmmi_dirs_foreigner_vlandia_3", "I've had enough of Vlandian 'knights' stumbling through our streets. Find your own way."),
+                    L("lmmi_dirs_foreigner_vlandia_4", "A Vlandian. Everyone, hands on your purses."),
+                    L("lmmi_dirs_foreigner_vlandia_5", "Go pay homage to your lord somewhere else, Vlandian."),
+                    L("lmmi_dirs_foreigner_vlandia_6", "Your knights trample our fields and then expect courtesy. No.")
                 );
             }
 
             return PickOne(
-                "I don't help outsiders around here. Move along.",
-                "You're not from around here. Figure it out yourself.",
-                "We don't take kindly to strangers. Best be on your way."
+                L("lmmi_dirs_foreigner_generic_1", "I don't help outsiders around here. Move along."),
+                L("lmmi_dirs_foreigner_generic_2", "You're not from around here. Figure it out yourself."),
+                L("lmmi_dirs_foreigner_generic_3", "We don't take kindly to strangers. Best be on your way."),
+                    L("lmmi_dirs_foreigner_generic_4", "I don't know where you're from, and I don't care to. Move along."),
+                    L("lmmi_dirs_foreigner_generic_5", "Your kind always brings trouble. Not today."),
+                    L("lmmi_dirs_foreigner_generic_6", "Strangers. Always wanting something. Go away.")
             );
         }
 
@@ -702,14 +861,22 @@ namespace LessMenusMoreImmersion.Behaviors
         [NonSerialized] private Dictionary<int, CitizenWillingness> _agentRefusalTypeMap = new Dictionary<int, CitizenWillingness>();
         [NonSerialized] private Dictionary<int, string> _agentRefusalTextMap = new Dictionary<int, string>();
         [NonSerialized] private Settlement? _lastWillingnessSettlement;
+        [NonSerialized] private Mission? _lastWillingnessMission;
+        // A notable doesn't walk you anywhere: they send a passerby (notables are pinned to their spot and freeze).
+        [NonSerialized] private Agent? _escortRunner;
+        // Watchdog: an escort that hasn't moved after a few seconds is stuck and gets called off.
+        [NonSerialized] private Agent? _watchAgent;
+        [NonSerialized] private Vec3 _watchStartPos;
+        [NonSerialized] private float _watchTime = -1f;
 
         private void EnsureWillingnessCacheForSettlement(Settlement? settlement)
         {
             if (settlement == null) return;
 
-            // Reset cache if we entered a new settlement
-            if (_lastWillingnessSettlement != settlement)
+            // Reset the cache for a new settlement or a new scene: agent indices are reused in every scene.
+            if (_lastWillingnessSettlement != settlement || _lastWillingnessMission != Mission.Current)
             {
+                _lastWillingnessMission = Mission.Current;
                 _agentWillingnessMap.Clear();
                 _agentBribeMap.Clear();
                 _agentRefusalTypeMap.Clear();
@@ -734,6 +901,7 @@ namespace LessMenusMoreImmersion.Behaviors
 
             var agent = ConversationMission.OneToOneConversationAgent;
             if (agent == null) return false;
+            if (StreetEventsBehavior.IsGrateful(agent)) { _agentRefusalTextMap.Remove(agent.Index); return false; }
 
             if (!_agentRefusalTextMap.TryGetValue(agent.Index, out var storedText))
                 return false;
@@ -768,6 +936,15 @@ namespace LessMenusMoreImmersion.Behaviors
             EnsureWillingnessCacheForSettlement(settlement);
 
             int agentId = agent.Index;
+
+            // Someone you stood up for (or won over) this visit has no quarrel with your people any more.
+            if (StreetEventsBehavior.IsGrateful(agent))
+            {
+                _currentWillingness = CitizenWillingness.Glad;
+                _agentWillingnessMap[agentId] = _currentWillingness;
+                _agentRefusalTextMap.Remove(agentId);
+                return;
+            }
 
             // Did we already roll for this NPC?
             if (_agentWillingnessMap.TryGetValue(agentId, out var existingWillingness))
@@ -807,6 +984,22 @@ namespace LessMenusMoreImmersion.Behaviors
                 foreignerWeight = 0;
             }
 
+            // Word gets around: common folk warm to someone who's done right by their town, and cool on one who hasn't.
+            float standing = TownStandingBehavior.Get(settlement);
+            if (standing >= 10f)
+            {
+                gladWeight += busyWeight / 2 + foreignerWeight / 2;
+                busyWeight /= 2;
+                foreignerWeight /= 2;
+            }
+            else if (standing <= -10f)
+            {
+                int shift = gladWeight / 3;
+                gladWeight -= shift;
+                if (partner.Culture == player.Culture) busyWeight += shift;
+                else foreignerWeight += shift;
+            }
+
             int total = busyWeight + foreignerWeight + gladWeight + greedyWeight;
             int roll = MBRandom.RandomInt(total);
 
@@ -816,17 +1009,22 @@ namespace LessMenusMoreImmersion.Behaviors
             else _currentWillingness = CitizenWillingness.Greedy;
 
             if (_currentWillingness == CitizenWillingness.Greedy)
-            {
-                _bribeAmount = (int)(player.Gold * 0.01f) + (10 * player.Clan.Tier) + 10;
-                _bribeAmount = Math.Min(_bribeAmount, 500); // Cap at 500
-                if (partner.Culture == player.Culture)
-                    _bribeAmount /= 2; // Same culture discount
-                
-                MBTextManager.SetTextVariable("BRIBE_AMOUNT", _bribeAmount);
-                _agentBribeMap[agentId] = _bribeAmount;
-            }
+                RollBribe(agentId, sameCulture: partner.Culture == player.Culture);
 
             _agentWillingnessMap[agentId] = _currentWillingness;
+        }
+
+        private void RollBribe(int agentId, bool sameCulture, float greed = 1f)
+        {
+            var player = Hero.MainHero;
+            _bribeAmount = (int)(player.Gold * 0.01f) + (10 * player.Clan.Tier) + 10;
+            _bribeAmount = Math.Min(_bribeAmount, 500); // Cap at 500
+            if (sameCulture)
+                _bribeAmount /= 2; // Same culture discount
+            _bribeAmount = (int)Math.Round(_bribeAmount * greed);
+
+            MBTextManager.SetTextVariable("BRIBE_AMOUNT", _bribeAmount);
+            _agentBribeMap[agentId] = _bribeAmount;
         }
 
         private void CalculateWillingnessForNotable()
@@ -849,16 +1047,68 @@ namespace LessMenusMoreImmersion.Behaviors
 
             int agentId = agent.Index;
 
-            // If we already have a cached state (e.g. AlreadyHelped), respect it.
-            if (_agentWillingnessMap.TryGetValue(agentId, out var existingWillingness))
+            // A notable who already walked you somewhere won't do it twice this visit. Everything else is
+            // judged afresh — a vouch or a letter delivered minutes ago should count.
+            if (_agentWillingnessMap.TryGetValue(agentId, out var existingWillingness) && existingWillingness == CitizenWillingness.AlreadyHelped)
             {
                 _currentWillingness = existingWillingness;
                 return;
             }
 
-            // Notables are always helpful the first time.
-            _currentWillingness = CitizenWillingness.Glad;
+            var notable = Hero.OneToOneConversationHero;
+
+            // Only someone who plausibly knows this place can show you around it. Your companions
+            // don't know every town you drag them into.
+            if (notable != null && !KnowsSettlement(notable, settlement))
+            {
+                _currentWillingness = CitizenWillingness.Unfamiliar;
+                _agentWillingnessMap[agentId] = _currentWillingness;
+                LmmiLog.Info($"Directions from {notable.Name}: doesn't know {settlement.Name} (not from here).");
+                return;
+            }
+
+            // Notables judge a stranger the same way they judge a favor: standing, culture, and
+            // what you've done for them. Contempt refuses, Wary wants coin, anyone warmer helps.
+            // Other heroes who know the place (a companion from here, the town's lord) just help.
+            if (notable == null || !notable.IsNotable || !LmmiSettingsProvider.EnableNotableDisposition)
+            {
+                _currentWillingness = CitizenWillingness.Glad;
+                if (notable != null && !notable.IsNotable)
+                    LmmiLog.Info($"Directions from {notable.Name}: knows {settlement.Name} (home, birthplace, governor or fief) -> Glad");
+            }
+            else
+            {
+                bool foreigner = NotableDisposition.IsForeigner(notable);
+                switch (NotableVoice.ForConversation(notable).Level)
+                {
+                    case Disposition.Contempt:
+                        _currentWillingness = foreigner ? CitizenWillingness.Foreigner : CitizenWillingness.TooBusy;
+                        // Same voice as the greeting: no second culture insult if they already gave you one.
+                        _agentRefusalTypeMap[agentId] = _currentWillingness;
+                        _agentRefusalTextMap[agentId] = NotableVoice.Dismissal(notable);
+                        break;
+                    case Disposition.Wary:
+                        _currentWillingness = CitizenWillingness.Greedy;
+                        RollBribe(agentId, sameCulture: !foreigner, greed: NotableDisposition.Greed(notable));
+                        break;
+                    default:
+                        _currentWillingness = CitizenWillingness.Glad;
+                        break;
+                }
+                LmmiLog.Info($"Directions from notable {notable.Name}: {NotableVoice.ForConversation(notable).Level} -> {_currentWillingness}" +
+                             (_currentWillingness == CitizenWillingness.Greedy ? $" (bribe {_bribeAmount})" : ""));
+            }
+
             _agentWillingnessMap[agentId] = _currentWillingness;
+        }
+
+        /// <summary>Notables know their own settlement; anyone else only if it's home, birthplace, governed or their clan's fief.</summary>
+        private static bool KnowsSettlement(Hero hero, Settlement settlement)
+        {
+            if (hero.IsNotable) return hero.CurrentSettlement == settlement;
+            if (hero.HomeSettlement == settlement || hero.BornSettlement == settlement) return true;
+            if (settlement.Town != null && hero.GovernorOf == settlement.Town) return true;
+            return hero.IsLord && hero.Clan != null && settlement.OwnerClan == hero.Clan;
         }
 
         private bool IsInTownCenter()
@@ -936,13 +1186,13 @@ namespace LessMenusMoreImmersion.Behaviors
 
             // Set destination display name for the dialog text
             string feature = _escortBehavior.TargetFeature ?? string.Empty;
-            string destName = SettlementMenuOptions.GetFeatureDisplayName(feature);
+            var destNameText = SettlementMenuOptions.GetFeatureDisplayNameText(feature);
             MBTextManager.SetTextVariable("ESCORT_ARRIVAL_TEXT", PickOne(
-                $"Here we are! This is the {destName}.",
-                $"We've arrived. The {destName}, as promised.",
-                $"There you go — the {destName}. You can't miss it."
+                L("lmmi_escort_arrival_1", "Here we are! This is the {DESTINATION}.", "DESTINATION", destNameText),
+                L("lmmi_escort_arrival_2", "We've arrived. The {DESTINATION}, as promised.", "DESTINATION", destNameText),
+                L("lmmi_escort_arrival_3", "There you go — the {DESTINATION}. You can't miss it.", "DESTINATION", destNameText)
             ));
-            MBTextManager.SetTextVariable("ESCORT_DESTINATION", destName);
+            MBTextManager.SetTextVariable("ESCORT_DESTINATION", destNameText);
             return true;
         }
 
@@ -961,17 +1211,41 @@ namespace LessMenusMoreImmersion.Behaviors
             string text;
 
             if (feature == SettlementMenuOptions.Features.Backstreet)
-                text = PickOne("The tavern is just around the corner...", "Nearly at the tavern now...", "This way — the tavern won't be far.");
+                text = PickOne(
+                    L("lmmi_escort_enroute_backstreet_1", "The tavern is just around the corner..."),
+                    L("lmmi_escort_enroute_backstreet_2", "Nearly at the tavern now..."),
+                    L("lmmi_escort_enroute_backstreet_3", "This way — the tavern won't be far.")
+                );
             else if (feature == SettlementMenuOptions.Features.Trade)
-                text = PickOne("The marketplace is just ahead...", "We're almost at the marketplace...", "Keep your eyes open — the market is nearby.");
+                text = PickOne(
+                    L("lmmi_escort_enroute_trade_1", "The marketplace is just ahead..."),
+                    L("lmmi_escort_enroute_trade_2", "We're almost at the marketplace..."),
+                    L("lmmi_escort_enroute_trade_3", "Keep your eyes open — the market is nearby.")
+                );
             else if (feature == SettlementMenuOptions.Features.Arena)
-                text = PickOne("The arena is close by, I can hear the crowds...", "Nearly at the arena...", "Hear that roar? That's the arena — we're close.");
+                text = PickOne(
+                    L("lmmi_escort_enroute_arena_1", "The arena is close by, I can hear the crowds..."),
+                    L("lmmi_escort_enroute_arena_2", "Nearly at the arena..."),
+                    L("lmmi_escort_enroute_arena_3", "Hear that roar? That's the arena — we're close.")
+                );
             else if (feature == SettlementMenuOptions.Features.Smithy)
-                text = PickOne("The smithy is nearby, can you smell the forge?", "Almost at the smithy...", "The hammering should guide us — the smithy is close.");
+                text = PickOne(
+                    L("lmmi_escort_enroute_smithy_1", "The smithy is nearby, can you smell the forge?"),
+                    L("lmmi_escort_enroute_smithy_2", "Almost at the smithy..."),
+                    L("lmmi_escort_enroute_smithy_3", "The hammering should guide us — the smithy is close.")
+                );
             else if (feature == SettlementMenuOptions.Features.Keep)
-                text = PickOne("The lord's hall is just ahead...", "We're nearly at the lord's hall...", "Stay sharp. The keep is close.");
+                text = PickOne(
+                    L("lmmi_escort_enroute_keep_1", "The lord's hall is just ahead..."),
+                    L("lmmi_escort_enroute_keep_2", "We're nearly at the lord's hall..."),
+                    L("lmmi_escort_enroute_keep_3", "Stay sharp. The keep is close.")
+                );
             else
-                text = PickOne("It's just over there...", "Not much further...", "We're close now...");
+                text = PickOne(
+                    L("lmmi_escort_enroute_generic_1", "It's just over there..."),
+                    L("lmmi_escort_enroute_generic_2", "Not much further..."),
+                    L("lmmi_escort_enroute_generic_3", "We're close now...")
+                );
 
             MBTextManager.SetTextVariable("ESCORT_ENROUTE_TEXT", text);
             return true;
@@ -1117,9 +1391,9 @@ namespace LessMenusMoreImmersion.Behaviors
                         if (!_agentRefusalTextMap.TryGetValue(agent.Index, out var storedText) || string.IsNullOrEmpty(storedText))
                         {
                             storedText = PickOne(
-                                "Can't you see I'm busy? Find someone else.",
-                                "I have things to do. Bother someone else.",
-                                "Not now. I have somewhere to be."
+                                L("lmmi_dirs_busy_1", "Can't you see I'm busy? Find someone else."),
+                                L("lmmi_dirs_busy_2", "I have things to do. Bother someone else."),
+                                L("lmmi_dirs_busy_3", "Not now. I have somewhere to be.")
                             );
                             _agentRefusalTypeMap[agent.Index] = CitizenWillingness.TooBusy;
                             _agentRefusalTextMap[agent.Index] = storedText;
@@ -1128,7 +1402,7 @@ namespace LessMenusMoreImmersion.Behaviors
                     }
                     else
                     {
-                        MBTextManager.SetTextVariable("LMMI_DIRS_BUSY_TEXT", "Can't you see I'm busy? Find someone else.");
+                        MBTextManager.SetTextVariable("LMMI_DIRS_BUSY_TEXT", L("lmmi_dirs_busy_1", "Can't you see I'm busy? Find someone else."));
                     }
                     return true;
                 }, null);
@@ -1148,9 +1422,9 @@ namespace LessMenusMoreImmersion.Behaviors
                         if (!_agentRefusalTextMap.TryGetValue(agent.Index, out var storedText) || string.IsNullOrEmpty(storedText))
                         {
                             storedText = PickOne(
-                                "I've already shown you around. Ask someone else.",
-                                "I helped you once already. I have my own business to attend to.",
-                                "Find another guide, friend. I've done my part."
+                                L("lmmi_dirs_already_helped_1", "I've already shown you around. Ask someone else."),
+                                L("lmmi_dirs_already_helped_2", "I helped you once already. I have my own business to attend to."),
+                                L("lmmi_dirs_already_helped_3", "Find another guide, friend. I've done my part.")
                             );
                             _agentRefusalTypeMap[agent.Index] = CitizenWillingness.AlreadyHelped;
                             _agentRefusalTextMap[agent.Index] = storedText;
@@ -1159,7 +1433,7 @@ namespace LessMenusMoreImmersion.Behaviors
                     }
                     else
                     {
-                        MBTextManager.SetTextVariable("LMMI_DIRS_ALREADY_HELPED_TEXT", "I've already shown you around. Ask someone else.");
+                        MBTextManager.SetTextVariable("LMMI_DIRS_ALREADY_HELPED_TEXT", L("lmmi_dirs_already_helped_1", "I've already shown you around. Ask someone else."));
                     }
                     return true;
                 }, null);
@@ -1191,15 +1465,28 @@ namespace LessMenusMoreImmersion.Behaviors
                     return true;
                 }, null);
 
+            // OUTCOME 2.5: Doesn't know the place (companions, visiting lords)
+            starter.AddDialogLine("lmmi_dirs_unfamiliar_resp", "lmmi_dirs_willingness_check", "hero_main_options",
+                "{=lmmi_dirs_unfamiliar}{LMMI_DIRS_UNFAMILIAR_TEXT}",
+                () => {
+                    if (_currentWillingness != CitizenWillingness.Unfamiliar) return false;
+                    MBTextManager.SetTextVariable("LMMI_DIRS_UNFAMILIAR_TEXT", PickOne(
+                        L("lmmi_dirs_unfamiliar_1", "Me? I've never set foot here before either. Ask a local."),
+                        L("lmmi_dirs_unfamiliar_2", "I know this town about as well as you do. Which is to say, not at all."),
+                        L("lmmi_dirs_unfamiliar_3", "Don't look at me. I'm as lost as you are.")
+                    ));
+                    return true;
+                }, null);
+
             // OUTCOME 3: Glad
             starter.AddDialogLine("lmmi_dirs_glad_resp", "lmmi_dirs_willingness_check", "lmmi_dirs_choices",
                 "{=lmmi_glad}{LMMI_DIRS_GLAD_TEXT}",
                 () => {
                     if (_currentWillingness != CitizenWillingness.Glad) return false;
                     MBTextManager.SetTextVariable("LMMI_DIRS_GLAD_TEXT", PickOne(
-                        "Of course! Where would you like to go?",
-                        "Happy to help! What are you looking for?",
-                        "Sure thing! Where do you need to get to?"
+                        L("lmmi_dirs_glad_1", "Of course! Where would you like to go?"),
+                        L("lmmi_dirs_glad_2", "Happy to help! What are you looking for?"),
+                        L("lmmi_dirs_glad_3", "Sure thing! Where do you need to get to?")
                     ));
                     return true;
                 }, null);
@@ -1210,9 +1497,9 @@ namespace LessMenusMoreImmersion.Behaviors
                 () => {
                     if (_currentWillingness != CitizenWillingness.Greedy) return false;
                     MBTextManager.SetTextVariable("LMMI_DIRS_GREEDY_TEXT", PickOne(
-                        "I know this town well... every back alley and shortcut. For {BRIBE_AMOUNT}{GOLD_ICON}, I'll take you wherever you need to go.",
-                        "Directions? Nothing's free here. {BRIBE_AMOUNT}{GOLD_ICON} and I'll show you personally.",
-                        "You look lost, friend. For {BRIBE_AMOUNT}{GOLD_ICON}, I could help... for a small fee."
+                        L("lmmi_dirs_greedy_1", "I know this town well... every back alley and shortcut. For {BRIBE_AMOUNT}{GOLD_ICON}, I'll take you wherever you need to go."),
+                        L("lmmi_dirs_greedy_2", "Directions? Nothing's free here. {BRIBE_AMOUNT}{GOLD_ICON} and I'll show you personally."),
+                        L("lmmi_dirs_greedy_3", "You look lost, friend. For {BRIBE_AMOUNT}{GOLD_ICON}, I could help... for a small fee.")
                     ));
                     return true;
                 }, null);
@@ -1232,9 +1519,9 @@ namespace LessMenusMoreImmersion.Behaviors
                 "{=lmmi_greedy_paid_resp}{LMMI_DIRS_GREEDY_PAID_TEXT}",
                 () => {
                     MBTextManager.SetTextVariable("LMMI_DIRS_GREEDY_PAID_TEXT", PickOne(
-                        "Excellent. Where to?",
-                        "A pleasure doing business. Now, where are we headed?",
-                        "Coin well spent. Where do you need to go?"
+                        L("lmmi_dirs_greedy_paid_1", "Excellent. Where to?"),
+                        L("lmmi_dirs_greedy_paid_2", "A pleasure doing business. Now, where are we headed?"),
+                        L("lmmi_dirs_greedy_paid_3", "Coin well spent. Where do you need to go?")
                     ));
                     return true;
                 }, null);
@@ -1295,15 +1582,45 @@ namespace LessMenusMoreImmersion.Behaviors
                         if (isClosed) return false;
                     }
 
+                    _escortRunner = null;
+                    var notableGuide = Hero.OneToOneConversationHero;
+                    if (notableGuide != null && notableGuide.IsNotable)
+                    {
+                        _escortRunner = FindRunner(ConversationMission.OneToOneConversationAgent);
+                        if (_escortRunner == null) return false;   // "lmmi_dirs_no_runner" answers instead
+                        MBTextManager.SetTextVariable("LMMI_DIRS_FOLLOW_TEXT", notableGuide.IsGangLeader
+                            ? L("lmmi_dirs_runner_gang", "You there — show this one to the {LOCATION}. Don't dawdle, and don't get lost.", "LOCATION", SettlementMenuOptions.GetFeatureDisplayNameText(_pendingNavFeature ?? ""))
+                            : L("lmmi_dirs_runner", "You there! Take this one to the {LOCATION}. There's a coin in it for you.", "LOCATION", SettlementMenuOptions.GetFeatureDisplayNameText(_pendingNavFeature ?? "")));
+                        return true;
+                    }
+
                     MBTextManager.SetTextVariable("LMMI_DIRS_FOLLOW_TEXT", PickOne(
-                        "Follow me!",
-                        "This way — stay close.",
-                        "Right, let's go. Keep up."
+                        L("lmmi_dirs_follow_1", "Follow me!"),
+                        L("lmmi_dirs_follow_2", "This way — stay close."),
+                        L("lmmi_dirs_follow_3", "Right, let's go. Keep up.")
                     ));
                     return true;
                 },
                 () => BeginEscort()
             );
+
+            // A notable with nobody around to send.
+            starter.AddDialogLine(
+                "lmmi_dirs_no_runner",
+                "lmmi_dirs_follow",
+                "hero_main_options",
+                "{=lmmi_dirs_no_runner}My people are all busy. Ask around — somebody out there will point you the right way.",
+                () =>
+                {
+                    var notableGuide = Hero.OneToOneConversationHero;
+                    if (notableGuide == null || !notableGuide.IsNotable) return false;
+                    if (CampaignTime.Now.IsNightTime && (_pendingNavFeature == SettlementMenuOptions.Features.Trade
+                        || _pendingNavFeature == SettlementMenuOptions.Features.Smithy
+                        || _pendingNavFeature == SettlementMenuOptions.Features.Arena
+                        || _pendingNavFeature == SettlementMenuOptions.Features.Barber)) return false;   // the "closed" line answers
+                    return FindRunner(ConversationMission.OneToOneConversationAgent) == null;
+                },
+                null, 105);
             
             // Nighttime refusal dialog (for closed locations)
             starter.AddDialogLine(
@@ -1320,9 +1637,9 @@ namespace LessMenusMoreImmersion.Behaviors
                     if (!isClosed) return false;
 
                     MBTextManager.SetTextVariable("LMMI_DIRS_CLOSED_TEXT", PickOne(
-                        "It's empty there right now. Come back during the day.",
-                        "Nothing to see there at night. Try again in daylight.",
-                        "They'll be closed at this hour. Come back tomorrow."
+                        L("lmmi_dirs_closed_1", "It's empty there right now. Come back during the day."),
+                        L("lmmi_dirs_closed_2", "Nothing to see there at night. Try again in daylight."),
+                        L("lmmi_dirs_closed_3", "They'll be closed at this hour. Come back tomorrow.")
                     ));
                     return true;
                 },
@@ -1354,13 +1671,30 @@ namespace LessMenusMoreImmersion.Behaviors
             var settlement = Settlement.CurrentSettlement;
             if (settlement == null) return;
 
-            // Capture agent NOW while conversation is still open
-            var npcAgent = ConversationMission.OneToOneConversationAgent;
+            // Capture agent NOW while conversation is still open. A notable sends a runner instead of walking.
+            var talker = ConversationMission.OneToOneConversationAgent;
+            var npcAgent = _escortRunner != null && _escortRunner.IsActive() ? _escortRunner : talker;
+            if (talker != null && npcAgent != talker)
+            {
+                _agentWillingnessMap[talker.Index] = CitizenWillingness.AlreadyHelped;
+                LmmiLog.Info($"BeginEscort: {Hero.OneToOneConversationHero?.Name} sends {npcAgent.Name} (id={npcAgent.Index}) to walk you.");
+            }
+            _escortRunner = null;
             LmmiLog.Info($"BeginEscort: Starting escort to '{locationId}' for '{feature}'. NPC={(npcAgent != null ? npcAgent.Name + " id=" + npcAgent.Index : "NULL")}");
 
             if (npcAgent == null)
             {
                 LmmiLog.Warning("BeginEscort: OneToOneConversationAgent is null — cannot escort.");
+                return;
+            }
+
+            // Scene mods (e.g. Alive Scenes) can spawn agents that cannot be controlled by vanilla EscortAgentBehavior.
+            // In that case, don't consume the interaction / don't mark them as "already helped".
+            if (!EscortBehavior.IsAgentEscortCapable(npcAgent))
+            {
+                LmmiLog.Warning($"BeginEscort: Agent '{npcAgent.Name}' (id={npcAgent.Index}) is not escort-capable. Aborting escort.");
+                InformationManager.DisplayMessage(new InformationMessage(
+                    new TextObject("{=lmmi_escort_unavailable}Sorry, I can't guide you there. Ask someone else.").ToString()));
                 return;
             }
 
@@ -1370,9 +1704,11 @@ namespace LessMenusMoreImmersion.Behaviors
             _pendingNpcAgent = npcAgent;
             _pendingSettlement = settlement;
 
-            InformationManager.DisplayMessage(new InformationMessage(
-                new TextObject("{=lmmi_escort_start}Follow me to the {LOCATION}!")
-                    .SetTextVariable("LOCATION", feature).ToString()));
+            InformationManager.DisplayMessage(new InformationMessage(npcAgent != talker
+                ? new TextObject("{=lmmi_escort_runner_start}A local will take you to the {LOCATION}. Follow them.")
+                    .SetTextVariable("LOCATION", SettlementMenuOptions.GetFeatureDisplayNameText(feature)).ToString()
+                : new TextObject("{=lmmi_escort_start}Follow me to the {LOCATION}!")
+                    .SetTextVariable("LOCATION", SettlementMenuOptions.GetFeatureDisplayNameText(feature)).ToString()));
 
             _performEscortSetupPending = true;
         }
@@ -1400,6 +1736,12 @@ namespace LessMenusMoreImmersion.Behaviors
             if (npcAgent == null || !npcAgent.IsActive())
             {
                 LmmiLog.Warning("PerformEscortSetup: NPC agent null or inactive.");
+                return;
+            }
+
+            if (!EscortBehavior.IsAgentEscortCapable(npcAgent))
+            {
+                LmmiLog.Warning($"PerformEscortSetup: Agent '{npcAgent.Name}' (id={npcAgent.Index}) is not escort-capable. Aborting escort.");
                 return;
             }
             if (settlement == null)
@@ -1478,7 +1820,10 @@ namespace LessMenusMoreImmersion.Behaviors
             }
 
             LmmiLog.Info($"PerformEscortSetup: StartEscort NPC={npcAgent.Name} dest={destinationPos.Value} feat={feature}");
-            _escortBehavior.StartEscort(npcAgent, destinationPos.Value, feature, settlement);
+            if (!_escortBehavior.StartEscort(npcAgent, destinationPos.Value, feature, settlement))
+            {
+                LmmiLog.Warning("PerformEscortSetup: StartEscort returned false.");
+            }
         }
 
         private void OnMissionTick(float dt)
@@ -1488,7 +1833,52 @@ namespace LessMenusMoreImmersion.Behaviors
                 LmmiLog.Info("OnMissionTick: Conversation ended - performing escort setup.");
                 _performEscortSetupPending = false;
                 PerformEscortSetup();
+                _watchAgent = _escortBehavior.IsActive ? _escortBehavior.NpcAgent : null;
+                _watchTime = _watchAgent != null ? 0f : -1f;
+                if (_watchAgent != null) _watchStartPos = _watchAgent.Position;
             }
+
+            WatchForStuckEscort(dt);
+        }
+
+        /// <summary>An escort that hasn't moved after 8 seconds is stuck (pinned agent, blocked path): call it off.</summary>
+        private void WatchForStuckEscort(float dt)
+        {
+            if (_watchTime < 0f || _watchAgent == null) return;
+            if (!_escortBehavior.IsActive || _escortBehavior.NpcAgent != _watchAgent || !_watchAgent.IsActive())
+            {
+                _watchTime = -1f;
+                _watchAgent = null;
+                return;
+            }
+            if (Mission.Current?.Mode == MissionMode.Conversation) return;
+
+            _watchTime += dt;
+            if (_watchTime < 8f) return;
+
+            if (_watchAgent.Position.Distance(_watchStartPos) < 1.5f)
+            {
+                LmmiLog.Warning($"Escort: {_watchAgent.Name} hasn't moved in 8s — stuck, calling it off.");
+                _escortBehavior.Cancel();
+                InformationManager.DisplayMessage(new InformationMessage(
+                    new TextObject("{=lmmi_escort_stuck}Your guide can't seem to find a way through. Better ask someone else.").ToString()));
+            }
+            _watchTime = -1f;
+            _watchAgent = null;
+        }
+
+        /// <summary>A passerby near the notable who can walk you somewhere: ordinary townsfolk, not busy, able to move.</summary>
+        private Agent? FindRunner(Agent? near)
+        {
+            if (Mission.Current == null || near == null) return null;
+            return Mission.Current.Agents
+                .Where(a => a.IsActive() && a.IsHuman && a != Agent.Main && a != near
+                            && a.Character is CharacterObject co && !co.IsHero && co.Occupation == Occupation.Townsfolk
+                            && a.Position.Distance(near.Position) < 30f
+                            && !(_agentWillingnessMap.TryGetValue(a.Index, out var w) && w == CitizenWillingness.AlreadyHelped)
+                            && EscortBehavior.IsAgentEscortCapable(a))
+                .OrderBy(a => a.Position.Distance(near.Position))
+                .FirstOrDefault();
         }
 
         public override void SyncData(IDataStore dataStore)
@@ -1594,42 +1984,9 @@ namespace LessMenusMoreImmersion.Behaviors
             public static class DisableSpecificMenuOptionsPatch
             {
                 [HarmonyPrefix]
-                public static bool Prefix(ref GameMenuOption.OnConditionDelegate condition, string optionId, GameMenu __instance)
+                public static bool Prefix(string optionId, GameMenu __instance)
                 {
-                    if (!SettlementMenuOptions.OptionFeatureMap.TryGetValue(optionId, out var requiredFeature))
-                        return true;
-
-                    var campaign = Campaign.Current;
-                    if (campaign == null)
-                        return true;
-
-                    var behaviorInstance = campaign.GetCampaignBehavior<DisableMenuBehavior>();
-                    if (behaviorInstance == null)
-                        return true;
-
-                    var originalCondition = condition;
-
-                    condition = (MenuCallbackArgs args) =>
-                    {
-                        var currentSettlement = MobileParty.MainParty?.CurrentSettlement ?? Settlement.CurrentSettlement;
-
-                        bool isOriginalConditionMet = originalCondition == null || originalCondition(args);
-
-                        if (currentSettlement == null)
-                            return isOriginalConditionMet;
-
-                        bool hasFeature = behaviorInstance.HasFeatureAccess(currentSettlement, requiredFeature);
-                        bool finalEnabled = isOriginalConditionMet && hasFeature;
-                        args.IsEnabled = finalEnabled;
-
-                        if (!hasFeature)
-                        {
-                            args.Tooltip = new TextObject("{=lmmi_undiscovered}You haven't discovered this part of settlement yet.");
-                        }
-
-                        return args.IsEnabled;
-                    };
-
+                    LmmiLog.Debug($"GameMenu.AddOption: optionId='{optionId}', menu='{__instance?.StringId}'");
                     return true;
                 }
             }

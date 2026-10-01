@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  How strongly the people of one culture resent another. Scales a notable's prejudice towards the player.
+
+  from     : the notable's culture id      to : the player's culture id
+  relation : kin (0.5), neutral (1.0), rival (1.5), or any number (e.g. 2.0 for a blood feud, 0 for no prejudice)
+  mutual   : "true" applies the same relation in both directions; omit it for one-sided resentment
+
+  Unlisted pairs are neutral. Same culture is always 0.
+  Culture ids: empire, sturgia, aserai, vlandia, battania, khuzait, nord (War Sails)
+-->
+<CultureRelations>
+	<!-- Shared northern roots -->
+	<Pair from="sturgia" to="nord" relation="kin" mutual="true" />
+
+	<!-- Vlandians took the Battanian lowlands; Battanians remember it more bitterly than Vlandians do -->
+	<Pair from="battania" to="vlandia" relation="rival" />
+	<Pair from="vlandia" to="battania" relation="1.25" />
+
+	<!-- Steppe raids -->
+	<Pair from="sturgia" to="khuzait" relation="rival" mutual="true" />
+
+	<!-- Old imperial conquest -->
+	<Pair from="battania" to="empire" relation="rival" />
+
+	<!-- Southern border wars -->
+	<Pair from="aserai" to="empire" relation="rival" mutual="true" />
+</CultureRelations>

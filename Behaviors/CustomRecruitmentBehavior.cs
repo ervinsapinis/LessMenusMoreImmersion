@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using LessMenusMoreImmersion.Logging;
+using LessMenusMoreImmersion.Settings;
+using LessMenusMoreImmersion.Contacts;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
@@ -151,6 +153,7 @@ namespace LessMenusMoreImmersion.Behaviors
                 }
 
                 int totalCost = 0;
+                var parts = new List<string>();
 
                 foreach (var notable in settlement.Notables ?? Enumerable.Empty<Hero>())
                 {
@@ -175,15 +178,113 @@ namespace LessMenusMoreImmersion.Behaviors
 
                     // Ensure minimum cost of 50g per notable
                     notableCost = Math.Max(notableCost, 50);
+
+                    // "Some are more expensive to convince than others": scorn and suspicion cost extra.
+                    float factor = DispositionCostFactor(notable);
+                    notableCost = (int)Math.Round(notableCost * factor);
                     totalCost += notableCost;
+                    parts.Add($"{notable.Name} {notableCost} (rel {relation}, x{factor:0.##})");
                 }
 
+                var stamp = settlement.StringId + ":" + (int)CampaignTime.Now.ToHours + ":" + totalCost;
+                if (stamp != _lastCostLog)
+                {
+                    _lastCostLog = stamp;
+                    LmmiLog.Info($"Recruitment arrangement cost in {settlement.Name}: {totalCost} = {string.Join(", ", parts)}");
+                }
                 return totalCost;
             }
             catch (Exception ex)
             {
                 LmmiLog.Error("GetRecruitmentArrangementCost threw", ex);
                 return 500;
+            }
+        }
+
+        private static string? _lastCostLog;
+
+        private static float BulkPriceFactor(Hero? notable)
+        {
+            if (notable == null || !LmmiSettingsProvider.EnableNotableDisposition) return 0.95f;
+            switch (NotableDisposition.Get(notable))
+            {
+                case Disposition.Contempt: return 1.5f;
+                case Disposition.Wary: return 1.25f;
+                case Disposition.Trusted: return 0.85f;
+                default: return 0.95f;
+            }
+        }
+
+        /// <summary>How the notable you're talking to regards you, or null when the system is off.</summary>
+        private static Disposition? CurrentDisposition()
+        {
+            var n = Hero.OneToOneConversationHero;
+            if (n == null || !n.IsNotable || !LmmiSettingsProvider.EnableNotableDisposition) return null;
+            return NotableVoice.ForConversation(n).Level;
+        }
+
+        private static bool IsSameCulture() =>
+            Hero.OneToOneConversationHero?.Culture == Hero.MainHero?.Culture;
+
+        /// <summary>
+        /// Contempt and Wary notables still deal — coin is coin — but grudgingly, and say so.
+        /// Higher priority than the default lines; the same consequences run.
+        /// </summary>
+        private void AddGrudgingRecruitmentLines(CampaignGameStarter starter)
+        {
+            void SetArrangementCost() => MBTextManager.SetTextVariable("RECRUITMENT_COST", GetRecruitmentArrangementCost());
+
+            // Arrangement offer
+            starter.AddDialogLine("lmmi_arrange_offer_contempt", "notable_recruitment_arrangement_response", "notable_recruitment_arrangement_offer",
+                "{=lmmi_arrange_offer_contempt}Organize recruits — for you? ...Coin is coin. But the others will want paying, and more for the likes of you. {RECRUITMENT_COST}{GOLD_ICON}. Take it or leave it.",
+                () => CurrentDisposition() == Disposition.Contempt, SetArrangementCost, 110);
+            starter.AddDialogLine("lmmi_arrange_offer_wary", "notable_recruitment_arrangement_response", "notable_recruitment_arrangement_offer",
+                "{=lmmi_arrange_offer_wary}It can be arranged. It won't be cheap — the others don't know you any better than I do. {RECRUITMENT_COST}{GOLD_ICON}.",
+                () => CurrentDisposition() == Disposition.Wary, SetArrangementCost, 110);
+
+            // Arrangement accepted
+            starter.AddDialogLine("lmmi_arrange_done_contempt", "notable_recruitment_accepted", "close_window",
+                "{=lmmi_arrange_done_contempt}Fine. The volunteers will be there. Don't expect anyone to smile about it.",
+                () => CurrentDisposition() == Disposition.Contempt, null, 110);
+            starter.AddDialogLine("lmmi_arrange_done_wary", "notable_recruitment_accepted", "close_window",
+                "{=lmmi_arrange_done_wary}Done. Don't make me regret it.",
+                () => CurrentDisposition() == Disposition.Wary, null, 110);
+
+            // Bulk offer
+            starter.AddDialogLine("lmmi_recruits_offer_contempt", "notable_recruits_response", "notable_recruits_offer",
+                "{=lmmi_recruits_offer_contempt}{TROOP_LIST}. {TOTAL_COST}{GOLD_ICON}, and not a coin less. I don't haggle with your kind.",
+                () => CurrentDisposition() == Disposition.Contempt,
+                () => HandleBulkRecruitment(Hero.OneToOneConversationHero), 110);
+            starter.AddDialogLine("lmmi_recruits_offer_wary", "notable_recruits_response", "notable_recruits_offer",
+                "{=lmmi_recruits_offer_wary}I've got {TROOP_LIST}. {TOTAL_COST}{GOLD_ICON}. Take it or leave it.",
+                () => CurrentDisposition() == Disposition.Wary,
+                () => HandleBulkRecruitment(Hero.OneToOneConversationHero), 110);
+
+            // Bulk accepted
+            starter.AddDialogLine("lmmi_recruits_done_contempt", "notable_recruits_accepted", "hero_main_options",
+                "{=lmmi_recruits_done_contempt}{LMMI_RECRUITS_SCORN}",
+                () =>
+                {
+                    if (CurrentDisposition() != Disposition.Contempt) return false;
+                    MBTextManager.SetTextVariable("LMMI_RECRUITS_SCORN", new TextObject(IsSameCulture()
+                        ? "{=lmmi_recruits_scorn_kin}Take them. Try not to get them all killed."
+                        : "{=lmmi_recruits_scorn_foreign}Take them and go. Fools, following a foreigner — but that's their business, not mine."));
+                    return true;
+                }, null, 110);
+            starter.AddDialogLine("lmmi_recruits_done_wary", "notable_recruits_accepted", "hero_main_options",
+                "{=lmmi_recruits_done_wary}They're yours. Pay them on time and they'll follow you well enough.",
+                () => CurrentDisposition() == Disposition.Wary, null, 110);
+        }
+
+        private static float DispositionCostFactor(Hero notable)
+        {
+            if (!LmmiSettingsProvider.EnableNotableDisposition) return 1f;
+            switch (NotableDisposition.Get(notable))
+            {
+                case Disposition.Contempt: return 2f;
+                case Disposition.Wary: return 1.5f * NotableDisposition.Greed(notable);
+                case Disposition.Trusted: return 0.75f;
+                default: return 1f;
             }
         }
 
@@ -230,6 +331,8 @@ namespace LessMenusMoreImmersion.Behaviors
         /// </summary>
         protected void AddNotableDirectRecruitmentDialogs(CampaignGameStarter campaignGameStarter)
         {
+            AddGrudgingRecruitmentLines(campaignGameStarter);
+
             // Check if this notable has recruits available
             bool hasRecruitsAvailable() =>
                 CharacterObject.OneToOneConversationCharacter?.HeroObject != null &&
@@ -268,7 +371,7 @@ namespace LessMenusMoreImmersion.Behaviors
                     if (notable != null)
                     {
                         var availableTroops = GetAvailableRecruits(notable);
-                        var totalCost = CalculateBulkRecruitmentCost(availableTroops);
+                        var totalCost = CalculateBulkRecruitmentCost(availableTroops, notable);
                         return Hero.MainHero.Gold >= totalCost;
                     }
                     return false;
@@ -329,7 +432,7 @@ namespace LessMenusMoreImmersion.Behaviors
                     return;
                 }
 
-                var totalCost = CalculateBulkRecruitmentCost(availableTroops);
+                var totalCost = CalculateBulkRecruitmentCost(availableTroops, notable);
                 var troopDescription = GenerateTroopDescription(availableTroops);
 
                 LmmiLog.Debug($"Bulk recruitment offer from '{notable.Name}': {availableTroops.Count} slots, total {totalCost} gold.");
@@ -358,7 +461,7 @@ namespace LessMenusMoreImmersion.Behaviors
                 }
 
                 var availableTroops = GetAvailableRecruits(notable);
-                var totalCost = CalculateBulkRecruitmentCost(availableTroops);
+                var totalCost = CalculateBulkRecruitmentCost(availableTroops, notable);
 
                 if (Hero.MainHero.Gold >= totalCost)
                 {
@@ -405,7 +508,7 @@ namespace LessMenusMoreImmersion.Behaviors
 
                 // Check maximum slot index player can access (vanilla eligibility)
                 int maxIndex = Campaign.Current.Models.VolunteerModel.MaximumIndexHeroCanRecruitFromHero(
-                    Hero.MainHero, notable, -1);
+                    Hero.MainHero, notable, -101);
 
                 // Check each slot up to the max allowed
                 for (int i = 0; i <= maxIndex && i < notable.VolunteerTypes.Length; i++)
@@ -428,7 +531,7 @@ namespace LessMenusMoreImmersion.Behaviors
         /// <summary>
         /// Calculates bulk recruitment cost with smaller discount
         /// </summary>
-        private int CalculateBulkRecruitmentCost(List<(CharacterObject troop, int count, int slotIndex)> troops)
+        private int CalculateBulkRecruitmentCost(List<(CharacterObject troop, int count, int slotIndex)> troops, Hero? notable)
         {
             try
             {
@@ -443,8 +546,8 @@ namespace LessMenusMoreImmersion.Behaviors
                     totalCost += individualCost * count;
                 }
 
-                // Apply smaller 5% discount for bulk recruitment
-                return (int)(totalCost * 0.95f);
+                // Bulk discount for those who like you; a surcharge from those who don't, but they still sell.
+                return (int)(totalCost * BulkPriceFactor(notable));
             }
             catch (Exception ex)
             {

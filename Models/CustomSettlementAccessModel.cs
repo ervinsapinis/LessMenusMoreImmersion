@@ -108,9 +108,18 @@ namespace LessMenusMoreImmersion.Models
             if (behaviorInstance == null)
                 return base.CanMainHeroAccessLocation(settlement, locationId, out disableOption, out disabledText);
 
-            // "center" (take a walk) and "port" (Naval DLC) are always open.
-            if (locationId == "center" || locationId == "port")
+            // "center" (take a walk) is always open — delegate to base.
+            if (locationId == "center")
                 return base.CanMainHeroAccessLocation(settlement, locationId, out disableOption, out disabledText);
+
+            // "port" (Warsails DLC) — return true directly; base game locks ports
+            // and calling base bypasses DLC access models like Warsails.
+            if (locationId == "port")
+            {
+                disableOption = false;
+                disabledText = null;
+                return true;
+            }
 
             // Inside an active mission all doors are physically open — don't add a
             // menu-level tooltip that would contradict what the player can see.

@@ -77,6 +77,1639 @@
 		<string id="lmmi_greedy_refuse" text="I'll find my own way." />
 		<string id="lmmi_keep_going" text="Let's keep going." />
 		<string id="lmmi_repeat_refusal" text="{LMMI_REPEAT_REFUSAL_TEXT}" />
-		<string id="lmmi_undiscovered" text="You haven't discovered this part of settlement yet." />
+		<string id="lmmi_undiscovered" text="You haven't discovered this part of the settlement yet." />
+		<string id="lmmi_escort_unavailable" text="Sorry, I can't guide you there. Ask someone else." />
+
+		<!-- Feature display names (used in discovery + escort arrival) -->
+		<string id="lmmi_feature_keep" text="keep" />
+		<string id="lmmi_feature_arena" text="arena" />
+		<string id="lmmi_feature_backstreet" text="tavern district" />
+		<string id="lmmi_feature_trade" text="marketplace" />
+		<string id="lmmi_feature_smithy" text="smithy" />
+		<string id="lmmi_feature_alley" text="alley" />
+		<string id="lmmi_feature_waterfront" text="waterfront" />
+		<string id="lmmi_feature_clearing" text="clearing" />
+		<string id="lmmi_feature_barber" text="barber" />
+
+		<!-- Directions: willingness outcomes -->
+		<string id="lmmi_dirs_busy_1" text="Can't you see I'm busy? Find someone else." />
+		<string id="lmmi_dirs_busy_2" text="I have things to do. Bother someone else." />
+		<string id="lmmi_dirs_busy_3" text="Not now. I have somewhere to be." />
+		<string id="lmmi_dirs_already_helped_1" text="I've already shown you around. Ask someone else." />
+		<string id="lmmi_dirs_already_helped_2" text="I helped you once already. I have my own business to attend to." />
+		<string id="lmmi_dirs_already_helped_3" text="Find another guide, friend. I've done my part." />
+		<string id="lmmi_dirs_glad_1" text="Of course! Where would you like to go?" />
+		<string id="lmmi_dirs_glad_2" text="Happy to help! What are you looking for?" />
+		<string id="lmmi_dirs_glad_3" text="Sure thing! Where do you need to get to?" />
+		<string id="lmmi_dirs_greedy_1" text="I know this town well... every back alley and shortcut. For {BRIBE_AMOUNT}{GOLD_ICON}, I'll take you wherever you need to go." />
+		<string id="lmmi_dirs_greedy_2" text="Directions? Nothing's free here. {BRIBE_AMOUNT}{GOLD_ICON} and I'll show you personally." />
+		<string id="lmmi_dirs_greedy_3" text="You look lost, friend. For {BRIBE_AMOUNT}{GOLD_ICON}, I could help... for a small fee." />
+		<string id="lmmi_dirs_greedy_paid_1" text="Excellent. Where to?" />
+		<string id="lmmi_dirs_greedy_paid_2" text="A pleasure doing business. Now, where are we headed?" />
+		<string id="lmmi_dirs_greedy_paid_3" text="Coin well spent. Where do you need to go?" />
+		<string id="lmmi_dirs_follow_1" text="Follow me!" />
+		<string id="lmmi_dirs_follow_2" text="This way — stay close." />
+		<string id="lmmi_dirs_follow_3" text="Right, let's go. Keep up." />
+		<string id="lmmi_dirs_closed_1" text="It's empty there right now. Come back during the day." />
+		<string id="lmmi_dirs_closed_2" text="Nothing to see there at night. Try again in daylight." />
+		<string id="lmmi_dirs_closed_3" text="They'll be closed at this hour. Come back tomorrow." />
+
+		<!-- Escort: arrival -->
+		<string id="lmmi_escort_arrival_1" text="Here we are! This is the {DESTINATION}." />
+		<string id="lmmi_escort_arrival_2" text="We've arrived. The {DESTINATION}, as promised." />
+		<string id="lmmi_escort_arrival_3" text="There you go — the {DESTINATION}. You can't miss it." />
+
+		<!-- Escort: en-route flavor -->
+		<string id="lmmi_escort_enroute_backstreet_1" text="The tavern is just around the corner..." />
+		<string id="lmmi_escort_enroute_backstreet_2" text="Nearly at the tavern now..." />
+		<string id="lmmi_escort_enroute_backstreet_3" text="This way — the tavern won't be far." />
+		<string id="lmmi_escort_enroute_trade_1" text="The marketplace is just ahead..." />
+		<string id="lmmi_escort_enroute_trade_2" text="We're almost at the marketplace..." />
+		<string id="lmmi_escort_enroute_trade_3" text="Keep your eyes open — the market is nearby." />
+		<string id="lmmi_escort_enroute_arena_1" text="The arena is close by, I can hear the crowds..." />
+		<string id="lmmi_escort_enroute_arena_2" text="Nearly at the arena..." />
+		<string id="lmmi_escort_enroute_arena_3" text="Hear that roar? That's the arena — we're close." />
+		<string id="lmmi_escort_enroute_smithy_1" text="The smithy is nearby, can you smell the forge?" />
+		<string id="lmmi_escort_enroute_smithy_2" text="Almost at the smithy..." />
+		<string id="lmmi_escort_enroute_smithy_3" text="The hammering should guide us — the smithy is close." />
+		<string id="lmmi_escort_enroute_keep_1" text="The lord's hall is just ahead..." />
+		<string id="lmmi_escort_enroute_keep_2" text="We're nearly at the lord's hall..." />
+		<string id="lmmi_escort_enroute_keep_3" text="Stay sharp. The keep is close." />
+		<string id="lmmi_escort_enroute_generic_1" text="It's just over there..." />
+		<string id="lmmi_escort_enroute_generic_2" text="Not much further..." />
+		<string id="lmmi_escort_enroute_generic_3" text="We're close now..." />
+
+		<!-- Directions: culture-specific foreigner lines -->
+		<string id="lmmi_dirs_foreigner_empire_1" text="Ugh, imperials... haven't you polluted enough of the world? Get lost." />
+		<string id="lmmi_dirs_foreigner_empire_2" text="Another imperial thinking they own the place. We bow to no emperor here." />
+		<string id="lmmi_dirs_foreigner_empire_3" text="Take your imperial arrogance elsewhere. You're not wanted." />
+		<string id="lmmi_dirs_foreigner_aserai_1" text="Crawl back to whatever sandhole you came out of, dog." />
+		<string id="lmmi_dirs_foreigner_aserai_2" text="We don't serve desert rats here. Go peddle your wares elsewhere." />
+		<string id="lmmi_dirs_foreigner_aserai_3" text="The stink of the Nahasa follows you, stranger. Move along." />
+		<string id="lmmi_dirs_foreigner_khuzait_1" text="We have no love for horse fondlers here, stranger. Go back to your decrepit steppe." />
+		<string id="lmmi_dirs_foreigner_khuzait_2" text="A Khuzait? In our town? Go back to your yurt, nomad." />
+		<string id="lmmi_dirs_foreigner_khuzait_3" text="I can smell the horse dung from here. Off with you." />
+		<string id="lmmi_dirs_foreigner_nord_1" text="How about I call the guards and have you thrown out? Go back to the sea, you are not welcome here." />
+		<string id="lmmi_dirs_foreigner_nord_2" text="Another sea raider crawled ashore, did they? Get lost." />
+		<string id="lmmi_dirs_foreigner_nord_3" text="Take your longboat and shove off, Nord. We've nothing for you." />
+		<string id="lmmi_dirs_foreigner_battania_1" text="Sure... wait, what is that accent... We do not tolerate filthy barbarians here. Leave, while you can." />
+		<string id="lmmi_dirs_foreigner_battania_2" text="A forest dweller? In civilized lands? Go hug a tree somewhere else." />
+		<string id="lmmi_dirs_foreigner_battania_3" text="I don't deal with painted savages. Away with you." />
+		<string id="lmmi_dirs_foreigner_sturgia_1" text="Hahaha, what? Your wits really have frozen, stranger. Crawl back to {STURGIA_RULER}'s lap." />
+		<string id="lmmi_dirs_foreigner_sturgia_2" text="You Sturgians are all the same — half-drunk and lost. Find your own way." />
+		<string id="lmmi_dirs_foreigner_sturgia_3" text="Go back to your frozen wasteland, snowman. We don't help your kind." />
+		<string id="lmmi_dirs_foreigner_vlandia_1" text="Ahh, a passionate Vlandian... I'll be sure to give my regards to the next goat I see. Now leave before I call the guards." />
+		<string id="lmmi_dirs_foreigner_vlandia_2" text="A Vlandian, eh? Don't you have some peasants to tax or a field to plow? Off with you." />
+		<string id="lmmi_dirs_foreigner_vlandia_3" text="I've had enough of Vlandian 'knights' stumbling through our streets. Find your own way." />
+		<string id="lmmi_dirs_foreigner_generic_1" text="I don't help outsiders around here. Move along." />
+		<string id="lmmi_dirs_foreigner_generic_2" text="You're not from around here. Figure it out yourself." />
+		<string id="lmmi_dirs_foreigner_generic_3" text="We don't take kindly to strangers. Best be on your way." />
+		<string id="lmmi_portrait_not_met" text="You need to be introduced to this person first." />
+		<string id="lmmi_portrait_location_unknown" text="{HERO} is in the {LOCATION}. You don't know the way there yet." />
+		<string id="lmmi_favor_and" text="{FIRST} and {SECOND}" />
+		<string id="lmmi_favor_ask" text="I could use a favor." />
+		<string id="lmmi_favor_cant_afford" text="You can't afford it." />
+		<string id="lmmi_favor_cooldown" text="You asked for this recently. Come back in {DAYS} days." />
+		<string id="lmmi_favor_cooldown_tomorrow" text="You asked for this recently. Come back tomorrow." />
+		<string id="lmmi_favor_failed" text="Hm. Ask me another time." />
+		<string id="lmmi_favor_gang_crime" text="The watch is looking for me. Make it go away.{LMMI_FAVOR_PRICE_GANG_CRIME}" />
+		<string id="lmmi_favor_gang_crime_clean" text="You're not wanted for anything here." />
+		<string id="lmmi_favor_gang_crime_reply" text="Consider it done. A few coins in the right hands and the watch forgets a face." />
+		<string id="lmmi_favor_gang_hideouts" text="Anything out there I should know about?{LMMI_FAVOR_PRICE_GANG_HIDEOUTS}" />
+		<string id="lmmi_favor_gang_hideouts_none" text="Nothing out there worth your while. The roads have been quiet." />
+		<string id="lmmi_favor_gang_hideouts_reply" text="There's a nest of bandits holed up near {PLACES}. You didn't hear it from me." />
+		<string id="lmmi_favor_grudge_1" text="After what you've done? You've got some nerve." />
+		<string id="lmmi_favor_grudge_2" text="I remember you. The answer is no." />
+		<string id="lmmi_favor_grudge_3" text="Favors are for friends. You are not one." />
+		<string id="lmmi_favor_merchant_tip" text="{ITEM} goes for {BUY}{GOLD_ICON} here and fetches {SELL}{GOLD_ICON} in {TOWN}." />
+		<string id="lmmi_favor_merchant_tips" text="What's worth buying here, and where does it sell?{LMMI_FAVOR_PRICE_MERCHANT_TIPS}" />
+		<string id="lmmi_favor_merchant_tips_none" text="Nothing worth the trip right now. Ask me again in a few days." />
+		<string id="lmmi_favor_merchant_tips_reply" text="Here's what I'd do. {TIPS}" />
+		<string id="lmmi_favor_nevermind" text="Never mind." />
+		<string id="lmmi_favor_nevermind_resp" text="As you wish." />
+		<string id="lmmi_favor_nobody_1" text="Favors? I don't know you, and I don't do favors for nobodies." />
+		<string id="lmmi_favor_nobody_2" text="Come back when your name means something around here." />
+		<string id="lmmi_favor_nobody_3" text="You've given me no reason to help you. Yet." />
+		<string id="lmmi_favor_not_trusted" text="{NAME} doesn't trust you enough for that." />
+		<string id="lmmi_favor_open" text="{LMMI_FAVOR_OPENER}" />
+		<string id="lmmi_favor_open_friendly" text="For you? Let's hear it." />
+		<string id="lmmi_favor_open_trusted" text="You've earned a few favors. What do you need?" />
+		<string id="lmmi_favor_open_wary" text="Favors cost coin, stranger. What is it?" />
+		<string id="lmmi_favor_price" text=" [{PRICE}{GOLD_ICON}]" />
+		<string id="lmmi_favor_refuse" text="{LMMI_FAVOR_REFUSAL}" />
+		<string id="lmmi_favor_reply" text="{LMMI_FAVOR_REPLY}" />
+		<string id="lmmi_favor_open_sycophant" text="You honor me, {?PLAYER.GENDER}my lady{?}my lord{\?}! Whatever you need, it's yours." />
+		<string id="lmmi_favor_sycophant" text="{NAME} flatters you, but won't stick their neck out for you." />
+		<string id="lmmi_dismiss_1" text="Find your own way." />
+		<string id="lmmi_dismiss_2" text="Ask someone who cares." />
+		<string id="lmmi_greet_friend" text="{PLAYER.NAME}, my friend! Good to see you." />
+		<string id="lmmi_greet_friend_2" text="Ah, there you are. Come, sit." />
+		<string id="lmmi_greet_grudge_1" text="You. I remember what you did." />
+		<string id="lmmi_greet_grudge_2" text="You've got some nerve showing your face here." />
+		<string id="lmmi_greet_nobody_1" text="Who let you in here?" />
+		<string id="lmmi_greet_nobody_2" text="Whatever you're selling, I'm not buying." />
+		<string id="lmmi_greet_nobody_3" text="I don't have time for vagrants." />
+		<string id="lmmi_greet_syco" text="{?PLAYER.GENDER}My lady{?}My lord{\?}! You honor me again." />
+		<string id="lmmi_greet_syco_2" text="Ah, {?PLAYER.GENDER}my lady{?}my lord{\?}! Always a pleasure. Always." />
+		<string id="lmmi_greet_syco_first" text="The famous {PLAYER.NAME}, in my humble town! What an honor, {?PLAYER.GENDER}my lady{?}my lord{\?}." />
+		<string id="lmmi_greet_syco_first_2" text="{?PLAYER.GENDER}My lady{?}My lord{\?}! Word of your deeds reached us long before you did." />
+		<string id="lmmi_greet_wary" text="Yes?" />
+		<string id="lmmi_greet_wary_2" text="What brings you back?" />
+		<string id="lmmi_greet_wary_first" text="I don't know you. State your business." />
+		<string id="lmmi_greet_wary_first_2" text="Hm. I don't believe we've dealt before." />
+		<string id="lmmi_greet_wary_first_foreign" text="You're not from around here, are you? What do you want?" />
+		<string id="lmmi_greet_wary_first_foreign_2" text="Another stranger. State your business." />
+		<string id="lmmi_notable_prompt" text="{LMMI_NOTABLE_PROMPT}" />
+		<string id="lmmi_prompt_contempt" text="Well? Make it quick." />
+		<string id="lmmi_prompt_contempt_2" text="Get on with it." />
+		<string id="lmmi_prompt_syco" text="How may I serve you?" />
+		<string id="lmmi_refuse_again_1" text="You have some nerve asking me for anything." />
+		<string id="lmmi_refuse_again_2" text="I've told you what I think of you. No." />
+		<string id="lmmi_refuse_again_3" text="Favors? From me? Ha." />
+		<string id="lmmi_short_contempt" text="You again? What now?" />
+		<string id="lmmi_short_friend" text="Back already? Good." />
+		<string id="lmmi_short_syco" text="Back so soon, {?PLAYER.GENDER}my lady{?}my lord{\?}? Always a pleasure!" />
+		<string id="lmmi_short_wary" text="Back already?" />
+		<string id="lmmi_vouch_ask" text="Would you put in a word for me with someone here?" />
+		<string id="lmmi_vouch_cooldown" text="{NAME} vouched for you recently. Come back in {DAYS} days." />
+		<string id="lmmi_vouch_done" text="I'll have a word with {TARGET}. After that, they'll at least hear you out." />
+		<string id="lmmi_vouch_other" text="Someone else." />
+		<string id="lmmi_vouch_pick" text="{VOUCH_TARGET.NAME} ({VOUCH_ROLE})" />
+		<string id="lmmi_vouch_result" text="{LMMI_VOUCH_REPLY}" />
+		<string id="lmmi_vouch_rivals" text="{TARGET}? My word would do you more harm than good. We don't get along." />
+		<string id="lmmi_vouch_who" text="With whom?" />
+		<string id="lmmi_arrive_feast" text="{PLAYER.NAME}! How we've missed you. Come — we've prepared a small feast in your honor." />
+		<string id="lmmi_arrive_feast_accept" text="I'd be honored." />
+		<string id="lmmi_arrive_feast_decline" text="Another time, my friend." />
+		<string id="lmmi_arrive_feast_declined" text="Of course. Our door is always open to you." />
+		<string id="lmmi_arrive_feast_done" text="Eat, drink! Your people are welcome at our table too." />
+		<string id="lmmi_arrive_feast_msg" text="You and your men feast in {SETTLEMENT}: morale +10, {GRAIN} grain, {HEALED} wounded tended." />
+		<string id="lmmi_arrive_warning" text="A word, before you go about your business. Don't trust {SCHEMER}. That one smiles to your face and counts your coin behind your back." />
+		<string id="lmmi_arrive_warning_thanks" text="Thank you. I'll remember that." />
+		<string id="lmmi_arrive_warnoff" text="You. Finish your business and leave. People like you have a way of losing things around here." />
+		<string id="lmmi_arrive_warnoff_advice" text="Advice. Take it or don't." />
+		<string id="lmmi_arrive_warnoff_defy" text="I'll go where I please." />
+		<string id="lmmi_arrive_warnoff_shrug" text="Suit yourself." />
+		<string id="lmmi_arrive_warnoff_threat" text="Is that a threat?" />
+		<string id="lmmi_betrayed_crime" text="The watch seems to know exactly where to find you. {NAME} took your coin — and talked." />
+		<string id="lmmi_treachery_roguery" text="You know a swindle when you see one. (Roguery {SKILL})" />
+		<string id="lmmi_treachery_warned" text="{FRIEND} warned you about {NAME}. This smells like a swindle." />
+		<string id="lmmi_dirs_unfamiliar" text="{LMMI_DIRS_UNFAMILIAR_TEXT}" />
+		<string id="lmmi_dirs_unfamiliar_1" text="Me? I've never set foot here before either. Ask a local." />
+		<string id="lmmi_dirs_unfamiliar_2" text="I know this town about as well as you do. Which is to say, not at all." />
+		<string id="lmmi_dirs_unfamiliar_3" text="Don't look at me. I'm as lost as you are." />
+		<string id="lmmi_dirs_foreigner_empire_4" text="Another imperial come to tell us how things were done in the old days? Spare me." />
+		<string id="lmmi_dirs_foreigner_empire_5" text="The Empire is dead, and you're what's left of it. Keep walking." />
+		<string id="lmmi_dirs_foreigner_empire_6" text="Keep your purple airs to yourself, imperial." />
+		<string id="lmmi_dirs_foreigner_aserai_4" text="The desert sent us another one. Keep walking." />
+		<string id="lmmi_dirs_foreigner_aserai_5" text="Go sell your spices to someone who cares, Aserai." />
+		<string id="lmmi_dirs_foreigner_aserai_6" text="Your kind haggles over everything. Not here, and not with me." />
+		<string id="lmmi_dirs_foreigner_khuzait_4" text="Another steppe rider. Where's your horse? Or did you eat it?" />
+		<string id="lmmi_dirs_foreigner_khuzait_5" text="Khuzaits burn our villages, and then they come asking for favors. Leave." />
+		<string id="lmmi_dirs_foreigner_khuzait_6" text="You smell of mare's milk and smoke. Off with you." />
+		<string id="lmmi_dirs_foreigner_nord_4" text="A Nord. Did the sea spit you out, or did you swim?" />
+		<string id="lmmi_dirs_foreigner_nord_5" text="We know what Nords do to coastal towns. Keep your axe where I can see it." />
+		<string id="lmmi_dirs_foreigner_nord_6" text="Go back to your cold fjords and your colder gods." />
+		<string id="lmmi_dirs_foreigner_battania_4" text="Battanian. Go back to your woods and your standing stones." />
+		<string id="lmmi_dirs_foreigner_battania_5" text="Painted face, empty head. Move along." />
+		<string id="lmmi_dirs_foreigner_battania_6" text="Your people stole cattle from my grandfather. I haven't forgotten." />
+		<string id="lmmi_dirs_foreigner_sturgia_4" text="Sturgian. Drunk already, or just born that way?" />
+		<string id="lmmi_dirs_foreigner_sturgia_5" text="Go back to your snow and your mead-halls." />
+		<string id="lmmi_dirs_foreigner_sturgia_6" text="Your princes couldn't hold their own borders. Why should I help you?" />
+		<string id="lmmi_dirs_foreigner_vlandia_4" text="A Vlandian. Everyone, hands on your purses." />
+		<string id="lmmi_dirs_foreigner_vlandia_5" text="Go pay homage to your lord somewhere else, Vlandian." />
+		<string id="lmmi_dirs_foreigner_vlandia_6" text="Your knights trample our fields and then expect courtesy. No." />
+		<string id="lmmi_dirs_foreigner_generic_4" text="I don't know where you're from, and I don't care to. Move along." />
+		<string id="lmmi_dirs_foreigner_generic_5" text="Your kind always brings trouble. Not today." />
+		<string id="lmmi_dirs_foreigner_generic_6" text="Strangers. Always wanting something. Go away." />
+		<string id="lmmi_admire_helped" text="My cousin says you helped {HELPED}. Around here, that means something." />
+		<string id="lmmi_admire_roads" text="They say the roads are safer since you came through. Bless you for it." />
+		<string id="lmmi_arrive_admirer" text="You're {PLAYER.NAME}, aren't you? {LMMI_ADMIRE}" />
+		<string id="lmmi_arrive_admirer_bye" text="Wait till I tell my wife I spoke to you!" />
+		<string id="lmmi_arrive_admirer_thanks" text="Glad to help." />
+		<string id="lmmi_arrive_beggar" text="Spare a coin, {?PLAYER.GENDER}my lady{?}my lord{\?}? Just a coin. The winter took everything we had." />
+		<string id="lmmi_arrive_beggar_coin" text="Here. [20{GOLD_ICON}]" />
+		<string id="lmmi_arrive_beggar_moved" text="I... thank you. I'll tell everyone what you did. Everyone." />
+		<string id="lmmi_arrive_beggar_purse" text="Take this, and eat well tonight. [100{GOLD_ICON}]" />
+		<string id="lmmi_arrive_beggar_shove" text="Out of my way." />
+		<string id="lmmi_arrive_beggar_shoved" text="...Yes, {?PLAYER.GENDER}my lady{?}my lord{\?}." />
+		<string id="lmmi_arrive_beggar_thanks" text="Bless you. Bless you." />
+		<string id="lmmi_arrive_heckler" text="{LMMI_HECKLE}" />
+		<string id="lmmi_arrive_heckler_ignore" text="[Walk past without a word.]" />
+		<string id="lmmi_arrive_petition" text="{?PLAYER.GENDER}My lady{?}My lord{\?}, a small matter, if I may. {LMMI_RIVAL.NAME} has been... difficult. Squeezing my trade, spreading lies about me. A word from someone of your standing would put {?LMMI_RIVAL.GENDER}her{?}him{\?} in {?LMMI_RIVAL.GENDER}her{?}his{\?} place." />
+		<string id="lmmi_arrive_petition_denied" text="I see. I had hoped my gift meant... well. Never mind. Good day." />
+		<string id="lmmi_arrive_petition_granted" text="You are too kind! I won't forget this. Nobody here will." />
+		<string id="lmmi_arrive_petition_no" text="Your quarrels are your own." />
+		<string id="lmmi_arrive_petition_yes" text="I'll have a word with {LMMI_RIVAL.NAME}." />
+		<string id="lmmi_arrive_thanks" text="{PLAYER.NAME}! You kept your word — the whole street knows it. It isn't much, but take this for your trouble. {LMMI_GIFT}{GOLD_ICON}." />
+		<string id="lmmi_arrive_thanks_refuse" text="Keep it. I was glad to help." />
+		<string id="lmmi_arrive_thanks_refused" text="Then I owe you one. I won't forget it." />
+		<string id="lmmi_arrive_thanks_take" text="Thank you." />
+		<string id="lmmi_arrive_thanks_taken" text="No, thank you. Come by any time." />
+		<string id="lmmi_arrive_tribute" text="{?PLAYER.GENDER}My lady{?}My lord{\?}! Please — a small token of our esteem. {LMMI_GIFT}{GOLD_ICON}. I insist, I insist." />
+		<string id="lmmi_arrive_tribute_refuse" text="I can't accept this." />
+		<string id="lmmi_arrive_tribute_refused" text="Of course, of course. Forgive me. I meant no offense." />
+		<string id="lmmi_arrive_tribute_take" text="You're too generous." />
+		<string id="lmmi_arrive_tribute_taken" text="Not at all, not at all! Perhaps one day you might... but no. Another time." />
+		<string id="lmmi_cant_afford_alms" text="You don't have that much on you." />
+		<string id="lmmi_favor_gang_prisoners" text="Who's rotting in the keep these days?{LMMI_FAVOR_PRICE_GANG_PRISONERS}" />
+		<string id="lmmi_favor_gang_prisoners_none" text="Nobody worth knowing. Drunks and debtors, the lot of them." />
+		<string id="lmmi_favor_gang_prisoners_reply" text="Down in the dungeon? {NAMES}. The guards drink more than they should, and some of them owe me. If you ever wanted someone out... you didn't hear it from me." />
+		<string id="lmmi_favor_prisoner_of_clan" text="{NAME} of the {CLAN}" />
+		<string id="lmmi_favor_tend_wounded" text="I have wounded men. Is there anyone here who could tend to them?{LMMI_FAVOR_PRICE_TEND_WOUNDED}" />
+		<string id="lmmi_favor_tend_wounded_guild" text="Bring them to the guildhall. Our bonesetter has seen worse — mostly from our own apprentices." />
+		<string id="lmmi_favor_tend_wounded_msg" text="{HEALED} of your wounded were tended in {SETTLEMENT}." />
+		<string id="lmmi_favor_tend_wounded_none" text="Your people look hale enough to me." />
+		<string id="lmmi_favor_tend_wounded_village" text="Bring them in. Our wise-woman will see to them. She's stubborn, but she knows her herbs." />
+		<string id="lmmi_favor_village_provisions" text="My people are hungry. Can your village spare provisions?{LMMI_FAVOR_PRICE_VILLAGE_PROVISIONS}" />
+		<string id="lmmi_favor_village_provisions_msg" text="{NAME} spared you {AMOUNT} grain." />
+		<string id="lmmi_favor_village_provisions_reply" text="We can spare {AMOUNT} sacks of grain. It isn't much, but it will carry your people a few days." />
+		<string id="lmmi_gf_curt_1" text="{PLAYER.NAME}. Good. Sit." />
+		<string id="lmmi_gf_earnest_1" text="{PLAYER.NAME}! It does my heart good to see you." />
+		<string id="lmmi_gf_ironic_1" text="Look what the wind blew in. Sit, sit, before someone important sees you." />
+		<string id="lmmi_gf_soft_1" text="{PLAYER.NAME}... I'm glad you came." />
+		<string id="lmmi_gs_curt_1" text="{?PLAYER.GENDER}My lady{?}My lord{\?}. At your service." />
+		<string id="lmmi_gs_earnest_1" text="{?PLAYER.GENDER}My lady{?}My lord{\?}, you've come back! I was just telling everyone about you." />
+		<string id="lmmi_gs_ironic_1" text="The day brightens! Our {?PLAYER.GENDER}great lady{?}great lord{\?} returns." />
+		<string id="lmmi_gs_soft_1" text="Welcome back, {?PLAYER.GENDER}my lady{?}my lord{\?}. Whatever you need..." />
+		<string id="lmmi_gsf_curt_1" text="{?PLAYER.GENDER}My lady{?}My lord{\?}. An honor. A true honor." />
+		<string id="lmmi_gsf_earnest_1" text="I have heard so much about you, {?PLAYER.GENDER}my lady{?}my lord{\?}! Welcome, welcome!" />
+		<string id="lmmi_gsf_ironic_1" text="Why, the great {PLAYER.NAME} {?PLAYER.GENDER}herself{?}himself{\?}! We are truly blessed." />
+		<string id="lmmi_gsf_soft_1" text="It is... a great honor, {?PLAYER.GENDER}my lady{?}my lord{\?}. Truly." />
+		<string id="lmmi_gw_curt_1" text="Speak." />
+		<string id="lmmi_gw_earnest_1" text="Back again? What is it this time?" />
+		<string id="lmmi_gw_ironic_1" text="Back for more, are we?" />
+		<string id="lmmi_gw_soft_1" text="Oh. It's you. What do you need?" />
+		<string id="lmmi_gwf_curt_1" text="Who are you? Speak." />
+		<string id="lmmi_gwf_curt_2" text="Yes? What?" />
+		<string id="lmmi_gwf_earnest_1" text="I don't think we've met. What brings you to me?" />
+		<string id="lmmi_gwf_ironic_1" text="A new face. How exciting. What do you want?" />
+		<string id="lmmi_gwf_ironic_2" text="Well, well. Somebody's lost." />
+		<string id="lmmi_gwf_soft_1" text="Forgive me, I don't believe I know you. What is it you need?" />
+		<string id="lmmi_gwff_curt_1" text="Foreigner. What do you want?" />
+		<string id="lmmi_gwff_earnest_1" text="You're a long way from home, stranger. What is it?" />
+		<string id="lmmi_gwff_ironic_1" text="Lost your way, stranger? Or just lost?" />
+		<string id="lmmi_gwff_soft_1" text="You're not from here, I think. How can I... help?" />
+		<string id="lmmi_heard_1" text="Word is you helped {LMMI_HELPED}. That counts for something around here." />
+		<string id="lmmi_heard_2" text="You're the one who sorted out {LMMI_HELPED}'s troubles, aren't you? Everyone's talking." />
+		<string id="lmmi_heard_curt" text="You helped {LMMI_HELPED}. I heard. Speak." />
+		<string id="lmmi_heard_earnest" text="{LMMI_HELPED} speaks well of you. That's rare. What can I do for you?" />
+		<string id="lmmi_heard_ironic" text="Ah, {LMMI_HELPED}'s savior. The whole street won't shut up about you." />
+		<string id="lmmi_heard_soft" text="I heard what you did for {LMMI_HELPED}. It was... kind." />
+		<string id="lmmi_intro_contempt_1" text="{LMMI_INTRO_NAME}. Not that it's any business of yours." />
+		<string id="lmmi_intro_contempt_2" text="The name's {LMMI_INTRO_NAME}. Remember it, so you'll know whom to avoid." />
+		<string id="lmmi_intro_contempt_artisan" text="{LMMI_INTRO_NAME}. My workshop, my rules. You'll find no welcome in it." />
+		<string id="lmmi_intro_contempt_gang" text="{LMMI_INTRO_NAME}. People who cross me tend to end up in the river. Remember that." />
+		<string id="lmmi_intro_contempt_merchant" text="I'm {LMMI_INTRO_NAME}. And my goods are not for the likes of you." />
+		<string id="lmmi_intro_contempt_village" text="{LMMI_INTRO_NAME}. This village doesn't want trouble, and you look like trouble." />
+		<string id="lmmi_letter_ask" text="Do you know anyone in the towns around here who might open a door for me?" />
+		<string id="lmmi_letter_carry" text="You carry {WRITER}'s letter of introduction to {TARGET} in {TOWN}." />
+		<string id="lmmi_letter_cooldown" text="{NAME} wrote a letter for you recently. Ask again later." />
+		<string id="lmmi_letter_deliver" text="I carry a letter for you, from {LMMI_LETTER_FROM}." />
+		<string id="lmmi_letter_delivered" text="{LMMI_LETTER_FROM}'s seal... Well. Any friend of {LMMI_LETTER_FROM} is worth hearing out. What can I do for you?" />
+		<string id="lmmi_letter_given" text="Safe travels. And don't read it — the seal will tell." />
+		<string id="lmmi_letter_not_friend" text="{NAME} doesn't put {?NAME_HERO.GENDER}her{?}his{\?} seal on letters for strangers." />
+		<string id="lmmi_letter_offer" text="{LMMI_LETTER_TARGET.NAME} in {LMMI_LETTER_TOWN} owes me a favor or two. Give {?LMMI_LETTER_TARGET.GENDER}her{?}him{\?} this letter — whatever {?LMMI_LETTER_TARGET.GENDER}she thinks{?}he thinks{\?} of your kind, {?LMMI_LETTER_TARGET.GENDER}she'll{?}he'll{\?} hear you out." />
+		<string id="lmmi_letter_old_friend" text="an old friend" />
+		<string id="lmmi_letter_stale" text="The letter of introduction to {TARGET} has gone stale. Too late to deliver it now." />
+		<string id="lmmi_letter_take_no" text="Perhaps another time." />
+		<string id="lmmi_letter_take_yes" text="I'll deliver it myself." />
+		<string id="lmmi_loan_accept" text="Agreed." />
+		<string id="lmmi_loan_ask" text="I'm short of coin. Would you lend me some?" />
+		<string id="lmmi_loan_decline" text="On second thought, no." />
+		<string id="lmmi_loan_declined" text="As you like." />
+		<string id="lmmi_loan_done" text="Then it's done. Don't make me regret it." />
+		<string id="lmmi_loan_offer_fair" text="For you? I can spare {LMMI_LOAN_AMOUNT}{GOLD_ICON}. Pay me back {LMMI_LOAN_OWED}{GOLD_ICON} within {LMMI_LOAN_DAYS} days. I trust you — but my ledger doesn't." />
+		<string id="lmmi_loan_offer_shark" text="{LMMI_LOAN_AMOUNT}{GOLD_ICON}, today. You'll owe me {LMMI_LOAN_OWED}{GOLD_ICON} in {LMMI_LOAN_DAYS} days. And friend — I always collect." />
+		<string id="lmmi_loan_overdue_fair" text="Your debt to {NAME} of {TOWN} is overdue. {NAME} is telling anyone who'll listen." />
+		<string id="lmmi_loan_overdue_shark" text="Your debt to {NAME} of {TOWN} is overdue. They say {NAME} always collects. You should watch the roads." />
+		<string id="lmmi_loan_poor" text="I'm stretched thin myself, I'm afraid. Ask me another time." />
+		<string id="lmmi_loan_repaid" text="{LMMI_LOAN_REPAID_TEXT}" />
+		<string id="lmmi_loan_repaid_fair" text="Right on time. A pleasure doing business with you." />
+		<string id="lmmi_loan_repaid_late" text="Late, but paid. I'll remember both." />
+		<string id="lmmi_loan_repaid_shark" text="Smart. Very smart." />
+		<string id="lmmi_loan_repaid_shark_late" text="There. Was that so hard? My men will be glad to hear they can stand down." />
+		<string id="lmmi_loan_repay" text="I've come to settle my debt. [{LMMI_LOAN_REPAY}{GOLD_ICON}]" />
+		<string id="lmmi_loan_repay_short" text="You don't have enough coin." />
+		<string id="lmmi_notable_intro" text="{LMMI_NOTABLE_INTRO}" />
+		<string id="lmmi_open_wary_foreign_1" text="Favors cost coin, stranger. More for your kind." />
+		<string id="lmmi_open_wary_foreign_2" text="For a foreigner? It'll cost you. Go on." />
+		<string id="lmmi_pc_curt_1" text="Out with it." />
+		<string id="lmmi_pc_ironic_1" text="I'm listening. Barely." />
+		<string id="lmmi_ps_earnest_1" text="Anything you need, you have only to ask." />
+		<string id="lmmi_purse_caught" text="A hand slid toward your purse in the tavern district. You caught the wrist before it got there." />
+		<string id="lmmi_purse_lifted" text="Your purse feels lighter. Somewhere in {TOWN}'s tavern district, someone had quick fingers: {GOLD}{GOLD_ICON} gone." />
+		<string id="lmmi_sc_curt_1" text="What now." />
+		<string id="lmmi_sc_earnest_1" text="Did I not make myself clear the first time?" />
+		<string id="lmmi_sc_ironic_1" text="Oh, good. You're back." />
+		<string id="lmmi_sf_earnest_1" text="Back so soon? Come in, come in." />
+		<string id="lmmi_sw_ironic_1" text="Missed me already?" />
+		<string id="lmmi_thugs_name" text="{NAME}'s Men" />
+		<string id="lmmi_thugs_someone" text="Someone you crossed" />
+		<string id="lmmi_thugs_telegraph" text="Rough men slip out of {TOWN} behind you, keeping their distance. {NAME}'s people, by the look of them." />
+		<string id="lmmi_thugs_threat_debt" text="{NAME} wants the coin you owe. All of it, with interest — and if you can't pay, we take it out of your hide." />
+		<string id="lmmi_thugs_threat_defied" text="{NAME} told you to finish your business and leave. You should have listened." />
+		<string id="lmmi_thugs_threat_grudge" text="{NAME} sends regards. Hand over your purse, and maybe we let you walk." />
+		<string id="lmmi_arrive_lord_flatter" text="{PLAYER.NAME}! A pleasure, a true pleasure. You simply must come hunting with my family, when the wars allow." />
+		<string id="lmmi_arrive_lord_flatter_bye" text="Splendid! I shall hold you to it." />
+		<string id="lmmi_arrive_lord_flatter_cool" text="[Nod politely and say nothing.]" />
+		<string id="lmmi_arrive_lord_flatter_yes" text="Perhaps I will." />
+		<string id="lmmi_arrive_lord_respect" text="{PLAYER.NAME}. Good. There are few faces in this hall I'm glad to see." />
+		<string id="lmmi_arrive_lord_respect_bye" text="Find me later. We'll talk properly, away from all these ears." />
+		<string id="lmmi_arrive_lord_respect_same" text="The feeling is mutual." />
+		<string id="lmmi_arrive_lord_snub" text="{LMMI_SNUB}" />
+		<string id="lmmi_arrive_lord_snub_back" text="Mind your tongue, my lord." />
+		<string id="lmmi_arrive_lord_snub_bow" text="[Incline your head slightly and move on.]" />
+		<string id="lmmi_arrive_lord_snub_sneer" text="Or what? Do go on. The whole hall is listening." />
+		<string id="lmmi_lord_snub_foreign_1" text="One hears the lords of {REALM} will receive anyone these days. Even your kind." />
+		<string id="lmmi_lord_snub_foreign_2" text="Keep your distance, foreigner. This hall is for the nobility of {REALM}." />
+		<string id="lmmi_lord_snub_nobody_1" text="And who might you be? No, don't tell me. I'm sure it's of no consequence." />
+		<string id="lmmi_lord_snub_nobody_2" text="Another petitioner. The steward is over there. Do try not to track mud across the floor." />
+		<string id="lmmi_voucher_shamed" text="{VOUCHER} vouched for you with {OWNER}. Word of how that turned out has reached {VOUCHER}." />
+		<string id="lmmi_arrange_done_contempt" text="Fine. The volunteers will be there. Don't expect anyone to smile about it." />
+		<string id="lmmi_arrange_done_wary" text="Done. Don't make me regret it." />
+		<string id="lmmi_arrange_offer_contempt" text="Organize recruits — for you? ...Coin is coin. But the others will want paying, and more for the likes of you. {RECRUITMENT_COST}{GOLD_ICON}. Take it or leave it." />
+		<string id="lmmi_arrange_offer_wary" text="It can be arranged. It won't be cheap — the others don't know you any better than I do. {RECRUITMENT_COST}{GOLD_ICON}." />
+		<string id="lmmi_bye_contempt_1" text="Good riddance." />
+		<string id="lmmi_bye_contempt_2" text="Don't come back." />
+		<string id="lmmi_bye_contempt_3" text="And stay gone." />
+		<string id="lmmi_bye_contempt_curt" text="Go." />
+		<string id="lmmi_bye_contempt_ironic" text="Leaving so soon? What a pity." />
+		<string id="lmmi_bye_syco_1" text="Always a pleasure, {?PLAYER.GENDER}my lady{?}my lord{\?}! Do come again!" />
+		<string id="lmmi_bye_syco_2" text="You honor us. Truly." />
+		<string id="lmmi_bye_wary_1" text="Hm." />
+		<string id="lmmi_bye_wary_2" text="Go on, then." />
+		<string id="lmmi_bye_wary_3" text="Be on your way." />
+		<string id="lmmi_bye_wary_earnest" text="Safe travels, I suppose." />
+		<string id="lmmi_castle_guard_start" text="{LMMI_GATE_GREETING}" />
+		<string id="lmmi_castle_kin" text="{?PLAYER.GENDER}Kinswoman{?}Kinsman{\?}. What is it?" />
+		<string id="lmmi_castle_scorn" text="A {DEMONYM} at the keep. What do you want? Make it quick." />
+		<string id="lmmi_demonym_aserai" text="Aserai" />
+		<string id="lmmi_demonym_battania" text="Battanian" />
+		<string id="lmmi_demonym_empire" text="imperial" />
+		<string id="lmmi_demonym_foreigner" text="foreigner" />
+		<string id="lmmi_demonym_khuzait" text="Khuzait" />
+		<string id="lmmi_demonym_nord" text="Nord" />
+		<string id="lmmi_demonym_sturgia" text="Sturgian" />
+		<string id="lmmi_demonym_vlandia" text="Vlandian" />
+		<string id="lmmi_dirs_no_runner" text="My people are all busy. Ask around — somebody out there will point you the right way." />
+		<string id="lmmi_escort_runner_start" text="A local will take you to the {LOCATION}. Follow them." />
+		<string id="lmmi_escort_stuck" text="Your guide can't seem to find a way through. Better ask someone else." />
+		<string id="lmmi_guard_deeds" text="Word is you've done right by this town. Even for a {DEMONYM}. Go on, then." />
+		<string id="lmmi_guard_grudging_1" text="My {?PLAYER.GENDER}lady{?}lord{\?}. Welcome to {SETTLEMENT}. We'll... keep an eye out for you." />
+		<string id="lmmi_guard_grudging_2" text="Welcome to {SETTLEMENT}. Behave, and we'll get along." />
+		<string id="lmmi_guard_kin_1" text="Welcome, {?PLAYER.GENDER}kinswoman{?}kinsman{\?}. Keep your nose clean and you'll have no trouble here." />
+		<string id="lmmi_guard_kin_2" text="One of ours. Good. Mind the cutpurses near the market." />
+		<string id="lmmi_guard_kin_lord" text="Welcome to {SETTLEMENT}, my {?PLAYER.GENDER}lady{?}lord{\?}. Good to see one of our own doing well." />
+		<string id="lmmi_guard_scorn_aserai" text="Hands where I can see them, Aserai. Your kind have quick fingers." />
+		<string id="lmmi_guard_scorn_battania" text="Leave the woad and the war cries at the gate, Battanian." />
+		<string id="lmmi_guard_scorn_empire" text="An imperial. Remember whose town this is now." />
+		<string id="lmmi_guard_scorn_generic" text="Ahh... a {DEMONYM}. Ugh. You're lucky our lord lets foreign scum walk around untouched." />
+		<string id="lmmi_guard_scorn_khuzait" text="Keep your horse out of the fountain, {SLUR}." />
+		<string id="lmmi_guard_scorn_nord" text="Keep that axe sheathed, Nord. This isn't a beach you're raiding." />
+		<string id="lmmi_guard_scorn_sturgia" text="No brawling, northerner. If there's a broken head tonight, I'll know whose it was." />
+		<string id="lmmi_guard_scorn_vlandia" text="Another Vlandian. Try not to swear fealty to anything while you're here." />
+		<string id="lmmi_guard_the_lord" text="the lord" />
+		<string id="lmmi_hall_deny" text="{LMMI_HALL_DENIAL}" />
+		<string id="lmmi_hall_deny_aserai" text="Right, of course you do, Aserai. No goats to fondle in there, though. The animal pens are that way. Now scram. (Not enough renown)" />
+		<string id="lmmi_hall_deny_battania" text="No trees to hug in there, Battanian. Off you go. (Not enough renown)" />
+		<string id="lmmi_hall_deny_empire" text="Imperial airs won't open this door, friend. Not anymore. (Not enough renown)" />
+		<string id="lmmi_hall_deny_generic" text="We don't know you, stranger, and I don't much like the look of you. No. (Not enough renown)" />
+		<string id="lmmi_hall_deny_khuzait" text="The lord's hall isn't a stable, nomad. Try the one out back. (Not enough renown)" />
+		<string id="lmmi_hall_deny_kin" text="Sorry, {?PLAYER.GENDER}kinswoman{?}kinsman{\?}, but we don't know you. Make a name for yourself first. (Not enough renown)" />
+		<string id="lmmi_hall_deny_nord" text="No longboats to beach in there, Nord. Move along. (Not enough renown)" />
+		<string id="lmmi_hall_deny_ruler" text="Hah! And I want to share {RULER}'s bed, for all the good wanting does me. Move along, {DEMONYM}. (Not enough renown)" />
+		<string id="lmmi_hall_deny_sturgia" text="The hall's not a mead-house, northerner. Sober up and try again. Or don't. (Not enough renown)" />
+		<string id="lmmi_hall_deny_vlandia" text="A Vlandian wants to see the lord. To swear another oath you'll break? No. (Not enough renown)" />
+		<string id="lmmi_issue_ask" text="I heard you may need some help with a problem?" />
+		<string id="lmmi_issue_distrust" text="{LMMI_DISTRUST}" />
+		<string id="lmmi_issue_distrust_foreign" text="Help? From a {DEMONYM}? I don't trust your kind with my affairs. Why should I trust you?" />
+		<string id="lmmi_issue_distrust_nobody" text="Help? From some nobody off the road? I don't hand my troubles to strangers. Why should I trust you?" />
+		<string id="lmmi_issue_retry" text="{NAME} has made it clear what they think of you. Give it a few days." />
+		<string id="lmmi_notable_farewell" text="{LMMI_NOTABLE_FAREWELL}" />
+		<string id="lmmi_odds_likely" text="(Likely)" />
+		<string id="lmmi_odds_uncertain" text="(Uncertain)" />
+		<string id="lmmi_odds_unlikely" text="(Unlikely)" />
+		<string id="lmmi_plea_calculating" text="Your problem won't solve itself, and I don't see anyone else lining up. Do you have a lot of choice?" />
+		<string id="lmmi_plea_generosity" text="I'd do it for less than anyone would ask. Call it an introduction." />
+		<string id="lmmi_plea_honor" text="You have my word. I don't abandon a job, whatever you think of my people." />
+		<string id="lmmi_plea_lost" text="Words. Everyone has words. Get out of my sight." />
+		<string id="lmmi_plea_never" text="Forget it." />
+		<string id="lmmi_plea_valor" text="Whatever it is, I've faced worse. Let me prove it." />
+		<string id="lmmi_plea_won" text="...Fine. Maybe you're not like the rest of them. Here's what I need." />
+		<string id="lmmi_prison_guard_start" text="{LMMI_GATE_GREETING}" />
+		<string id="lmmi_prison_kin" text="{?PLAYER.GENDER}Kinswoman{?}Kinsman{\?}. What brings you down to the cells?" />
+		<string id="lmmi_prison_scorn" text="What does a {DEMONYM} want at the dungeon? Visiting relatives?" />
+		<string id="lmmi_recruits_done_contempt" text="{LMMI_RECRUITS_SCORN}" />
+		<string id="lmmi_recruits_done_wary" text="They're yours. Pay them on time and they'll follow you well enough." />
+		<string id="lmmi_recruits_offer_contempt" text="{TROOP_LIST}. {TOTAL_COST}{GOLD_ICON}, and not a coin less. I don't haggle with your kind." />
+		<string id="lmmi_recruits_offer_wary" text="I've got {TROOP_LIST}. {TOTAL_COST}{GOLD_ICON}. Take it or leave it." />
+		<string id="lmmi_recruits_scorn_foreign" text="Take them and go. Fools, following a foreigner — but that's their business, not mine." />
+		<string id="lmmi_recruits_scorn_kin" text="Take them. Try not to get them all killed." />
+		<string id="lmmi_slur_aserai" text="desert dog" />
+		<string id="lmmi_slur_battania" text="wood hugger" />
+		<string id="lmmi_slur_empire" text="purple-robed windbag" />
+		<string id="lmmi_slur_foreigner" text="foreigner" />
+		<string id="lmmi_slur_khuzait" text="horse fondler" />
+		<string id="lmmi_slur_nord" text="fish-gutter" />
+		<string id="lmmi_slur_sturgia" text="frozen drunk" />
+		<string id="lmmi_slur_vlandia" text="goat-botherer" />
+		<string id="lmmi_stepup_1" text="Huh. Didn't expect this from a {LMMI_SLUR}. Word is you stood up for one of ours." />
+		<string id="lmmi_stepup_2" text="So you're the {LMMI_SLUR} everyone's talking about. Stepped in when our own wouldn't, they say." />
+		<string id="lmmi_stepup_curt" text="You. The {LMMI_SLUR} who helped. Hm. Speak, then." />
+		<string id="lmmi_stepup_ironic" text="A {LMMI_SLUR} playing the hero. Now I've seen everything. ...It was well done, I'll grant you." />
+		<string id="lmmi_stepup_kin" text="Word is you stood up for one of ours. Good. That's how it should be." />
+		<string id="lmmi_dirs_runner_gang" text="You there — show this one to the {LOCATION}. Don't dawdle, and don't get lost." />
+		<string id="lmmi_dirs_runner" text="You there! Take this one to the {LOCATION}. There's a coin in it for you." />
+		<string id="lmmi_loan_offer" text="{LMMI_LOAN_OFFER}" />
+		<string id="lmmi_loan_offer_business" text="I can do {LMMI_LOAN_AMOUNT}{GOLD_ICON}. Business is business: {LMMI_LOAN_OWED}{GOLD_ICON} back within {LMMI_LOAN_DAYS} days." />
+		<string id="lmmi_loan_offer_gang" text="Need coin? Everyone does. {LMMI_LOAN_AMOUNT}{GOLD_ICON} now, {LMMI_LOAN_OWED}{GOLD_ICON} in {LMMI_LOAN_DAYS} days. You don't want to find out what happens if you're late." />
+		<string id="lmmi_loan_offer_stranger" text="I don't know you, and I don't lend cheap to people I don't know. {LMMI_LOAN_AMOUNT}{GOLD_ICON}; you pay back {LMMI_LOAN_OWED}{GOLD_ICON} within {LMMI_LOAN_DAYS} days. Miss it, and I go to the magistrate." />
+		<string id="lmmi_loan_offer_stranger_foreign" text="Your kind aren't known for settling their debts, {DEMONYM}. {LMMI_LOAN_AMOUNT}{GOLD_ICON}, and you pay back {LMMI_LOAN_OWED}{GOLD_ICON} within {LMMI_LOAN_DAYS} days. Miss it, and I go to the magistrate." />
+		<string id="lmmi_loan_overdue_stranger" text="Your debt to {NAME} of {TOWN} is overdue. {NAME} has gone to the magistrate: the watch there will be looking for you." />
+		<string id="lmmi_loan_refused_contempt" text="{NAME} wouldn't lend a copper to someone they despise." />
+		<string id="lmmi_street_brawl" text="Somebody stop them! Two youngsters are beating each other bloody over there, and the watch is nowhere!" />
+		<string id="lmmi_street_brawl_beaten" text="The youths leave you in the dirt and wander off laughing. Well. You tried." />
+		<string id="lmmi_street_brawl_ko" text="One of the youths goes down and doesn't get up. The other stands over him, breathing hard, then runs." />
+		<string id="lmmi_street_brawl_no" text="Boys will be boys." />
+		<string id="lmmi_street_brawl_reproach" text="Well. Thanks for nothing." />
+		<string id="lmmi_street_brawl_shrug" text="...Fine. I'll fetch the guard myself." />
+		<string id="lmmi_street_caught" text="Alright! Alright! Here — take it, just don't call the guard!" />
+		<string id="lmmi_street_caught_dragged" text="No! No, please — I'll give it back!" />
+		<string id="lmmi_street_caught_guard" text="Guards! Over here!" />
+		<string id="lmmi_street_caught_off" text="...Yes, {?PLAYER.GENDER}madam{?}sir{\?}." />
+		<string id="lmmi_street_caught_return" text="Give it here. Now get lost." />
+		<string id="lmmi_street_caught_split" text="[Roguery] Half for me, and I never saw your face." />
+		<string id="lmmi_street_caught_split_ok" text="...Heh. You're alright. Here." />
+		<string id="lmmi_street_confront" text="{LMMI_STREET_CONFRONT}" />
+		<string id="lmmi_street_confront_fight" text="Let her go. Now." />
+		<string id="lmmi_street_confront_foreign" text="Keep walking, {SLUR}. This is between us and the girl." />
+		<string id="lmmi_street_confront_gang" text="This street's ours. Walk away while you still can, {?PLAYER.GENDER}woman{?}friend{\?}." />
+		<string id="lmmi_street_confront_gang_foreign" text="This street's ours, {SLUR}. Walk away while you still can." />
+		<string id="lmmi_street_confront_kin" text="Keep walking, friend. This is none of your business." />
+		<string id="lmmi_street_confront_leave" text="...Never mind." />
+		<string id="lmmi_street_confront_left" text="Thought so." />
+		<string id="lmmi_street_confront_paid" text="...Easiest coin I ever made. Come on, lads." />
+		<string id="lmmi_street_confront_pay" text="Here's 100{GOLD_ICON}. Go find somewhere else to be." />
+		<string id="lmmi_street_confront_scare" text="Do you know who I am? Walk away while you still can." />
+		<string id="lmmi_street_confront_scared_lost" text="Big words. Let's see you back them up." />
+		<string id="lmmi_street_confront_scared_won" text="...Tch. She's not worth the trouble. Come on, lads." />
+		<string id="lmmi_street_confront_wrong" text="Wrong answer." />
+		<string id="lmmi_street_drag_lead" text="Come along, girl. Nobody's coming for you." />
+		<string id="lmmi_street_drag_requester" text="Heaven help her. Nobody else will." />
+		<string id="lmmi_street_gone" text="He's gone... it was everything we had. The rent's due tomorrow." />
+		<string id="lmmi_street_gone_pay" text="Here. This should cover it. [50{GOLD_ICON}]" />
+		<string id="lmmi_street_gone_sorry" text="I'm sorry. He was too quick." />
+		<string id="lmmi_street_gone_sorry_resp" text="...You tried. That's more than most." />
+		<string id="lmmi_street_guard_breakup" text="Oi! Break it up, the pair of you! Go home before I take you in!" />
+		<string id="lmmi_street_guard_collar" text="Right, you. You're coming with me." />
+		<string id="lmmi_street_guard_late" text="What happened here? ...Someone fetch a healer." />
+		<string id="lmmi_street_lads" text="{LMMI_STREET_LADS}" />
+		<string id="lmmi_street_lads_carry_on" text="Don't mind if we do." />
+		<string id="lmmi_street_lads_charm" text="Easy, lads. Whatever it is, it isn't worth a cracked skull." />
+		<string id="lmmi_street_lads_fists" text="I'll knock your heads together myself." />
+		<string id="lmmi_street_lads_foreign" text="What are you looking at, {SLUR}? This is between me and him!" />
+		<string id="lmmi_street_lads_kin" text="Stay out of it! This is between me and him!" />
+		<string id="lmmi_street_lads_leave" text="Carry on, then." />
+		<string id="lmmi_street_lads_lost" text="Or what? You going to make us?" />
+		<string id="lmmi_street_lads_talked_lost" text="Piss off. Nobody asked you." />
+		<string id="lmmi_street_lads_talked_won" text="...Yeah. Alright. It's not worth it." />
+		<string id="lmmi_street_lads_tryit" text="Try it!" />
+		<string id="lmmi_street_lads_valor" text="Oi! Break it up, the pair of you!" />
+		<string id="lmmi_street_lads_won" text="...Fine. He's not worth it." />
+		<string id="lmmi_street_lead_on" text="This way — hurry!" />
+		<string id="lmmi_street_purse_blessed" text="Bless you! I'll tell everyone — everyone!" />
+		<string id="lmmi_street_purse_no" text="Tough luck." />
+		<string id="lmmi_street_purse_shrug" text="...Of course. Why would you care." />
+		<string id="lmmi_street_rescue" text="Please, {?PLAYER.GENDER}madam{?}sir{\?}! Some men have cornered a girl over there, and nobody's doing a thing! Please — help her!" />
+		<string id="lmmi_street_rescue_gang" text="Those were {NAME}'s men. {NAME} won't like this." />
+		<string id="lmmi_street_rescue_go" text="Show me." />
+		<string id="lmmi_street_rescue_lost" text="You come to on the cobbles. At least the girl got away while they were busy with you." />
+		<string id="lmmi_street_rescue_no" text="Not my problem." />
+		<string id="lmmi_street_rescue_refused" text="...Heaven help her, then. Nobody else will." />
+		<string id="lmmi_street_thanks" text="{LMMI_STREET_THANKS}" />
+		<string id="lmmi_street_thanks_brawl_foreign" text="A {DEMONYM} breaking up our youngsters' fights... Didn't think I'd live to see it. The whole street saw — they'll talk, mark my words." />
+		<string id="lmmi_street_thanks_brawl_kin" text="Thank heavens someone stepped in. The whole street saw it — one of our own, doing what the watch wouldn't." />
+		<string id="lmmi_street_thanks_ok" text="Glad to help." />
+		<string id="lmmi_street_thanks_purse_foreign" text="My purse! Bless you — bless you! A {DEMONYM}... I'll tell everyone, I swear it." />
+		<string id="lmmi_street_thanks_purse_kin" text="My purse! Bless you! The rent's safe... I'll tell everyone what you did." />
+		<string id="lmmi_street_thanks_rescue_foreign" text="Thank you... I thought— A {DEMONYM}, of all people. You stood up for me when my own neighbours looked away. Everyone will hear of it, I swear." />
+		<string id="lmmi_street_thanks_rescue_kin" text="Thank you... thank you. One of our own, standing up for me when the rest just watched. Everyone will hear of it." />
+		<string id="lmmi_street_thief" text="Thief! That little rat just cut my purse — he's still standing right over there, bold as you like! Please, the rent's in it!" />
+		<string id="lmmi_street_thief_bolts" text="Catch me if you can!" />
+		<string id="lmmi_street_thief_chase" text="Stop, thief!" />
+		<string id="lmmi_street_thief_dropped" text="The boy freezes, sets the purse down on a step, and walks off very fast." />
+		<string id="lmmi_street_thief_escaped" text="The thief ducks into an alley and is gone." />
+		<string id="lmmi_street_thief_go" text="Go! Go!" />
+		<string id="lmmi_street_thief_pay" text="Let him go. Here — this should cover the rent. [50{GOLD_ICON}]" />
+		<string id="lmmi_street_thief_rogue" text="[Roguery] (Catch the boy's eye) I know that trick, lad. Drop it, or the watch hears your name." />
+		<string id="lmmi_street_thief_taken" text="The watch drags the boy off, still protesting." />
+		<string id="lmmi_street_thief_wait" text="...He's putting it down. He's putting it down!" />
+		<string id="lmmi_street_too_late" text="By the time you get there, it's over. Nobody looks at you." />
+		<string id="lmmi_street_word_foreign" text="People saw that. By nightfall half of {SETTLEMENT} will know a {DEMONYM} stepped in when their own didn't." />
+		<string id="lmmi_street_word_kin" text="People saw that. By nightfall half of {SETTLEMENT} will know one of their own stepped in." />
+		<string id="lmmi_feast_host" text="Eat, drink! Tonight you're among friends." />
+		<string id="lmmi_feast_indoors" text="There's no room in the square, so the feast is held indoors." />
+		<string id="lmmi_feast_leave" text="It's been a fine evening. I should be going — thank you for this." />
+		<string id="lmmi_feast_leave_resp" text="Safe roads, my friend. Don't be a stranger." />
+		<string id="lmmi_feast_night" text="The feast runs late into the night. Nobody leaves hungry." />
+		<string id="lmmi_feast_stay" text="Carry on — I'm just stretching my legs." />
+		<string id="lmmi_feast_theirs_1" text="Eat, eat! There's plenty." />
+		<string id="lmmi_feast_theirs_2" text="Another round for our guests!" />
+		<string id="lmmi_feast_theirs_3" text="Try the ham — my own smokehouse." />
+		<string id="lmmi_feast_theirs_4" text="So, is it true what they say about you?" />
+		<string id="lmmi_feast_theirs_5" text="A good harvest, good company. What more is there?" />
+		<string id="lmmi_feast_toast" text="To {PLAYER.NAME}! May your road be short, your purse heavy, and your cup never empty!" />
+		<string id="lmmi_feast_toast_cheer" text="To our host!" />
+		<string id="lmmi_feast_toast_host" text="A toast — to our host!" />
+		<string id="lmmi_feast_toast_host_resp" text="Ha! To all of us, then — and to many more nights like this one." />
+		<string id="lmmi_feast_yours_1" text="Better than camp stew, eh?" />
+		<string id="lmmi_feast_yours_2" text="To {PLAYER.NAME}!" />
+		<string id="lmmi_feast_yours_3" text="Pass the bread, friend. No — the whole loaf." />
+		<string id="lmmi_feast_yours_4" text="I could get used to this." />
+		<string id="lmmi_feast_yours_5" text="Don't tell the others we ate this well." />
+		<string id="lmmi_arrive_heckler_backs_off" text="...Fine. Fine. I didn't mean anything by it." />
+		<string id="lmmi_arrive_heckler_beaten" text="He stays down. The loudmouths of this town will think twice for a while." />
+		<string id="lmmi_arrive_heckler_charm" text="Let me buy you a drink, and you can tell me what my people ever did to you." />
+		<string id="lmmi_arrive_heckler_fight" text="Gladly." />
+		<string id="lmmi_arrive_heckler_fists" text="Say that again. To my face." />
+		<string id="lmmi_arrive_heckler_lost" text="He spits on the cobbles next to you as you get up. Half the street saw." />
+		<string id="lmmi_arrive_heckler_refuses" text="Keep talking, {LMMI_HECKLE_SLUR}. Everyone's watching." />
+		<string id="lmmi_arrive_heckler_scoff" text="Or what? You'll set your dogs on me? Go on, then. Everyone's watching." />
+		<string id="lmmi_arrive_heckler_warn" text="Watch your tongue." />
+		<string id="lmmi_arrive_heckler_won_over" text="...Huh. Alright. Maybe you're not like the rest of them." />
+		<string id="lmmi_feast_afternoon" text="The feast runs long into the afternoon. Nobody leaves hungry." />
+		<string id="lmmi_feast_comp_1" text="Now this is living, {PLAYER.NAME}. We should make friends in every town." />
+		<string id="lmmi_feast_comp_2" text="A roof, a fire, and nobody trying to kill us. I'd almost forgotten." />
+		<string id="lmmi_feast_comp_3" text="Don't look now, but {HOST} has been eyeing that ham like it owes them money." />
+		<string id="lmmi_feast_comp_4" text="To you, captain. May the road be kinder tomorrow." />
+		<string id="lmmi_feast_evening" text="The feast runs on into the evening. Nobody leaves hungry." />
+		<string id="lmmi_feast_guest" text="{LMMI_FEAST_GUEST}" />
+		<string id="lmmi_feast_guest_cheers" text="Cheers!" />
+		<string id="lmmi_feast_guest_else" text="There's something else I wanted to ask you." />
+		<string id="lmmi_feast_leave_resp_early" text="Already? We've barely poured the wine. ...Well. I suppose someone like you has somewhere more important to be." />
+		<string id="lmmi_feast_local_1" text="To your health, {?PLAYER.GENDER}my lady{?}my lord{\?}!" />
+		<string id="lmmi_feast_local_2" text="Eat, eat! There's plenty." />
+		<string id="lmmi_feast_local_3" text="Best stew in {SETTLEMENT}, I swear it. My cousin made it." />
+		<string id="lmmi_feast_local_4" text="Another round for our guest!" />
+		<string id="lmmi_feast_local_5" text="They say you've seen half of Calradia. Is it true what they say about the north?" />
+		<string id="lmmi_feast_notable_1" text="{HOST} knows how to keep a table. Mark it — that one's a friend worth having." />
+		<string id="lmmi_feast_notable_2" text="Good company, good food. {SETTLEMENT} hasn't seen a night like this in a while." />
+		<string id="lmmi_feast_notable_3" text="Business can wait until tomorrow. Tonight, we drink." />
+		<string id="lmmi_feast_soldier_1" text="Better than camp stew, eh?" />
+		<string id="lmmi_feast_soldier_2" text="If the lads back at camp could see us now..." />
+		<string id="lmmi_feast_soldier_3" text="To the captain!" />
+		<string id="lmmi_feast_soldier_4" text="I'll march twice as far tomorrow on this, I swear it." />
+		<string id="lmmi_feast_walked_off" text="You walked out of {NAME}'s feast without a word. That won't be forgotten soon." />
+		<string id="lmmi_street_explain_brawl" text="Two youngsters were beating each other bloody. I broke it up." />
+		<string id="lmmi_street_explain_rescue" text="They were harassing a woman. I stepped in." />
+		<string id="lmmi_street_explain_thief" text="That boy cut a purse. I was after him." />
+		<string id="lmmi_street_fined" text="You pay the watch a hundred denars. Justice, of a sort." />
+		<string id="lmmi_street_fined_crime" text="You can't pay the fine. The watch takes your name instead." />
+		<string id="lmmi_street_watch" text="{LMMI_STREET_WATCH}" />
+		<string id="lmmi_street_watch_bribe" text="Here — for your trouble. [50{GOLD_ICON}]" />
+		<string id="lmmi_street_watch_bribed" text="...I didn't see anything. Neither did you." />
+		<string id="lmmi_street_watch_charm" text="[Charm] {LMMI_STREET_EXPLAIN} {LMMI_STREET_CHARM_ODDS}" />
+		<string id="lmmi_street_watch_coming" text="Oi! What's going on over there?" />
+		<string id="lmmi_street_watch_fine" text="Fine. Write it down." />
+		<string id="lmmi_street_watch_fine_resp" text="At least you know how this works." />
+		<string id="lmmi_street_watch_foreign" text="You. {DEMONYM}. Trouble in our streets — I might have known. Explain yourself." />
+		<string id="lmmi_street_watch_honor" text="[Honor] You have my word. I only did what anyone should have. {LMMI_STREET_HONOR_ODDS}" />
+		<string id="lmmi_street_watch_kin" text="What's all this, then? Explain yourself." />
+		<string id="lmmi_street_watch_lost" text="Save it for the magistrate. That's a hundred denars, or your name in the ledger." />
+		<string id="lmmi_street_watch_won" text="...Right. Move along. And next time, fetch the watch." />
+		<string id="lmmi_arrive_heckler_again" text="Is that it?" />
+		<string id="lmmi_arrive_heckler_answer" text="[Answer him]" />
+		<string id="lmmi_arrive_heckler_mercy" text="What my people did, I didn't. Judge me by what I do here." />
+		<string id="lmmi_arrive_heckler_opening" text="Well? Got something to say?" />
+		<string id="lmmi_plea_again" text="...And?" />
+		<string id="lmmi_plea_opening" text="Go on, then. Convince me." />
+		<string id="lmmi_street_confront_again" text="Is that all you've got?" />
+		<string id="lmmi_street_confront_mercy" text="She's somebody's daughter. Go home to yours." />
+		<string id="lmmi_street_confront_opening" text="Talk fast." />
+		<string id="lmmi_street_confront_talk" text="[Talk them down] Listen to me, all of you..." />
+		<string id="lmmi_street_confront_watch" text="The watch is two streets over. Scatter now, and nobody hangs for this." />
+		<string id="lmmi_street_lads_again" text="So?" />
+		<string id="lmmi_street_lads_opening" text="...What?" />
+		<string id="lmmi_street_lads_talk" text="[Talk them down] Enough. Both of you, look at me." />
+		<string id="lmmi_street_lads_watch" text="The watch is coming. Scatter — or spend the night in a cell." />
+		<string id="lmmi_street_watch_again" text="Hm. And?" />
+		<string id="lmmi_street_watch_explain" text="Let me explain." />
+		<string id="lmmi_street_watch_opening" text="Go on, then. I'm listening." />
+		<string id="lmmi_street_watch_rogue" text="Nobody got hurt who didn't have it coming. Let's not make paperwork for either of us." />
+		<string id="lmmi_street_watch_valor" text="I'd do it again. Arrest me for it, if that's the law here." />
+		<string id="lmmi_p_blocked" text="Already tried." />
+		<string id="lmmi_street_cant_leave" text="The guards are on you! Get clear of them first." />
+		<string id="lmmi_street_escaped" text="You slip out of {LMMI_JAIL_TOWN} with the watch at your heels. They'll remember your face." />
+		<string id="lmmi_street_escaped_leave" text="Keep riding" />
+		<string id="lmmi_street_guard_downed" text="A guard goes down. {SETTLEMENT} will remember it." />
+		<string id="lmmi_street_guard_killed" text="You killed a guard of {SETTLEMENT}. They'll hang you for this." />
+		<string id="lmmi_street_jail_walk" text="The watch closes in on either side of you." />
+		<string id="lmmi_street_jailed" text="The watch marches you through the streets of {LMMI_JAIL_TOWN} and down into the cells. {LMMI_JAIL_SENTENCE}" />
+		<string id="lmmi_street_jailed_continue" text="Continue" />
+		<string id="lmmi_street_resist" text="Resisting arrest! Get out of {SETTLEMENT} — every guard you strike down will be remembered." />
+		<string id="lmmi_street_sentence" text="{LMMI_STREET_SENTENCE}" />
+		<string id="lmmi_street_sentence_fight" text="Brawling in the street, and a story to go with it. That's {FINE} denars — or you can explain it to the magistrate from a cell." />
+		<string id="lmmi_street_sentence_jail" text="I'll go quietly." />
+		<string id="lmmi_street_sentence_paid" text="Wise. Now move along." />
+		<string id="lmmi_street_sentence_pay" text="Here. [{LMMI_STREET_FINE}{GOLD_ICON}]" />
+		<string id="lmmi_street_sentence_plain" text="That's {FINE} denars — or a night in the cells. Your choice." />
+		<string id="lmmi_street_sentence_quietly" text="Smart. This way — and no sudden moves." />
+		<string id="lmmi_street_sentence_resist" text="You'll have to take me." />
+		<string id="lmmi_street_sentence_resisted" text="Guards! To me!" />
+		<string id="lmmi_arrive_lord_dine_done" text="Good. Sit by me." />
+		<string id="lmmi_arrive_lord_dine_no" text="Another night, perhaps." />
+		<string id="lmmi_arrive_lord_dine_yes" text="I'd be glad to." />
+		<string id="lmmi_arrive_lord_respect_dine" text="Stay and dine with us tonight. The hall could use better company than it's been getting." />
+		<string id="lmmi_life_dance_1" text="Hey! Hey! Faster!" />
+		<string id="lmmi_life_dance_2" text="Ha! Look at him go!" />
+		<string id="lmmi_life_drunk_1" text="...and I said to him, I said — who're you calling a goat?" />
+		<string id="lmmi_life_drunk_2" text="You're my besht friend. You know that? My besht friend." />
+		<string id="lmmi_life_drunk_3" text="One more! Jusht one more, then home." />
+		<string id="lmmi_life_drunk_4" text="Your wife'll have your hide." />
+		<string id="lmmi_life_moved_1" text="Move along, you. Go on — not in front of the stalls." />
+		<string id="lmmi_life_moved_2" text="Please... just a coin..." />
+		<string id="lmmi_life_preach_1" text="Repent! Heaven sees every coin you cheat your neighbor of!" />
+		<string id="lmmi_life_preach_2" text="Give to the poor, and be given to in turn!" />
+		<string id="lmmi_life_preach_3" text="The rains fail because this city has forgotten its duty!" />
+		<string id="lmmi_life_preach_4" text="Lords make war and the poor bury their sons. Remember that!" />
+		<string id="lmmi_life_quarrel_1" text="You short-weighted me, you thief!" />
+		<string id="lmmi_life_quarrel_2" text="Prove it! Go on, prove it!" />
+		<string id="lmmi_life_quarrel_3" text="That's my stall, and everyone knows it!" />
+		<string id="lmmi_life_quarrel_4" text="Your stall? Your grandfather lost it at dice!" />
+		<string id="lmmi_life_quarrel_5" text="You owe me for the barley, and you know it." />
+		<string id="lmmi_life_quarrel_6" text="After the harvest! I told you — after the harvest!" />
+		<string id="lmmi_prompt_feast" text="{NAME} has come looking for you — something about a table laid in your honor." />
+		<string id="lmmi_prompt_generic" text="{NAME} has come looking for you." />
+		<string id="lmmi_prompt_gratitude" text="{NAME} has come looking for you, to thank you in person." />
+		<string id="lmmi_prompt_later" text="Not now" />
+		<string id="lmmi_prompt_meet" text="Meet them" />
+		<string id="lmmi_prompt_petition" text="{NAME} has come looking for you, with a favor to ask." />
+		<string id="lmmi_prompt_title" text="Someone to see you" />
+		<string id="lmmi_prompt_tribute" text="{NAME} has come to pay their respects." />
+		<string id="lmmi_prompt_warning" text="{NAME} has come looking for you, and wants a quiet word." />
+		<string id="lmmi_street_lure" text="Please, {?PLAYER.GENDER}madam{?}sir{\?}! My brother fell — down that way — and I can't lift him alone. Please, help me!" />
+		<string id="lmmi_street_lure_jeer" text="That's right. Run along." />
+		<string id="lmmi_street_lure_no" text="Find someone else." />
+		<string id="lmmi_street_lure_refused" text="...Suit yourself." />
+		<string id="lmmi_street_lure_robbed" text="You come to with your purse {TAKEN} denars lighter." />
+		<string id="lmmi_street_lure_won" text="They stay down. Word will get around: that one's no easy prey." />
+		<string id="lmmi_street_ran" text="You ran from the fight. The street will talk about that." />
+		<string id="lmmi_street_toughs" text="{LMMI_STREET_TOUGHS}" />
+		<string id="lmmi_street_toughs_again" text="Anything else?" />
+		<string id="lmmi_street_toughs_beat" text="No brother, {SLUR}. Just us. We don't like your kind walking our streets." />
+		<string id="lmmi_street_toughs_come_on" text="Come on, then." />
+		<string id="lmmi_street_toughs_fight" text="Come and take it." />
+		<string id="lmmi_street_toughs_fighting" text="Get {?PLAYER.GENDER}her{?}him{\?}!" />
+		<string id="lmmi_street_toughs_generous" text="Ten denars for your trouble, and we all go home. That's the best deal you'll get today." />
+		<string id="lmmi_street_toughs_lost" text="Enough talk." />
+		<string id="lmmi_street_toughs_opening" text="Go on. Make it good." />
+		<string id="lmmi_street_toughs_paid" text="Pleasure doing business. Don't come back this way." />
+		<string id="lmmi_street_toughs_pay" text="Here. Take it. [{LMMI_STREET_TOLL}{GOLD_ICON}]" />
+		<string id="lmmi_street_toughs_pay_after" text="...Fine. Take it." />
+		<string id="lmmi_street_toughs_ran" text="Ha! Look at {?PLAYER.GENDER}her{?}him{\?} go!" />
+		<string id="lmmi_street_toughs_rogue" text="Half the street saw me come down here. The watch won't be far behind." />
+		<string id="lmmi_street_toughs_run" text="[Back away and run]" />
+		<string id="lmmi_street_toughs_talk" text="[Talk your way out] Think this through, lads." />
+		<string id="lmmi_street_toughs_toll" text="No brother, friend. Just us. {TOLL} denars, and you walk out of here with your teeth." />
+		<string id="lmmi_street_toughs_toll_foreign" text="No brother, {SLUR}. Just us. Your purse — {TOLL} denars — and you walk out of here with your teeth." />
+		<string id="lmmi_street_toughs_valor" text="You picked the wrong mark. Walk away while you still can." />
+		<string id="lmmi_street_toughs_won" text="...Not worth it. Go on, get out of here." />
+		<string id="lmmi_hired_beaten" text="They take their time over it. When they're done, they go through your purse — {LMMI_HIRED_TAKEN}{GOLD_ICON}, &quot;for our trouble&quot; — and leave you in the road with a message: stay out of {LMMI_HIRED_SENDER}'s way." />
+		<string id="lmmi_hired_defy" text="Get it over with." />
+		<string id="lmmi_hired_defy_doomed" text="As you wish.[if:convo_grave][ib:closed2]" />
+		<string id="lmmi_hired_defy_spared" text="...Hah. Not a word of begging. I'll give you that much. Get out of my sight, before I change my mind.[if:convo_approving][ib:warrior]" />
+		<string id="lmmi_hired_delivered" text="Bound and bruised, you're dragged before {LMMI_HIRED_SENDER}." />
+		<string id="lmmi_hired_delivered_face" text="Face them." />
+		<string id="lmmi_hired_dumped" text="Whoever was to pay for the rest of the job can't be found. The sellswords argue it out, empty your purse of {LMMI_HIRED_TAKEN}{GOLD_ICON}, and cut you loose." />
+		<string id="lmmi_hired_fight" text="Come and try it." />
+		<string id="lmmi_hired_fight_resp" text="Have it your way.[if:convo_bared_teeth][ib:aggressive]" />
+		<string id="lmmi_hired_greet" text="{LMMI_HIRED_GREET}" />
+		<string id="lmmi_hired_greet_beat" text="{SENDER} sends regards, {PLAYER.NAME}. Nothing personal — we're paid to leave you sorry, not dead.[if:convo_nonchalant][ib:hip]" />
+		<string id="lmmi_hired_greet_deliver" text="{SENDER} wants a word with you, {PLAYER.NAME} — in person. Come quietly, or come in pieces.[if:convo_predatory][ib:warrior]" />
+		<string id="lmmi_hired_greet_hold" text="{SENDER} pays well for highborn guests, {PLAYER.NAME}. Come quietly, or come in pieces.[if:convo_predatory][ib:warrior]" />
+		<string id="lmmi_hired_hold_curse" text="You'll regret this." />
+		<string id="lmmi_hired_hold_end" text="In good time. Take {?PLAYER.GENDER}her{?}him{\?} away.[if:convo_stern][ib:closed]" />
+		<string id="lmmi_hired_hold_ransom" text="Name your price, then." />
+		<string id="lmmi_hired_humiliate_end" text="It is for today. Empty {?PLAYER.GENDER}her{?}his{\?} purse and throw {?PLAYER.GENDER}her{?}him{\?} out.[if:convo_mocking_revenge][ib:hip]" />
+		<string id="lmmi_hired_humiliate_silent" text="(Say nothing.)" />
+		<string id="lmmi_hired_humiliate_threat" text="This isn't over." />
+		<string id="lmmi_hired_judge" text="{LMMI_HIRED_JUDGE}" />
+		<string id="lmmi_hired_judge_doom" text="Kneel. ...I've waited a long time for this, {PLAYER.NAME}. Any last words, before my men earn their pay?[if:convo_furious][ib:aggressive]" />
+		<string id="lmmi_hired_judge_hold" text="Well, well. {PLAYER.NAME}, at my mercy — and it cost me less than a good horse. You'll be my guest until your people find the ransom.[if:convo_very_stern][ib:closed2]" />
+		<string id="lmmi_hired_judge_humiliate" text="Look at you. I wanted you to see my face, so you'd know who did this to you. Now crawl back to your people — and stay out of my way.[if:convo_contemptuous][ib:hip]" />
+		<string id="lmmi_hired_name" text="Hired Swords" />
+		<string id="lmmi_hired_outbid" text="Whatever {LMMI_HIRED_SENDER} paid you, I'll double it. Turn around. [{LMMI_HIRED_BRIBE}{GOLD_ICON}]" />
+		<string id="lmmi_hired_outbid_resp" text="...Coin's coin. We never found you.[if:convo_mocking_teasing][ib:hip]" />
+		<string id="lmmi_hired_plea_again" text="Is that all?[if:convo_undecided_closed][ib:closed2]" />
+		<string id="lmmi_hired_plea_honor" text="Kill a bound captive, and every hall in Calradia will know what you are." />
+		<string id="lmmi_hired_plea_lost" text="Enough. I've heard enough. Get it done.[if:convo_furious][ib:aggressive]" />
+		<string id="lmmi_hired_plea_lost_held" text="Enough. ...No. Dead, you'd be a martyr. You'll rot in my cells instead.[if:convo_angry][ib:closed2]" />
+		<string id="lmmi_hired_plea_lost_robbed" text="Enough. ...No. Dead, you'd be a martyr. Take everything {?PLAYER.GENDER}she{?}he{\?} has and throw {?PLAYER.GENDER}her{?}him{\?} in the road.[if:convo_angry][ib:closed2]" />
+		<string id="lmmi_hired_plea_mercy" text="Whatever I did to you, my blood won't undo it." />
+		<string id="lmmi_hired_plea_opening" text="Go on, then. Beg.[if:convo_mocking_revenge][ib:closed]" />
+		<string id="lmmi_hired_plea_ransom" text="Dead, I'm worth nothing to you. Alive, my clan will pay whatever you ask." />
+		<string id="lmmi_hired_plea_threat" text="My people know where I rode. Kill me, and they'll burn everything you own." />
+		<string id="lmmi_hired_plea_won" text="...Damn you. You're worth more to me breathing — for now.[if:convo_thinking][ib:closed2]" />
+		<string id="lmmi_hired_plead" text="[Plead for your life] Hear me out. I'm worth more to you alive." />
+		<string id="lmmi_hired_sent_off" text="{NAME}'s people strip your purse of {GOLD}{GOLD_ICON} and throw you out on the road." />
+		<string id="lmmi_hired_telegraph" text="Riders on your trail, closing fast — armed like soldiers, wearing no one's colors. Sellswords, and they're after you." />
+		<string id="lmmi_street_bait_girl" text="Sorry, love. Nothing personal." />
+		<string id="lmmi_street_bait_sorry" text="...Sorry. It was you or me." />
+		<string id="lmmi_street_bait_thief" text="Told you, lads. Soft as butter, this one." />
+		<string id="lmmi_street_explain_setup" text="It was a setup. They lured me down here to rob me, and I defended myself." />
+		<string id="lmmi_street_hunch" text="Something in the way they ask sets your teeth on edge. (Roguery)" />
+		<string id="lmmi_street_injured_here" text="Here — this is him. He came off a ladder and his leg went under him. Can you help me get him up?" />
+		<string id="lmmi_street_injured_howl" text="He howls the moment you touch it. ...Best leave it to a physician. Thank you for trying — I'll get him home." />
+		<string id="lmmi_street_injured_leave" text="He'll live. Fetch a physician." />
+		<string id="lmmi_street_injured_leave_resp" text="...Right. Thanks for nothing." />
+		<string id="lmmi_street_injured_medicine" text="[Medicine] Let me look at that leg first." />
+		<string id="lmmi_street_injured_set" text="You... you set it, like a proper physician! Bless you — we won't forget this." />
+		<string id="lmmi_street_injured_splint" text="You splint the leg with a slat and his own belt. He'll walk on it again." />
+		<string id="lmmi_street_injured_up" text="Up you get. Lean on me." />
+		<string id="lmmi_street_injured_up_resp" text="Thank you. There's not many who'd stop." />
+		<string id="lmmi_street_suspect" text="(Stay where you are) Why come to me? There are people closer." />
+		<string id="lmmi_street_suspect_caught" text="...Forget it. Forget I asked." />
+		<string id="lmmi_street_suspect_right" text="They melt back into the crowd. Whatever was waiting for you is waiting for someone else now." />
+		<string id="lmmi_street_suspect_wronged" text="Because you were here! ...Never mind. I'll find someone who cares." />
+		<string id="lmmi_street_toughs_brawl" text="Fell for it. We weren't fighting each other, friend — we were waiting for you. {TOLL} denars, and you walk out of here with your teeth." />
+		<string id="lmmi_street_toughs_brawl_beat" text="Fell for it, {SLUR}. Now we've got someone worth hitting." />
+		<string id="lmmi_street_toughs_brawl_foreign" text="Fell for it, {SLUR}. We weren't fighting each other — we were waiting for you. {TOLL} denars, and you walk out of here with your teeth." />
+		<string id="lmmi_street_toughs_girl" text="She's with us, friend. Works every time. {TOLL} denars, and you walk out of here with your teeth." />
+		<string id="lmmi_street_toughs_girl_beat" text="She's with us, {SLUR}. Nobody here needs rescuing — except you, and nobody's coming." />
+		<string id="lmmi_street_toughs_girl_foreign" text="She's with us, {SLUR}. Works every time on your kind. {TOLL} denars, and you walk out of here with your teeth." />
+		<string id="lmmi_street_toughs_thief" text="Chased him all this way, friend? Good. {TOLL} denars, and you walk out of here with your teeth." />
+		<string id="lmmi_street_toughs_thief_beat" text="Chased him all this way, {SLUR}? Good. We've been waiting." />
+		<string id="lmmi_street_toughs_thief_foreign" text="Chased him all this way, {SLUR}? Good. {TOLL} denars, and you walk out of here with your teeth." />
+		<string id="lmmi_hired_continue" text="Continue..." />
+		<string id="lmmi_hired_scene" text="{LMMI_HIRED_SCENE}" />
+		<string id="lmmi_hired_scene_beat" text="{PLAYER.NAME}? {SENDER} sends regards. Nothing personal — we're paid to leave you sorry, not dead.[if:convo_nonchalant][ib:hip]" />
+		<string id="lmmi_hired_scene_beaten" text="They take their time over it. When you can see straight again they're gone — and so is {GOLD}{GOLD_ICON}, &quot;for their trouble&quot;. The message was plain: stay out of {SENDER}'s way." />
+		<string id="lmmi_hired_scene_deliver" text="{PLAYER.NAME}. {SENDER} wants a word with you — in person. Come quietly, or we carry you.[if:convo_predatory][ib:warrior]" />
+		<string id="lmmi_hired_scene_hold" text="{PLAYER.NAME}. {SENDER} pays well for highborn guests. Come quietly, or we carry you.[if:convo_predatory][ib:warrior]" />
+		<string id="lmmi_hired_scene_ran" text="You got away from {SENDER}'s hired swords — for now." />
+		<string id="lmmi_hired_scene_take" text="Get it over with." />
+		<string id="lmmi_hired_scene_take_him" text="Take {?PLAYER.GENDER}her{?}him{\?}!" />
+		<string id="lmmi_hired_scene_take_resp" text="Sensible. This won't take long.[if:convo_nonchalant][ib:confident]" />
+		<string id="lmmi_hired_scene_won" text="The last of them goes down. In their leader's purse: {GOLD}{GOLD_ICON} of {SENDER}'s silver." />
+		<string id="lmmi_hired_scene_yield" text="I'll come quietly." />
+		<string id="lmmi_hired_scene_yield_resp" text="Sensible. Hands where we can see them.[if:convo_stern][ib:warrior]" />
+		<string id="lmmi_hired_taken" text="You come to bound across a saddle, riding out of {LMMI_HIRED_TOWN} among {LMMI_HIRED_SENDER}'s hired swords." />
+		<string id="lmmi_street_bait_debtor" text="Told you someone would come running." />
+		<string id="lmmi_street_collect" text="{LMMI_STREET_COLLECT}" />
+		<string id="lmmi_street_collect_again" text="And?" />
+		<string id="lmmi_street_collect_calc" text="Break his hands and he'll never earn it back. Where's your money then?" />
+		<string id="lmmi_street_collect_fight" text="Let go of him." />
+		<string id="lmmi_street_collect_foreign" text="Walk on, {SLUR}. He owes {DEBT} denars, and he pays — one way or another." />
+		<string id="lmmi_street_collect_kin" text="Walk on, friend. He owes {DEBT} denars, and he pays — one way or another." />
+		<string id="lmmi_street_collect_leave" text="...Carry on." />
+		<string id="lmmi_street_collect_left" text="Wise." />
+		<string id="lmmi_street_collect_lost" text="Enough talk. Hold his arm." />
+		<string id="lmmi_street_collect_mercy" text="Give him a week. He's good for it — look at him." />
+		<string id="lmmi_street_collect_opening" text="You've got until I lose my patience." />
+		<string id="lmmi_street_collect_paid" text="...Paid in full. Your lucky day, old man." />
+		<string id="lmmi_street_collect_pay" text="Then I'll pay it. Here. [{LMMI_STREET_DEBT}{GOLD_ICON}]" />
+		<string id="lmmi_street_collect_talk" text="[Talk them down] Think about this for a moment." />
+		<string id="lmmi_street_collect_valor" text="Touch him and you'll answer to me." />
+		<string id="lmmi_street_collect_won" text="...A week. One week, and not a day more." />
+		<string id="lmmi_street_debt" text="Please, {?PLAYER.GENDER}madam{?}sir{\?}! The moneylender's men have my neighbour cornered over a debt — they say they'll break his hands! Please!" />
+		<string id="lmmi_street_debt_after" text="...They took the lot. Everything." />
+		<string id="lmmi_street_debt_lost" text="You come to on the cobbles. They took what he owed — and a little extra for their trouble." />
+		<string id="lmmi_street_debt_menace" text="Next week. Every coin — or it's your hands." />
+		<string id="lmmi_street_debt_no" text="A debt's a debt." />
+		<string id="lmmi_street_debt_refused" text="...Easy to say, with a full purse." />
+		<string id="lmmi_street_explain_debt" text="Moneylender's men were about to break a man's hands over a debt. I stopped them." />
+		<string id="lmmi_street_explain_shakedown" text="One of yours was robbing a man in the street and calling it a fine. I stopped him." />
+		<string id="lmmi_street_headsman" text="At dawn they bring you up into the square. {LMMI_JAIL_KILLED} of the watch dead by your hand — and for that, {LMMI_JAIL_TOWN} has only one sentence." />
+		<string id="lmmi_street_headsman_face" text="Face the headsman." />
+		<string id="lmmi_street_lost" text="Please — have you seen my little one? I turned my back for a moment and he was gone! Please, help me look!" />
+		<string id="lmmi_street_lost_found" text="...Mama?" />
+		<string id="lmmi_street_lost_go" text="I'll help you look." />
+		<string id="lmmi_street_lost_here" text="He was just here — I swear he was just here!" />
+		<string id="lmmi_street_lost_lead" text="He went this way, I think — come!" />
+		<string id="lmmi_street_lost_no" text="He'll turn up." />
+		<string id="lmmi_street_lost_refused" text="...Heaven forgive you." />
+		<string id="lmmi_street_lost_turned_up" text="Somewhere behind you, a woman shrieks with relief. The little one turned up on his own." />
+		<string id="lmmi_street_ran_to_watch" text="They pull up short at the sight of the watch. Half the street saw you run to them." />
+		<string id="lmmi_street_ran_toughs" text="You got away. Half the street watched you run." />
+		<string id="lmmi_street_sentence_days" text="The magistrate gives you {DAYS} days in the cells." />
+		<string id="lmmi_street_sentence_headsman" text="The magistrate will hear it at dawn. With the watch's dead still in the street, nobody expects it to take long." />
+		<string id="lmmi_street_sentence_night" text="The magistrate gives you a night in the cells to think it over." />
+		<string id="lmmi_street_sentence_noble" text="Your name spares your neck. The magistrate gives you {DAYS} days in the cells, and names a blood price for the dead: {GOLD}{GOLD_ICON}." />
+		<string id="lmmi_street_sentenced" text="Sentenced: {DAYS} day(s) in the cells of {TOWN}." />
+		<string id="lmmi_street_served" text="Your time is served. The jailer shoves you out through the gate of {LMMI_JAIL_TOWN} with your gear in a sack. As far as the magistrate is concerned, the matter is closed." />
+		<string id="lmmi_street_shake" text="{LMMI_STREET_SHAKE}" />
+		<string id="lmmi_street_shake_again" text="Anything else?" />
+		<string id="lmmi_street_shake_calc" text="Half the street is watching you. Is this worth your post?" />
+		<string id="lmmi_street_shake_fight" text="Hands off him." />
+		<string id="lmmi_street_shake_fight_resp" text="You'll regret that." />
+		<string id="lmmi_street_shake_foreign" text="Official business, {SLUR}. Move along, before I find something to fine you for." />
+		<string id="lmmi_street_shake_honor" text="Your captain would love to hear how you keep the peace." />
+		<string id="lmmi_street_shake_kin" text="Official business. Move along, friend." />
+		<string id="lmmi_street_shake_leave" text="...Sorry. Carry on." />
+		<string id="lmmi_street_shake_left" text="That's right." />
+		<string id="lmmi_street_shake_lost" text="Move along — or you're next." />
+		<string id="lmmi_street_shake_mercy" text="He's got nothing. Look at him. Let him go." />
+		<string id="lmmi_street_shake_opening" text="Careful, now." />
+		<string id="lmmi_street_shake_paid" text="...Hm. Seems his fine's been paid. Move along, the both of you." />
+		<string id="lmmi_street_shake_pay" text="Whatever his fine is, here. Now leave him be. [{LMMI_STREET_SHAKE_FINE}{GOLD_ICON}]" />
+		<string id="lmmi_street_shake_talk" text="[Talk him down] Is this how the watch keeps the peace?" />
+		<string id="lmmi_street_shake_won" text="...Tch. Get out of here, the both of you." />
+		<string id="lmmi_street_shakedown" text="Please, {?PLAYER.GENDER}madam{?}sir{\?}... one of the watch is shaking down some poor soul over there. &quot;Fines&quot; for nothing. Nobody dares say a word to him." />
+		<string id="lmmi_street_shakedown_after" text="Thieves. The watch are the worst thieves of all." />
+		<string id="lmmi_street_shakedown_lost" text="The guard stands over you, breathing hard. &quot;Assaulting the watch. That's a hundred.&quot; He takes it from your purse himself." />
+		<string id="lmmi_street_shakedown_lost_crime" text="The guard stands over you. &quot;Assaulting the watch.&quot; He takes your name — you'll hear more of this." />
+		<string id="lmmi_street_shakedown_menace" text="Pleasure doing business. Same time next week." />
+		<string id="lmmi_street_shakedown_no" text="I don't cross the watch." />
+		<string id="lmmi_street_shakedown_refused" text="...No. Nobody does." />
+		<string id="lmmi_street_shakedown_won" text="The guard picks himself up and stalks off. He won't report it — how would he explain it? — but he'll know your face." />
+		<string id="lmmi_street_thanks_child_foreign" text="My baby— oh, thank you, thank you. And a {DEMONYM}... I'll never say a word against your people again, not one." />
+		<string id="lmmi_street_thanks_child_kin" text="My baby! Oh, thank you — I thought... thank you. Everyone will hear what you did." />
+		<string id="lmmi_street_thanks_debt_foreign" text="A {DEMONYM}, standing between me and the moneylender's men... Thank you. I owe you now, don't I? Ha. I'll tell everyone." />
+		<string id="lmmi_street_thanks_debt_kin" text="I thought that was it for my hands. Thank you. I'll tell everyone what you did — and I'll pay it back, I swear." />
+		<string id="lmmi_street_thanks_shakedown_foreign" text="A {DEMONYM} standing up to the watch for one of us... I don't know what to say. Thank you. People will hear." />
+		<string id="lmmi_street_thanks_shakedown_kin" text="Nobody stands up to them. Nobody. Thank you — the whole street will hear of it." />
+		<string id="lmmi_street_toughs_after" text="After {?PLAYER.GENDER}her{?}him{\?}!" />
+		<string id="lmmi_street_toughs_caught" text="Got you!" />
+		<string id="lmmi_street_toughs_child" text="The brat's ours, friend — and so's your purse. {TOLL} denars, and you walk out of here with your teeth." />
+		<string id="lmmi_street_toughs_child_beat" text="The brat's ours, {SLUR}. So are you." />
+		<string id="lmmi_street_toughs_child_foreign" text="The brat's ours, {SLUR} — and so's your purse. {TOLL} denars, and you walk out of here with your teeth." />
+		<string id="lmmi_street_toughs_coward" text="Run, then! Run home to your mother!" />
+		<string id="lmmi_street_toughs_debt" text="Funny thing, friend — he doesn't owe us a coin. You do. {TOLL} denars, and you walk out of here with your teeth." />
+		<string id="lmmi_street_toughs_debt_beat" text="Nobody owes anybody, {SLUR}. We just wanted you down here." />
+		<string id="lmmi_street_toughs_debt_foreign" text="Funny thing, {SLUR} — he doesn't owe us a coin. You do. {TOLL} denars, and you walk out of here with your teeth." />
+		<string id="lmmi_street_toughs_watch" text="The watch — leave it!" />
+		<string id="lmmi_street_lost_child" text="{LMMI_STREET_CHILD}" />
+		<string id="lmmi_street_lost_child_come" text="Hush, now. Your mother's looking for you — come on, I'll take you to her." />
+		<string id="lmmi_street_lost_child_foreign" text="*sniff* M-mama says not to talk to {DEMONYM}s... but I can't find her... I want my mama..." />
+		<string id="lmmi_street_lost_child_kin" text="*sniff* I c-can't find my mama... I was only looking at the horses, and then she was gone..." />
+		<string id="lmmi_street_lost_child_leave" text="(Leave him be.)" />
+		<string id="lmmi_street_lost_child_left" text="*sniff*..." />
+		<string id="lmmi_street_lost_child_ok" text="*sniff* ...Promise?" />
+		<string id="lmmi_street_lost_cry_1" text="Mama! Mamaaa!" />
+		<string id="lmmi_street_lost_cry_2" text="*sniff* ...Mama? Where are you?" />
+		<string id="lmmi_street_lost_cry_3" text="I want to go home... I want my mama..." />
+		<string id="lmmi_street_lost_scold" text="There you are! Don't you ever, ever do that again!" />
+		<string id="lmmi_band_despised" text="despised" />
+		<string id="lmmi_band_disliked" text="disliked" />
+		<string id="lmmi_band_honored" text="honored" />
+		<string id="lmmi_band_known" text="known" />
+		<string id="lmmi_band_respected" text="respected" />
+		<string id="lmmi_band_unknown" text="a stranger" />
+		<string id="lmmi_camp_ask" text="How are the men keeping?" />
+		<string id="lmmi_camp_drill" text="On your feet — all of you. Drill." />
+		<string id="lmmi_camp_drill_done" text="They drilled today already. Push them any harder and they'll break." />
+		<string id="lmmi_camp_drill_resp" text="...Yes, captain. On your feet, you heard!" />
+		<string id="lmmi_camp_drilled" text="You drill them until the light goes — {MEN} men, sharper for it, and cursing your name. They've bled enough this week." />
+		<string id="lmmi_camp_drink" text="Break out a cask — the wine's on me tonight. [{LMMI_CAMP_DRINK_COST}{GOLD_ICON}]" />
+		<string id="lmmi_camp_drink_done" text="One cask a night. Any more and nobody stands watch." />
+		<string id="lmmi_camp_drink_resp" text="Lads! The captain's buying! To the captain!" />
+		<string id="lmmi_camp_food_low" text="Food for {DAYS} days, if we're careful." />
+		<string id="lmmi_camp_food_none" text="The stores are all but gone — we eat tomorrow or we don't." />
+		<string id="lmmi_camp_food_ok" text="Plenty in the wagons — {DAYS} days' worth." />
+		<string id="lmmi_camp_hint" text="(Less Menus, More Immersion) The camp button on the map bar (or Ctrl+T) makes camp where you stand — walk among your men." />
+		<string id="lmmi_camp_leave" text="Carry on." />
+		<string id="lmmi_camp_line_1" text="Who's got first watch? Not me. Not again." />
+		<string id="lmmi_camp_line_2" text="My boots are more hole than boot." />
+		<string id="lmmi_camp_line_3" text="Wind's changing. Rain by morning, mark me." />
+		<string id="lmmi_camp_line_4" text="Sing the one about the miller's daughter. No — the other one." />
+		<string id="lmmi_camp_line_5" text="Keep the fire low. No sense telling the whole valley we're here." />
+		<string id="lmmi_camp_line_6" text="Three dice, a sword, and a friend. What more does a man need?" />
+		<string id="lmmi_camp_line_high_1" text="Did you see them run? I'll be telling that one to my grandchildren." />
+		<string id="lmmi_camp_line_high_2" text="Best company I've marched with, and I've marched with a few." />
+		<string id="lmmi_camp_line_high_3" text="Pass the skin — a toast to the captain!" />
+		<string id="lmmi_camp_line_hungry_1" text="Is there anything in that pot but water?" />
+		<string id="lmmi_camp_line_hungry_2" text="My belt's on the last notch. The last one." />
+		<string id="lmmi_camp_line_low_1" text="Another day's march to nowhere." />
+		<string id="lmmi_camp_line_low_2" text="I didn't sign on to die in a ditch for nothing." />
+		<string id="lmmi_camp_line_low_3" text="If we don't see a fight or a town soon, I'll desert myself." />
+		<string id="lmmi_camp_man" text="{LMMI_CAMP_GREET}" />
+		<string id="lmmi_camp_man_high" text="Captain! Fine night for it. Pull up a log." />
+		<string id="lmmi_camp_man_low" text="...Captain. The lads are grumbling, if you want it straight." />
+		<string id="lmmi_camp_man_mid" text="Captain." />
+		<string id="lmmi_camp_morale_high" text="in fine spirits" />
+		<string id="lmmi_camp_morale_low" text="grumbling" />
+		<string id="lmmi_camp_morale_mid" text="holding up" />
+		<string id="lmmi_camp_no_army" text="You march with someone else's army; they decide where to camp." />
+		<string id="lmmi_camp_no_battle" text="Not in the middle of an encounter." />
+		<string id="lmmi_camp_no_free" text="You're in no position to make camp." />
+		<string id="lmmi_camp_no_sea" text="There's nowhere to pitch a tent at sea." />
+		<string id="lmmi_camp_no_talk" text="Not now." />
+		<string id="lmmi_camp_no_town" text="You can't make camp inside a settlement." />
+		<string id="lmmi_camp_no_wounded" text="Nobody on the sick list, for once." />
+		<string id="lmmi_camp_report" text="{LMMI_CAMP_REPORT}" />
+		<string id="lmmi_camp_report_line" text="The men are {MORALE}. {FOOD} {WOUNDED}" />
+		<string id="lmmi_camp_spar" text="Fancy a bout? Fists only." />
+		<string id="lmmi_camp_spar_lost" text="You're on your back, looking at the stars. The camp roars." />
+		<string id="lmmi_camp_spar_resp" text="With you, captain? ...Alright. Don't hold it against me." />
+		<string id="lmmi_camp_spar_won" text="He stays down, laughing. The men will be talking about that for days." />
+		<string id="lmmi_camp_story" text="[Leadership] Gather round, lads. Let me tell you how it really went, that time..." />
+		<string id="lmmi_camp_story_bad" text="Somewhere around the second ambush, someone starts snoring." />
+		<string id="lmmi_camp_story_done" text="They've heard all your stories this week. Twice." />
+		<string id="lmmi_camp_story_good" text="By the end they're on their feet, roaring. They'll tell it better than you did." />
+		<string id="lmmi_camp_story_resp" text="Oi! Quiet, you lot — the captain's telling one!" />
+		<string id="lmmi_camp_wounded" text="{N} still nursing wounds." />
+		<string id="lmmi_castle_castellan" text="{LMMI_CASTELLAN}" />
+		<string id="lmmi_castle_castellan_foreign" text="I keep {CASTLE} for {LORD}. State your business, {DEMONYM}, and be quick about it." />
+		<string id="lmmi_castle_castellan_hail" text="The castellan of {CASTLE}. If you've business, I'm the one to see." />
+		<string id="lmmi_castle_castellan_hail_owner" text="My {?PLAYER.GENDER}lady{?}lord{\?}. Welcome home." />
+		<string id="lmmi_castle_castellan_kin" text="I keep {CASTLE} for {LORD}. What's your business?" />
+		<string id="lmmi_castle_castellan_leave" text="That's all." />
+		<string id="lmmi_castle_castellan_news" text="Any news from the roads?" />
+		<string id="lmmi_castle_castellan_news_line" text="{LMMI_CASTLE_NEWS}" />
+		<string id="lmmi_castle_castellan_owner" text="My {?PLAYER.GENDER}lady{?}lord{\?}. The garrison stands ready. What do you need?" />
+		<string id="lmmi_castle_castellan_report" text="Report." />
+		<string id="lmmi_castle_castellan_report_line" text="{LMMI_CASTLE_REPORT}" />
+		<string id="lmmi_castle_castellan_vets" text="Could your lord spare a few of the garrison?" />
+		<string id="lmmi_castle_castellan_vets_done" text="They'll report to your sergeant. Feed them well — they're used to it." />
+		<string id="lmmi_castle_castellan_vets_no_line" text="{LMMI_CASTLE_REFUSAL}" />
+		<string id="lmmi_castle_castellan_vets_no_thanks" text="Too rich for me." />
+		<string id="lmmi_castle_castellan_vets_none" text="The garrison's thin as it is. I can't spare a single man." />
+		<string id="lmmi_castle_castellan_vets_offer" text="{LMMI_CASTLE_OFFER}" />
+		<string id="lmmi_castle_castellan_vets_offer_line" text="I can spare {MEN} of them — {LIST}. {COST} denars, to cover their pay and my lord's trouble." />
+		<string id="lmmi_castle_castellan_vets_yes" text="Done. [{LMMI_CASTLE_VETS_COST}{GOLD_ICON}]" />
+		<string id="lmmi_castle_courier_1" text="Riders from the border, castellan! News!" />
+		<string id="lmmi_castle_courier_heard" text="You overhear the courier's report: {NEWS}" />
+		<string id="lmmi_castle_dice_1" text="Sixes! Pay up, the lot of you." />
+		<string id="lmmi_castle_dice_2" text="Those dice are loaded, I swear it." />
+		<string id="lmmi_castle_dice_3" text="Loaded with luck, friend. Another round?" />
+		<string id="lmmi_castle_drill_1" text="Shields UP! Up, I said! You call that a shield wall? My grandmother holds a wall better than that!" />
+		<string id="lmmi_castle_drill_2" text="Yes, sergeant! Sorry, sergeant!" />
+		<string id="lmmi_castle_drill_3" text="Again! Until your arms fall off — and then again!" />
+		<string id="lmmi_castle_drill_tired" text="They drilled only days ago. Push them now and they'll break." />
+		<string id="lmmi_castle_drilled" text="The garrison drills from dawn to dusk under your eye — {MEN} men, harder and sharper for it." />
+		<string id="lmmi_castle_master" text="{LMMI_CASTLE_MASTER}" />
+		<string id="lmmi_castle_master_drill" text="Drill the garrison. Hard." />
+		<string id="lmmi_castle_master_drill_resp" text="Yes, my {?PLAYER.GENDER}lady{?}lord{\?}. They'll curse your name by noon and thank you by the next siege." />
+		<string id="lmmi_castle_master_foreign" text="A {DEMONYM} in our yard. Care to see how we fight here? Bare-handed — I'd rather not explain a dead guest." />
+		<string id="lmmi_castle_master_hail" text="You there! Fancy yourself with your fists? The lads could use a new face to knock down." />
+		<string id="lmmi_castle_master_hail_owner" text="Shields up — the {?PLAYER.GENDER}lady{?}lord{\?}'s watching!" />
+		<string id="lmmi_castle_master_kin" text="Master-at-arms. Care to cross fists with one of my lads? Bare-handed — I'd rather not explain a dead guest." />
+		<string id="lmmi_castle_master_leave" text="Another time." />
+		<string id="lmmi_castle_master_left" text="The yard's always open." />
+		<string id="lmmi_castle_master_owner" text="My {?PLAYER.GENDER}lady{?}lord{\?}. The men are drilling — care to show them how it's done?" />
+		<string id="lmmi_castle_master_spar" text="Put me against one of your men." />
+		<string id="lmmi_castle_master_spar_resp" text="Ha! That's the spirit. Weapons down — fists only." />
+		<string id="lmmi_castle_master_train" text="Put my companions through their paces. [{LMMI_CASTLE_TRAIN_COST}{GOLD_ICON}]" />
+		<string id="lmmi_castle_master_train_resp" text="Leave them with me. You'll get them back sore, and better." />
+		<string id="lmmi_castle_master_wager" text="And a hundred denars says I put him down. [100{GOLD_ICON}]" />
+		<string id="lmmi_castle_master_wager_resp" text="A wager! Now the lads will fight properly. Done." />
+		<string id="lmmi_castle_news_army" text="{LEADER}'s army — {MEN} men, more or less — was seen near {PLACE}." />
+		<string id="lmmi_castle_news_party" text="{LEADER} is riding near {PLACE} with {MEN} men." />
+		<string id="lmmi_castle_news_quiet" text="The roads are quiet. Too quiet, if you ask me." />
+		<string id="lmmi_castle_news_wilds" text="the wilds" />
+		<string id="lmmi_castle_no_lord" text="the realm" />
+		<string id="lmmi_castle_prisoner_1" text="Water... please, just a mouthful..." />
+		<string id="lmmi_castle_prisoner_2" text="Keep walking. You'll get your water when the lord says." />
+		<string id="lmmi_castle_report" text="{GARRISON} men in the garrison, {PRISONERS} in the cells. {FOOD} Loyalty is {LOYALTY}, the roads are {SECURITY}." />
+		<string id="lmmi_castle_report_food_days" text="Food for {DAYS} days at this rate." />
+		<string id="lmmi_castle_report_food_ok" text="The stores are holding." />
+		<string id="lmmi_castle_spar_begin" text="Right, lads — make room! First one on his back loses." />
+		<string id="lmmi_castle_spar_lost" text="Down you go! Don't take it hard — he does this to everyone." />
+		<string id="lmmi_castle_spar_won" text="Ha! Not bad at all. Someone help him up." />
+		<string id="lmmi_castle_spar_won_plain" text="The yard roars. The garrison will be talking about that bout for a week." />
+		<string id="lmmi_castle_spar_won_purse" text="The yard roars. You collect {GOLD}{GOLD_ICON} from the grumbling garrison." />
+		<string id="lmmi_castle_train_tired" text="Your companions are still aching from the last time." />
+		<string id="lmmi_castle_trained" text="The master-at-arms drills your companions until they can barely stand: {NAMES}." />
+		<string id="lmmi_castle_vets_foreign" text="The garrison isn't for hire — least of all to a {DEMONYM}." />
+		<string id="lmmi_castle_vets_spent" text="He's already spared what he can this week." />
+		<string id="lmmi_castle_vets_stranger" text="My lord doesn't know you. The garrison isn't for hire to strangers." />
+		<string id="lmmi_castle_vets_taken" text="{MEN} of {CASTLE}'s garrison join your company." />
+		<string id="lmmi_castle_vets_war" text="Our men, for an enemy of the realm? Get out of my sight before I call the guard." />
+		<string id="lmmi_castle_word_high" text="good" />
+		<string id="lmmi_castle_word_low" text="poor" />
+		<string id="lmmi_castle_word_mid" text="middling" />
+		<string id="lmmi_court_again" text="And?" />
+		<string id="lmmi_court_arg_calc" text="A ruined farmer pays no taxes next year. This is the cheaper ruling." />
+		<string id="lmmi_court_arg_honor" text="Your people are watching how you judge the least of them. So is your name." />
+		<string id="lmmi_court_arg_mercy" text="They've nothing left to give. Mercy costs you less than their despair will." />
+		<string id="lmmi_court_back_lord" text="Justice must be seen to be done, {LMMI_COURT_LORD}. Rule as you see fit." />
+		<string id="lmmi_court_backed" text="Quite so." />
+		<string id="lmmi_court_deny_generic" text="Refused." />
+		<string id="lmmi_court_deny_grain" text="The tax is the tax. If I spare you, I spare every village in the valley." />
+		<string id="lmmi_court_deny_poacher" text="The law is the law. Take his hand." />
+		<string id="lmmi_court_deny_pressed" text="He serves. We're at war, and every man counts." />
+		<string id="lmmi_court_deny_widow" text="The land passes to the brother. That's custom." />
+		<string id="lmmi_court_despair" text="...Then heaven help us." />
+		<string id="lmmi_court_feud_a" text="{LMMI_COURT_A} is in the right." />
+		<string id="lmmi_court_feud_b" text="{LMMI_COURT_B} is in the right." />
+		<string id="lmmi_court_feud_resp" text="It'll be done as you say." />
+		<string id="lmmi_court_feud_split" text="[Charm] They share the loss, shake hands, and I hear no more of it." />
+		<string id="lmmi_court_feud_split_no" text="Neither will give an inch. Now both of them resent you." />
+		<string id="lmmi_court_feud_split_ok" text="They shake — grudgingly. The street settles." />
+		<string id="lmmi_court_feud_split_resp" text="...We'll see if they shake." />
+		<string id="lmmi_court_grain_half" text="Half the grain goes back. The other half is owed." />
+		<string id="lmmi_court_grain_half_resp" text="...Half. It'll be a thin year, but we'll live. Thank you." />
+		<string id="lmmi_court_grain_no" text="The tax is the tax." />
+		<string id="lmmi_court_grain_no_resp" text="...Then heaven help us." />
+		<string id="lmmi_court_grain_pay" text="Here — two hundred from my own purse. Buy seed. [200{GOLD_ICON}]" />
+		<string id="lmmi_court_grain_pay_resp" text="Bless you, {?PLAYER.GENDER}my lady{?}my lord{\?}! The village won't forget this." />
+		<string id="lmmi_court_grant_generic" text="Granted." />
+		<string id="lmmi_court_grant_grain" text="Give them back their seed. A field that isn't sown pays no tax." />
+		<string id="lmmi_court_grant_poacher" text="Let him go. A hungry man isn't a thief — this once." />
+		<string id="lmmi_court_grant_pressed" text="Send the boy home. The garrison can spare one farmer's son." />
+		<string id="lmmi_court_grant_widow" text="The field is hers while she lives. Tell the brother he'll answer to me." />
+		<string id="lmmi_court_intercede" text="[Speak for the petitioner] Hear them out, {LMMI_COURT_LORD}." />
+		<string id="lmmi_court_lord" text="I'm hearing a petition. Unless you've something to add to it?" />
+		<string id="lmmi_court_lost" text="Enough. You forget whose hall this is." />
+		<string id="lmmi_court_loyalty" text="Loyalty" />
+		<string id="lmmi_court_my_lady" text="my lady" />
+		<string id="lmmi_court_my_lord" text="my lord" />
+		<string id="lmmi_court_nothing" text="Nothing. Carry on." />
+		<string id="lmmi_court_opening" text="Go on. Briefly." />
+		<string id="lmmi_court_own" text="{LMMI_COURT_PLEA}" />
+		<string id="lmmi_court_own_later" text="Not now. Come back another day." />
+		<string id="lmmi_court_own_later_resp" text="...Yes, {?PLAYER.GENDER}my lady{?}my lord{\?}." />
+		<string id="lmmi_court_plea_feud" text="{LORD}, {A} and {B} are at each other's throats over a debt — the whole street's taking sides. Only you can settle it." />
+		<string id="lmmi_court_plea_generic" text="{LORD}, I beg you to hear me." />
+		<string id="lmmi_court_plea_grain" text="{LORD}, the tax collector took our seed grain along with the tax. Without it there's no crop next year — we'll starve before spring." />
+		<string id="lmmi_court_plea_poacher" text="{LORD}, it was one deer — one! My children hadn't eaten in three days. Have mercy!" />
+		<string id="lmmi_court_plea_pressed" text="{LORD}, your men took my son for the garrison. He's all I have to work the land — please, send him home." />
+		<string id="lmmi_court_plea_quartered" text="{LORD}, your soldiers are quartered in my house. They've eaten my stores bare, and one of them won't keep his hands off my daughter." />
+		<string id="lmmi_court_plea_widow" text="{LORD}, my husband's not a month in the ground and his brother's claimed our field. Where am I to go?" />
+		<string id="lmmi_court_poacher_fine" text="A fine, and a warning. Next time it's the hand." />
+		<string id="lmmi_court_poacher_fine_resp" text="Yes — yes, thank you. It won't happen again." />
+		<string id="lmmi_court_poacher_free" text="Let him go. A hungry man isn't a thief." />
+		<string id="lmmi_court_poacher_free_resp" text="Bless you! I'll — I'll not forget this." />
+		<string id="lmmi_court_poacher_hang" text="Hang him. The forest law is plain." />
+		<string id="lmmi_court_poacher_hang_resp" text="No! No — please—" />
+		<string id="lmmi_court_pressed_free" text="Send the boy home. The garrison can spare one farmer's son." />
+		<string id="lmmi_court_pressed_free_resp" text="Thank you — thank you! I'll tell everyone how you judged." />
+		<string id="lmmi_court_pressed_keep" text="He serves. We need every man on the walls." />
+		<string id="lmmi_court_pressed_keep_resp" text="...Then keep him alive, at least. Please." />
+		<string id="lmmi_court_quartered_no" text="They're here to defend you. Feed them, and hold your tongue." />
+		<string id="lmmi_court_quartered_no_resp" text="...As you say." />
+		<string id="lmmi_court_quartered_pay" text="I'll pay for what they ate — and the man answers to me. [150{GOLD_ICON}]" />
+		<string id="lmmi_court_quartered_pay_resp" text="That's more than fair. Thank you." />
+		<string id="lmmi_court_security" text="Security" />
+		<string id="lmmi_court_thanks" text="Bless you, my lord — bless you!" />
+		<string id="lmmi_court_widow_custom" text="Custom gives it to the brother. I won't overturn custom." />
+		<string id="lmmi_court_widow_custom_resp" text="...I understand. I'll go to my sister's." />
+		<string id="lmmi_court_widow_hers" text="The field is hers while she lives. The brother can wait." />
+		<string id="lmmi_court_widow_hers_resp" text="Thank you. I'd nowhere else to go." />
+		<string id="lmmi_court_won" text="...Very well. You make a fair point." />
+		<string id="lmmi_gossip_army" text="{LEADER} has an army in the field — {MEN} strong, last I heard. Someone's going to bleed." />
+		<string id="lmmi_gossip_peace" text="Peace. Enjoy it. It never lasts past the harvest." />
+		<string id="lmmi_gossip_prisoner" text="They say {PRISONER} is rotting in the cells at {PLACE}. Nobody's paid the ransom." />
+		<string id="lmmi_gossip_war" text="The war with {KINGDOM} drags on. Every week, more widows — and still the council talks of glory." />
+		<string id="lmmi_gossip_you" text="That's {PLAYER.NAME}, over there. They say {DEED}." />
+		<string id="lmmi_gossip_you_despised" text="{?PLAYER.GENDER}she{?}he{\?} should've been run out of the gates long ago" />
+		<string id="lmmi_gossip_you_disliked" text="{?PLAYER.GENDER}she's{?}he's{\?} nothing but trouble" />
+		<string id="lmmi_gossip_you_honored" text="the town would follow {?PLAYER.GENDER}her{?}him{\?} into a fire" />
+		<string id="lmmi_gossip_you_known" text="{?PLAYER.GENDER}she's{?}he's{\?} done right by the town" />
+		<string id="lmmi_gossip_you_respected" text="{?PLAYER.GENDER}she's{?}he's{\?} a friend to this place" />
+		<string id="lmmi_standing_band_down" text="Word gets around {SETTLEMENT}, and not kindly: you're {BAND} there now." />
+		<string id="lmmi_standing_band_up" text="Word gets around {SETTLEMENT}: you're {BAND} there now." />
+		<string id="lmmi_standing_enter_despised" text="In {SETTLEMENT}, doors close as you pass. They know what you've done here." />
+		<string id="lmmi_standing_enter_disliked" text="Muttering follows you through the gates of {SETTLEMENT}." />
+		<string id="lmmi_standing_enter_honored" text="In {SETTLEMENT}, people stop to greet you by name. You're honored here." />
+		<string id="lmmi_standing_enter_known" text="In {SETTLEMENT}, a few faces turn your way — they've heard of you." />
+		<string id="lmmi_standing_enter_respected" text="Your name is well spoken of in {SETTLEMENT}." />
+		<string id="lmmi_standing_lord_down" text="{LORD} has heard what {SETTLEMENT} thinks of you." />
+		<string id="lmmi_standing_lord_up" text="Word of how {SETTLEMENT} speaks of you has reached {LORD}." />
+		<string id="lmmi_street_fined_n" text="You pay the watch {FINE} denars. Justice, of a sort." />
+		<string id="lmmi_street_thanks_judged_foreign" text="A {DEMONYM}, settling our quarrels, and fairly too. Who'd have thought. The whole village will hear of it." />
+		<string id="lmmi_street_thanks_judged_kin" text="Thank you. They'd have been at it with scythes by nightfall. The whole village will hear you were fair." />
+		<string id="lmmi_street_thanks_raiders_foreign" text="A {DEMONYM}, bleeding for our sheep... I'll not hear a word against your people again. There's bread and ale at every door for you tonight." />
+		<string id="lmmi_street_thanks_raiders_kin" text="You ran them off! The whole flock — bless you. There's bread and ale at every door for you tonight." />
+		<string id="lmmi_street_toughs_dispute" text="Everybody wants to be a judge. Here's our ruling, friend: {TOLL} denars, and you walk away with your teeth." />
+		<string id="lmmi_street_toughs_dispute_beat" text="Nobody's arguing about any stone, {SLUR}. We just wanted you out here." />
+		<string id="lmmi_street_toughs_dispute_foreign" text="Everybody wants to be a judge, {SLUR}. Here's our ruling: {TOLL} denars, and you walk away with your teeth." />
+		<string id="lmmi_street_toughs_harvest" text="Only thing we're harvesting today is your purse, friend. {TOLL} denars, and you walk away with your teeth." />
+		<string id="lmmi_street_toughs_harvest_beat" text="Only thing we're harvesting today is you, {SLUR}." />
+		<string id="lmmi_street_toughs_harvest_foreign" text="Only thing we're harvesting today is your purse, {SLUR}. {TOLL} denars, and you walk away with your teeth." />
+		<string id="lmmi_village_dispute" text="{?PLAYER.GENDER}My lady{?}Sir{\?}, please — two of our neighbours are at each other's throats over a boundary stone, and the headman's no use. They'll listen to someone like you. Before blood's spilled!" />
+		<string id="lmmi_village_dispute_bought" text="Bought and paid for! I knew it!" />
+		<string id="lmmi_village_dispute_bribe" text="[Roguery] Make it worth my while, and I'll say whose stone it is." />
+		<string id="lmmi_village_dispute_bribe_resp" text="...Here. Forty denars. Now say it." />
+		<string id="lmmi_village_dispute_calc" text="Whoever sows that strip this year gives the other a tenth of the crop. Everyone eats." />
+		<string id="lmmi_village_dispute_calc_resp" text="...A tenth. Hm. I can live with a tenth." />
+		<string id="lmmi_village_dispute_claim" text="{LMMI_DISPUTE}" />
+		<string id="lmmi_village_dispute_claim_foreign" text="Even a {DEMONYM} can see it — he moved the boundary stone ten paces into my barley in the night! Tell him!" />
+		<string id="lmmi_village_dispute_claim_kin" text="He moved the boundary stone in the night — ten paces into my barley! You've eyes, {?PLAYER.GENDER}my lady{?}sir{\?} — tell him!" />
+		<string id="lmmi_village_dispute_honor" text="The stone goes back where it stood. Old boundaries are the law here." />
+		<string id="lmmi_village_dispute_honor_resp" text="Ha! You hear that? Back it goes!" />
+		<string id="lmmi_village_dispute_leave" text="Settle it yourselves." />
+		<string id="lmmi_village_dispute_left" text="Fine! Then we will!" />
+		<string id="lmmi_village_dispute_no" text="Not my village, not my stone." />
+		<string id="lmmi_village_dispute_other" text="Don't listen to him! That stone's stood there since my grandfather's day!" />
+		<string id="lmmi_village_dispute_refused" text="...Then they'll settle it with their fists." />
+		<string id="lmmi_village_dispute_split" text="[Charm] Split the strip between you, and shake on it — then you both still have a neighbour." />
+		<string id="lmmi_village_dispute_split_no" text="Split it? Split MY land with that thief? Never!" />
+		<string id="lmmi_village_dispute_split_ok" text="...Half. Half, and he buys the first round. ...Alright. Alright." />
+		<string id="lmmi_village_dispute_sulk" text="...Fine. FINE. Back it goes." />
+		<string id="lmmi_village_harvest" text="{LMMI_HARVEST}" />
+		<string id="lmmi_village_harvest_ask" text="Storm's coming over the hills and half the {CROP} is still in the field. We could use every pair of hands — even yours, {?PLAYER.GENDER}madam{?}sir{\?}!" />
+		<string id="lmmi_village_harvest_done" text="You work the fields until your back aches and the first drops fall. The {CROP} is in. They press {BAGS} sacks of it on you, and won't hear a refusal." />
+		<string id="lmmi_village_harvest_go" text="I'll lend a hand." />
+		<string id="lmmi_village_harvest_lead" text="Bless you! The field's this way — quick, before it breaks!" />
+		<string id="lmmi_village_harvest_men" text="My men will help." />
+		<string id="lmmi_village_harvest_men_done" text="Your men spend the afternoon in the fields. They come back sunburnt, grumbling, and carrying a sack of thanks." />
+		<string id="lmmi_village_harvest_men_resp" text="Soldiers in the fields! Well, why not — bless you!" />
+		<string id="lmmi_village_harvest_no" text="Not today." />
+		<string id="lmmi_village_harvest_refused" text="...Suit yourself." />
+		<string id="lmmi_village_raiders" text="Looters! At the edge of the village — they're driving off our sheep! Please, {?PLAYER.GENDER}madam{?}sir{\?}, you've a blade!" />
+		<string id="lmmi_village_raiders_gone" text="The looters drive half the flock off into the hills." />
+		<string id="lmmi_village_raiders_lost" text="You come to in the grass. The looters are gone — and so is half the flock." />
+		<string id="lmmi_village_raiders_men" text="My men will see to it." />
+		<string id="lmmi_village_raiders_men_done" text="Your men run the looters out past the last field. The flock comes home." />
+		<string id="lmmi_village_raiders_men_resp" text="Bless you — bless you all!" />
+		<string id="lmmi_village_raiders_no" text="Not my sheep." />
+		<string id="lmmi_village_raiders_refused" text="...Then we'll go hungry this winter." />
+		<string id="lmmi_village_raiders_spotted" text="Oi! This one wants a fight — have at {?PLAYER.GENDER}her{?}him{\?}!" />
+		<string id="lmmi_village_raiders_won" text="The looters scatter, leaving the flock and {GOLD}{GOLD_ICON} in a dropped purse." />
+		<string id="lmmi_dice_10" text="Ten denars. [10{GOLD_ICON}]" />
+		<string id="lmmi_dice_100" text="A hundred. [100{GOLD_ICON}]" />
+		<string id="lmmi_dice_50" text="Fifty. [50{GOLD_ICON}]" />
+		<string id="lmmi_dice_again" text="Another round." />
+		<string id="lmmi_dice_answer" text="Always. What's the stake?" />
+		<string id="lmmi_dice_ask" text="Fancy a game of dice?" />
+		<string id="lmmi_dice_caught" text="Hold on — let me see those. ...LOADED! Cheat! You'll pay double, or I'll have the whole room on you!" />
+		<string id="lmmi_dice_cheat" text="[Roguery] Fifty — and we'll use my dice. [50{GOLD_ICON}]" />
+		<string id="lmmi_dice_enough" text="That's enough for me." />
+		<string id="lmmi_dice_lost" text="{MINE} against {THEIRS} — mine! Better luck next round." />
+		<string id="lmmi_dice_nevermind" text="On second thought, no." />
+		<string id="lmmi_dice_refuse" text="{LMMI_DICE_REFUSAL}" />
+		<string id="lmmi_dice_refuse_foreign" text="I don't dice with {DEMONYM}s. Find your own kind." />
+		<string id="lmmi_dice_refuse_wins" text="Not with you. You've cleaned out half the room tonight." />
+		<string id="lmmi_dice_result" text="{LMMI_DICE_RESULT}" />
+		<string id="lmmi_dice_result_caught" text="{LMMI_DICE_RESULT}" />
+		<string id="lmmi_dice_won" text="{MINE} against {THEIRS}. ...Yours. Curse your luck." />
+		<string id="lmmi_hired_warn_companion" text="{WHO} pulls you aside: word in the taverns is that {SENDER} has put a price on your head." />
+		<string id="lmmi_hired_warn_friend" text="A message from {WHO}: be careful — {SENDER} has hired swords to find you." />
+		<string id="lmmi_hired_warn_self" text="A whisper you weren't meant to hear: {SENDER} has put a price on your head." />
+		<string id="lmmi_lords_grievance" text="I've a grievance against {LMMI_GRIEVANCE_SENDER}, who answers to you. {?LMMI_GRIEVANCE_FEMALE}She{?}He{\?} paid sellswords to come after me." />
+		<string id="lmmi_lords_grievance_again" text="And?" />
+		<string id="lmmi_lords_grievance_argue" text="Their own men named {LMMI_GRIEVANCE_SENDER} — and came with {?LMMI_GRIEVANCE_FEMALE}her{?}his{\?} silver in their purses." />
+		<string id="lmmi_lords_grievance_calc" text="A vassal who hires knives against your guests will one day hire them against you." />
+		<string id="lmmi_lords_grievance_drop" text="...Nothing I can prove. Forget I spoke." />
+		<string id="lmmi_lords_grievance_fined" text="{LORD} fines {SENDER} {FINE} denars before the court — half of it to you." />
+		<string id="lmmi_lords_grievance_generous" text="Let it be seen to be settled, and I'll bear no grudge against your house." />
+		<string id="lmmi_lords_grievance_honor" text="I ask for justice, nothing more. Your law, applied to your own." />
+		<string id="lmmi_lords_grievance_lost" text="I'll not have my own shamed on the word of hired thugs. Leave it." />
+		<string id="lmmi_lords_grievance_opening" text="Go on." />
+		<string id="lmmi_lords_grievance_resp" text="That's a grave charge against one of my own. What proof do you have?" />
+		<string id="lmmi_lords_grievance_won" text="...You're right. {LMMI_GRIEVANCE_SENDER} will answer for this, and pay for it." />
+		<string id="lmmi_lords_praise" text="Word reaches you: {LORD} has been speaking well of you. {N} of {LORD}'s friends think better of you for it." />
+		<string id="lmmi_lords_rep_best" text=" In {PLACE} they're fond of you." />
+		<string id="lmmi_lords_rep_distrusted" text="At the court of {KINGDOM}, they don't trust you. I'd tread carefully." />
+		<string id="lmmi_lords_rep_hated" text="They hate you in {KINGDOM}. I'd not turn my back at court, were I you." />
+		<string id="lmmi_lords_rep_liked" text="The lords of {KINGDOM} speak well of you — most would ride with you." />
+		<string id="lmmi_lords_rep_line" text="{COURT}{BEST}{WORST}{TALK}" />
+		<string id="lmmi_lords_rep_respected" text="In {KINGDOM} your name carries some weight. Men listen when it's spoken." />
+		<string id="lmmi_lords_rep_slander" text=" And {NAME} has been saying things about you. I'd find out why." />
+		<string id="lmmi_lords_rep_unknown" text="Honestly? Most at the court of {KINGDOM} couldn't put a face to your name." />
+		<string id="lmmi_lords_rep_worst" text=" In {PLACE}, though, they spit at your name." />
+		<string id="lmmi_lords_reputation" text="What do they say of me at court?" />
+		<string id="lmmi_lords_reputation_resp" text="{LMMI_REPUTATION}" />
+		<string id="lmmi_lords_revenge" text="I need some men to deal with someone for me. Quietly." />
+		<string id="lmmi_lords_revenge_done" text="Give it a day or three. You'll hear. Everyone will." />
+		<string id="lmmi_lords_revenge_done_lord" text="Word comes: {TARGET}'s column was set upon by sellswords on the road. They left with {TARGET}'s purse, and {TARGET} is abed with wounds." />
+		<string id="lmmi_lords_revenge_done_notable" text="Word comes: {TARGET} was waylaid in a back street and badly beaten. {TARGET}'s strongbox is lighter, too." />
+		<string id="lmmi_lords_revenge_failed" text="Word comes: the men you paid for came back bloodied and empty-handed. {TARGET} was ready for them." />
+		<string id="lmmi_lords_revenge_found" text="And {TARGET} knows who paid for it." />
+		<string id="lmmi_lords_revenge_no" text="Too rich for me." />
+		<string id="lmmi_lords_revenge_nobody" text="...On second thought, no one." />
+		<string id="lmmi_lords_revenge_price" text="{LMMI_REVENGE_QUOTE}" />
+		<string id="lmmi_lords_revenge_quote_lord" text="{NAME}? That's no back-alley job — a lord rides with a guard. {PRICE} denars, and I'll find men who don't mind the risk. No promises." />
+		<string id="lmmi_lords_revenge_quote_notable" text="{NAME}... I know where {NAME} drinks. {PRICE} denars, and {NAME} won't walk right for a month." />
+		<string id="lmmi_lords_revenge_target_lord" text="{NAME}, and whoever rides with {NAME}." />
+		<string id="lmmi_lords_revenge_target_notable" text="{NAME}." />
+		<string id="lmmi_lords_revenge_who" text="Who?" />
+		<string id="lmmi_lords_revenge_yes" text="Do it. [{LMMI_REVENGE_PRICE}{GOLD_ICON}]" />
+		<string id="lmmi_lords_slander" text="Word reaches you: {LORD} has been speaking ill of you at court. {N} of {LORD}'s friends think less of you for it." />
+		<string id="lmmi_standing_travels" text="Word travels: {PLACES} will hear of it too." />
+		<string id="lmmi_arrive_petition_ask" text="{LMMI_PETITION}" />
+		<string id="lmmi_arrive_petition_grant" text="{LMMI_PETITION_YES}" />
+		<string id="lmmi_arrive_petition_refuse" text="{LMMI_PETITION_NO}" />
+		<string id="lmmi_arrive_petition_sulk" text="{LMMI_PETITION_REPLY}" />
+		<string id="lmmi_arrive_petition_thanks" text="{LMMI_PETITION_REPLY}" />
+		<string id="lmmi_arrive_tribute_catch" text="And what would you want in return?" />
+		<string id="lmmi_arrive_tribute_graced" text="Ha! Nobody's ever turned me down so kindly. As you wish." />
+		<string id="lmmi_arrive_tribute_graceful" text="Your friendship is gift enough. Keep it, and we'll owe each other nothing." />
+		<string id="lmmi_arrive_tribute_hint" text="{LMMI_TRIBUTE_HINT}" />
+		<string id="lmmi_arrive_tribute_insulted" text="You'd refuse me? Here, where the whole street can see? ...As you wish, {?PLAYER.GENDER}my lady{?}my lord{\?}. I won't trouble you again." />
+		<string id="lmmi_arrive_tribute_nothing" text="Want? Nothing at all! Only your good opinion, {?PLAYER.GENDER}my lady{?}my lord{\?}." />
+		<string id="lmmi_arrive_tribute_offer" text="{?PLAYER.GENDER}My lady{?}My lord{\?}! What an honor. Please, a small token of our esteem: {LMMI_GIFT}. I insist, I insist." />
+		<string id="lmmi_arrive_tribute_owed" text="Not at all, not at all! Only, when the time comes, remember who your friends are. I'll call on you." />
+		<string id="lmmi_arrive_tribute_rebuff" text="{LMMI_TRIBUTE_REBUFF}" />
+		<string id="lmmi_castle_about" text="{CASTLE} belongs to the {CLAN}; {LORD} holds it for {REALM}. {VILLAGES} {GARRISON}" />
+		<string id="lmmi_castle_about_garrison" text="{MEN} men on the walls, {WALLS}." />
+		<string id="lmmi_castle_about_garrison_vague" text="Enough men on the walls, {WALLS}." />
+		<string id="lmmi_castle_about_garrison_war" text="As for the garrison: enough to see you off." />
+		<string id="lmmi_castle_about_no_villages" text="No villages of its own — it lives on what the roads bring." />
+		<string id="lmmi_castle_about_nolord" text="{CASTLE} is held for {REALM}. {VILLAGES} {GARRISON}" />
+		<string id="lmmi_castle_about_villages" text="Its villages: {LIST}." />
+		<string id="lmmi_castle_bandits" text="{ROADS} {LAIR}" />
+		<string id="lmmi_castle_bandits_bands" text="{COUNT} bands roam within a day's ride — {KIND}, mostly. The nearest was seen {DIRECTION} of here, near {PLACE}." />
+		<string id="lmmi_castle_bandits_kind" text="cutthroats" />
+		<string id="lmmi_castle_bandits_lair" text="Their lair's {DIRECTION} of here, in the wilds near {PLACE}. I'll mark it on your map — burn it out and the garrison will drink to you." />
+		<string id="lmmi_castle_bandits_lair_known" text="Their lair's {DIRECTION} of here, in the wilds near {PLACE}. You'll know the place." />
+		<string id="lmmi_castle_bandits_lair_secret" text="Where they lair is the garrison's business, not a {DEMONYM}'s." />
+		<string id="lmmi_castle_bandits_no_lair" text="Where they lair, nobody knows. Somewhere far off, I hope." />
+		<string id="lmmi_castle_bandits_one" text="One band on the roads — {KIND}, last seen {DIRECTION} of here, near {PLACE}." />
+		<string id="lmmi_castle_bandits_quiet" text="No bands on the roads near us — the patrols see to that." />
+		<string id="lmmi_castle_bandits_war" text="Bandits? Pray they find you before we do." />
+		<string id="lmmi_castle_castellan_about" text="Tell me about this castle." />
+		<string id="lmmi_castle_castellan_answer" text="{LMMI_CASTLE_ANSWER}" />
+		<string id="lmmi_castle_castellan_bandits" text="Bandits about?" />
+		<string id="lmmi_castle_castellan_lord" text="Where is your lord?" />
+		<string id="lmmi_castle_castellan_prisoners" text="Any prisoners of note?" />
+		<string id="lmmi_castle_castellan_stores" text="Lay in stores against a siege. [{LMMI_CASTLE_STORES_COST}{GOLD_ICON}]" />
+		<string id="lmmi_castle_castellan_stores_resp" text="I'll send the carts out today. Let them come — we'll still be eating when they're boiling their boots." />
+		<string id="lmmi_castle_castellan_watch" text="Double the watch, and pay the men for it. [{LMMI_CASTLE_WATCH_COST}{GOLD_ICON}]" />
+		<string id="lmmi_castle_castellan_watch_resp" text="Double it is. Nobody'll come near the walls without us knowing — and the roads will feel it too." />
+		<string id="lmmi_castle_champion_plain" text="Champion of the yard at {CASTLE}! The garrison roars your name — they'll be talking about this for a month." />
+		<string id="lmmi_castle_champion_purse" text="Champion of the yard at {CASTLE}! The garrison roars your name, and {GOLD}{GOLD_ICON} changes hands — most of it to you." />
+		<string id="lmmi_castle_cheer_1" text="Hit him! Hit him!" />
+		<string id="lmmi_castle_cheer_2" text="Guard up, you fool — guard up!" />
+		<string id="lmmi_castle_cheer_3" text="Ooh — that one'll leave a mark!" />
+		<string id="lmmi_castle_cheer_4" text="Get in close! Close!" />
+		<string id="lmmi_castle_cheer_5" text="Show {?PLAYER.GENDER}her{?}him{\?} how we fight in {CASTLE}!" />
+		<string id="lmmi_castle_cheer_6" text="Two denars on the {DEMONYM}! ...No? Nobody?" />
+		<string id="lmmi_castle_cheer_7" text="My week's pay is on you, lad — don't you dare go down!" />
+		<string id="lmmi_castle_courier_2" text="Catch your breath, lad. Then tell the sergeant — and get yourself some bread." />
+		<string id="lmmi_castle_dir_e" text="east" />
+		<string id="lmmi_castle_dir_here" text="close by" />
+		<string id="lmmi_castle_dir_n" text="north" />
+		<string id="lmmi_castle_dir_ne" text="north-east" />
+		<string id="lmmi_castle_dir_nw" text="north-west" />
+		<string id="lmmi_castle_dir_s" text="south" />
+		<string id="lmmi_castle_dir_se" text="south-east" />
+		<string id="lmmi_castle_dir_sw" text="south-west" />
+		<string id="lmmi_castle_dir_w" text="west" />
+		<string id="lmmi_castle_fighter" text="{LMMI_CASTLE_FIGHTER}" />
+		<string id="lmmi_castle_fighter_beaten" text="You got lucky. Next time, it's your face in the dirt." />
+		<string id="lmmi_castle_fighter_ready" text="Want a go? Ask the master-at-arms — he sets the bouts." />
+		<string id="lmmi_castle_go_fists" text="Ha! That's the spirit. Weapons down — fists only." />
+		<string id="lmmi_castle_go_wooden" text="Wooden blades it is. Hard as you like — they won't cut. The rest of your kit stays with me." />
+		<string id="lmmi_castle_lair_marked" text="The castellan marks a bandit lair on your map." />
+		<string id="lmmi_castle_lord_army" text="Riding with {LEADER}'s army, near {PLACE}. War business." />
+		<string id="lmmi_castle_lord_at" text="{LORD} is at {PLACE}, last we heard." />
+		<string id="lmmi_castle_lord_captive" text="Taken captive. We've had no word since." />
+		<string id="lmmi_castle_lord_captive_at" text="Taken captive. They hold {LORD} in the cells at {PLACE}, and nobody's paid the ransom yet." />
+		<string id="lmmi_castle_lord_captive_of" text="Taken captive by {CAPTOR}. We've had no word since." />
+		<string id="lmmi_castle_lord_field" text="In the field near {PLACE}, with {MEN} men at {?LORD_FEMALE}her{?}his{\?} back." />
+		<string id="lmmi_castle_lord_here" text="Here — up in the hall. Go and see for yourself, if you've business with {LORD}." />
+		<string id="lmmi_castle_lord_last" text="Travelling. Last we heard, near {PLACE}." />
+		<string id="lmmi_castle_lord_none" text="There's no lord to speak of. We hold the walls for the realm." />
+		<string id="lmmi_castle_lord_own_army" text="Leading an army in the field — near {PLACE}, the last rider said." />
+		<string id="lmmi_castle_lord_siege" text="{LORD} has {PLACE} under siege. We send what men we can spare." />
+		<string id="lmmi_castle_lord_unknown" text="Nobody tells the castellan anything. Away." />
+		<string id="lmmi_castle_lord_vague" text="Away, on the realm's business. I don't tell strangers more than that." />
+		<string id="lmmi_castle_lord_vague_foreign" text="Away. And I don't tell a {DEMONYM} more than that." />
+		<string id="lmmi_castle_lord_war" text="Where my lord is, is no business of an enemy's. Next question — or the gate." />
+		<string id="lmmi_castle_master_arms_back" text="On second thought — not now." />
+		<string id="lmmi_castle_master_beaten" text="Still standing? Good. No more bouts for you today — come back tomorrow and start from the bottom." />
+		<string id="lmmi_castle_master_champ" text="The champion of the yard! The lads are still rubbing their jaws." />
+		<string id="lmmi_castle_master_fists" text="Fists." />
+		<string id="lmmi_castle_master_foreign_ring" text="A {DEMONYM} in our yard. Three of my lads are waiting in the ring — fists or wooden blades. Let's see how they fight where you come from." />
+		<string id="lmmi_castle_master_go" text="{LMMI_CASTLE_GO}" />
+		<string id="lmmi_castle_master_kin_ring" text="Master-at-arms. Three of my lads are waiting in the ring — fists or wooden blades, your choice. Nobody dies in my yard." />
+		<string id="lmmi_castle_master_next_line" text="{LMMI_CASTLE_NEXT}" />
+		<string id="lmmi_castle_master_ring" text="Put me in the ring." />
+		<string id="lmmi_castle_master_stake" text="{LMMI_CASTLE_STAKE}" />
+		<string id="lmmi_castle_master_wooden" text="Wooden blades." />
+		<string id="lmmi_castle_next_1" text="First, the greenest of them: {TROOP}. Fists, or wooden blades?" />
+		<string id="lmmi_castle_next_2" text="Next, {TROOP}. A few more winters in this yard than the last one. Fists, or wooden blades?" />
+		<string id="lmmi_castle_next_3" text="Last, and best: {TROOP}. Nobody's put this one down all season. Fists, or wooden blades?" />
+		<string id="lmmi_castle_no_practice" text="The practice weapons are nowhere to be found." />
+		<string id="lmmi_castle_prisoners_common" text="And {N} common prisoners eating our bread." />
+		<string id="lmmi_castle_prisoners_empty" text="Otherwise the cells are empty." />
+		<string id="lmmi_castle_prisoners_gloat" text="We hold {LIST}. Friends of yours, perhaps? Their ransom won't be cheap. {COMMON}" />
+		<string id="lmmi_castle_prisoners_list" text="We hold {LIST} in the cells. {COMMON}" />
+		<string id="lmmi_castle_prisoners_none" text="No one. The cells are empty — the rats are bored." />
+		<string id="lmmi_castle_prisoners_none_common" text="No one worth a ransom. Just {N} common prisoners eating our bread." />
+		<string id="lmmi_castle_ring_done" text="You've beaten all three. Nobody else wants a turn today." />
+		<string id="lmmi_castle_ring_tomorrow" text="You've had your beating for today. Come back tomorrow." />
+		<string id="lmmi_castle_spar_champion" text="All three! Lads — the champion of the yard! ...And you'll not get another wager out of me this week, thank you." />
+		<string id="lmmi_castle_spar_champion_again" text="All three again. I'd hire you, if I could afford you." />
+		<string id="lmmi_castle_spar_draw" text="Enough! I'm calling it. Neither of you is going down today — wagers back." />
+		<string id="lmmi_castle_spar_lost_plain" text="You pick yourself up off the dirt. That's your run done for today — come back tomorrow and start again." />
+		<string id="lmmi_castle_spar_lost_purse" text="You pick yourself up off the dirt. Your {GOLD}{GOLD_ICON} goes round the garrison — and that's your run done for today." />
+		<string id="lmmi_castle_stake_100" text="A hundred says I put them down. [100{GOLD_ICON}]" />
+		<string id="lmmi_castle_stake_300" text="Three hundred says I put them down. [300{GOLD_ICON}]" />
+		<string id="lmmi_castle_stake_no_coin" text="He won't take your coin this week." />
+		<string id="lmmi_castle_stake_none" text="No stake. For the practice." />
+		<string id="lmmi_castle_stake_odds" text="Coin on it? The lads will give you {ODDS} to one against {TROOP}." />
+		<string id="lmmi_castle_stake_refused" text="And don't bother reaching for your purse — I'm not taking the champion's coin this week. For the practice, then." />
+		<string id="lmmi_castle_stores_done" text="Carts of grain and salt meat roll in through the gate. {CASTLE}: Food +{N}." />
+		<string id="lmmi_castle_stores_full" text="The granaries are full to the rafters." />
+		<string id="lmmi_castle_stores_tired" text="The carts went out only days ago. The merchants have nothing more to sell us." />
+		<string id="lmmi_castle_village_looted" text="burned out" />
+		<string id="lmmi_castle_village_middling" text="getting by" />
+		<string id="lmmi_castle_village_poor" text="struggling" />
+		<string id="lmmi_castle_village_raided" text="being raided as we speak" />
+		<string id="lmmi_castle_village_squeezed" text="squeezed by soldiers" />
+		<string id="lmmi_castle_village_thriving" text="thriving" />
+		<string id="lmmi_castle_walls_1" text="behind old walls that could use a mason" />
+		<string id="lmmi_castle_walls_2" text="behind good stone" />
+		<string id="lmmi_castle_walls_3" text="behind walls no one has breached in living memory" />
+		<string id="lmmi_castle_watch_done" text="The watch is doubled, and the extra shifts are paid. {CASTLE}: Security +{N}." />
+		<string id="lmmi_castle_watch_tired" text="The men are already standing double shifts. Another week and they'll drop." />
+		<string id="lmmi_hired_bribe_tag" text=" [{AMOUNT}{GOLD_ICON}]" />
+		<string id="lmmi_hired_ko_beaten" text="You went down hard — and they didn't stop there. You come to in a doorway in {LMMI_HIRED_TOWN}, every rib aching and your purse {LMMI_HIRED_TAKEN}{GOLD_ICON} lighter, &quot;for their trouble&quot;. Stay out of {LMMI_HIRED_SENDER}'s way, they said. You heard." />
+		<string id="lmmi_hired_outbid_more" text="Whatever {LMMI_HIRED_SENDER} is paying you, I'll pay more. Turn around.{LMMI_HIRED_BRIBE_TAG}" />
+		<string id="lmmi_hired_wont_sell" text="They won't take your coin — this one's personal." />
+		<string id="lmmi_hired_wont_sell_ransom" text="They won't take your coin — a share of your ransom is worth more to them." />
+		<string id="lmmi_invest_dead" text="{NAME} of {SETTLEMENT} is dead, and nobody remembers your share of the venture." />
+		<string id="lmmi_invest_paid" text="{NAME}'s venture in {SETTLEMENT} came in: {PAYOUT}{GOLD_ICON} back on your {AMOUNT}{GOLD_ICON}." />
+		<string id="lmmi_invest_poor" text="{NAME}'s venture in {SETTLEMENT} went badly. They send what's left: {PAYOUT}{GOLD_ICON} of your {AMOUNT}{GOLD_ICON}." />
+		<string id="lmmi_invest_someone" text="Your partner" />
+		<string id="lmmi_invest_swindle" text="Word from {SETTLEMENT}: {NAME}'s venture has 'failed'. Your {AMOUNT}{GOLD_ICON} is gone, and nobody there seems surprised but you." />
+		<string id="lmmi_keeper_answer" text="{LMMI_KEEPER_RUMOR}" />
+		<string id="lmmi_keeper_armies_bound" text=", and the talk is they're making for {TARGET}" />
+		<string id="lmmi_keeper_armies_good" text="{LEADER} has a {FACTION} host in the field — {COUNT} men or near enough — last seen near {NEAR}{TARGET}. The carters coming in from that way are scared.[if:convo_grave][ib:closed]" />
+		<string id="lmmi_keeper_armies_here" text=", and the talk is they're coming here" />
+		<string id="lmmi_keeper_armies_none" text="No host I've heard of — not this side of the hills, anyway. Quiet times. Long may they last.[if:convo_relaxed_happy][ib:normal]" />
+		<string id="lmmi_keeper_armies_vague" text="They say there's a {FACTION} host about, somewhere near {NEAR}. How many? Depends who's drinking.[if:convo_undecided_open][ib:closed]" />
+		<string id="lmmi_keeper_ask_armies" text="Any armies on the move hereabouts?{LMMI_KEEPER_PRICE}" />
+		<string id="lmmi_keeper_ask_done" text="That's all." />
+		<string id="lmmi_keeper_ask_enemies" text="Anyone around here who'd like to see me hurt?{LMMI_KEEPER_PRICE}" />
+		<string id="lmmi_keeper_ask_lord" text="Where's {LMMI_KEEPER_OWNER} these days?{LMMI_KEEPER_PRICE}" />
+		<string id="lmmi_keeper_ask_notables" text="What do the town's notables make of me?{LMMI_KEEPER_PRICE}" />
+		<string id="lmmi_keeper_enemies" text="{LIST}[if:convo_grave][ib:closed]" />
+		<string id="lmmi_keeper_enemies_none" text="Nobody I'd lose sleep over. You've a quiet name in {SETTLEMENT}.[if:convo_calm_friendly][ib:normal]" />
+		<string id="lmmi_keeper_enemy" text="{NAME} has no love for you — though I'd not expect a knife from that one." />
+		<string id="lmmi_keeper_enemy_contract" text="And a word to the wise: hard men in no one's colors were in here asking after you. {SENDER}'s silver, I'd wager." />
+		<string id="lmmi_keeper_enemy_lords" text="And {LORDS} — close by, these days — would drink to your funeral." />
+		<string id="lmmi_keeper_enemy_payer" text="{NAME} hates you, and has the coin and the stomach to pay someone to say so with a club." />
+		<string id="lmmi_keeper_free_cup" text="The keeper pours you a cup on the house." />
+		<string id="lmmi_keeper_greet" text="{LMMI_KEEPER_GREET}" />
+		<string id="lmmi_keeper_greet_despised" text="You. ...No. Not in my house. Take your trouble somewhere else, before somebody breaks a jug over your head.[if:convo_angry][ib:closed]" />
+		<string id="lmmi_keeper_greet_disliked" text="What'll it be? Coin first — and don't complain about the wine.[if:convo_annoyed][ib:closed]" />
+		<string id="lmmi_keeper_greet_honored" text="Make room there! {PLAYER.NAME}, welcome back — {SETTLEMENT} owes you, and so do I. Your cup's on the house tonight.[if:convo_delighted][ib:hip]" />
+		<string id="lmmi_keeper_greet_known" text="{PLAYER.NAME}, isn't it? Heard you've done right by {SETTLEMENT}. Sit — the first cup's on the house.[if:convo_calm_friendly][ib:normal]" />
+		<string id="lmmi_keeper_greet_respected" text="{PLAYER.NAME}! Good to see you again. First cup's on me — and from the good barrel, not what I pour the soldiers.[if:convo_relaxed_happy][ib:hip]" />
+		<string id="lmmi_keeper_greet_served" text="Still here? Drink up and go.[if:convo_annoyed][ib:closed]" />
+		<string id="lmmi_keeper_lord_army" text="{OWNER}? Marching with the army, near {NEAR} last I heard.[if:convo_nonchalant][ib:normal]" />
+		<string id="lmmi_keeper_lord_at" text="{OWNER}? At {WHERE}, last I heard.[if:convo_nonchalant][ib:normal]" />
+		<string id="lmmi_keeper_lord_here" text="{OWNER}? Here in town — up at the keep, I'd think.[if:convo_nonchalant][ib:normal]" />
+		<string id="lmmi_keeper_lord_prisoner" text="{OWNER}? A prisoner, last I heard — {CAPTOR} has the keeping of that one.[if:convo_grave][ib:closed]" />
+		<string id="lmmi_keeper_lord_road" text="{OWNER}? Out on the road with a warband — near {NEAR}, last I heard.[if:convo_nonchalant][ib:normal]" />
+		<string id="lmmi_keeper_lord_unknown" text="{OWNER}? Couldn't tell you. Nobody's seen hide nor hair.[if:convo_undecided_closed][ib:closed]" />
+		<string id="lmmi_keeper_notable_contempt" text="{NAME} won't hear your name without spitting" />
+		<string id="lmmi_keeper_notable_friendly" text="{NAME} speaks well of you" />
+		<string id="lmmi_keeper_notable_trusted" text="{NAME} would vouch for you, and has" />
+		<string id="lmmi_keeper_notable_wary" text="{NAME} would deal with you — for a price" />
+		<string id="lmmi_keeper_notables" text="Let me think. {LIST}.[if:convo_thinking][ib:normal]" />
+		<string id="lmmi_keeper_notables_none" text="Nobody of note in town just now.[if:convo_nonchalant][ib:normal]" />
+		<string id="lmmi_keeper_out_go" text="Fine. I'm going." />
+		<string id="lmmi_keeper_out_paid" text="...Hmph. Drink it quick, keep your head down, and go when it's gone.[if:convo_annoyed][ib:closed2]" />
+		<string id="lmmi_keeper_out_pay" text="My coin's as good as anyone's. [{LMMI_KEEPER_FEE}{GOLD_ICON}]" />
+		<string id="lmmi_keeper_price_tag" text=" [{AMOUNT}{GOLD_ICON}]" />
+		<string id="lmmi_keeper_rested" text="You sleep like the dead. You wake stiff, but rested." />
+		<string id="lmmi_keeper_rested_fleas" text="You sleep badly, and scratch in your sleep. Still — you're stiff, but rested." />
+		<string id="lmmi_keeper_room" text="I'll take a room for the night.{LMMI_KEEPER_ROOM_PRICE}" />
+		<string id="lmmi_keeper_room_despised" text="Room at the back, over the stable. Gone by sunrise.[if:convo_annoyed][ib:closed]" />
+		<string id="lmmi_keeper_room_disliked" text="Room at the back, over the stable. Mind the fleas.[if:convo_bored][ib:closed]" />
+		<string id="lmmi_keeper_room_done" text="You've already slept here today." />
+		<string id="lmmi_keeper_room_honored" text="The best room in the house, and not a copper for it. I'll have them bring up hot water.[if:convo_happy][ib:hip]" />
+		<string id="lmmi_keeper_room_resp" text="{LMMI_KEEPER_ROOM_LINE}" />
+		<string id="lmmi_keeper_room_respected" text="The room at the top of the stairs — the quiet one. Sleep well.[if:convo_calm_friendly][ib:normal]" />
+		<string id="lmmi_keeper_room_stranger" text="Up the stairs, second door. Sheets are clean — mostly.[if:convo_nonchalant][ib:normal]" />
+		<string id="lmmi_keeper_round" text="A round for the house — on me. [{LMMI_KEEPER_ROUND}{GOLD_ICON}]" />
+		<string id="lmmi_keeper_round_cheer" text="Drinks for the house — on {PLAYER.NAME}! ...Hear that? They'll be singing your name by midnight, and not the rude verses.[if:convo_happy][ib:confident]" />
+		<string id="lmmi_keeper_round_done" text="You've stood the house a round this week already." />
+		<string id="lmmi_keeper_round_grudging" text="...Drinks on {PLAYER.NAME}, then. The good barrel's empty, mind — they'll get the watered stuff, and they'll know whose it was.[if:convo_bored][ib:closed]" />
+		<string id="lmmi_keeper_round_resp" text="{LMMI_KEEPER_ROUND_LINE}" />
+		<string id="lmmi_keeper_rumor_nothing" text="Nothing worth the coin, truth be told.[if:convo_undecided_closed][ib:closed]" />
+		<string id="lmmi_keeper_rumors" text="Heard anything worth knowing?" />
+		<string id="lmmi_keeper_rumors_disliked" text="News costs. For you, it costs double.[if:convo_annoyed][ib:closed]" />
+		<string id="lmmi_keeper_rumors_honored" text="For you? Ask away — no charge.[if:convo_calm_friendly][ib:hip]" />
+		<string id="lmmi_keeper_rumors_known" text="Depends what you're after. Ears cost money, but I'll not fleece you.[if:convo_nonchalant][ib:normal]" />
+		<string id="lmmi_keeper_rumors_resp" text="{LMMI_KEEPER_RUMORS}" />
+		<string id="lmmi_keeper_rumors_respected" text="A thing or two. For a friend, cheap.[if:convo_calm_friendly][ib:normal]" />
+		<string id="lmmi_keeper_rumors_stranger" text="Depends what you're after — and what it's worth to you.[if:convo_nonchalant][ib:closed]" />
+		<string id="lmmi_keeper_someone" text="someone" />
+		<string id="lmmi_keeper_somewhere" text="somewhere out there" />
+		<string id="lmmi_keeper_wont_say" text="He won't talk about his regulars to the likes of you." />
+		<string id="lmmi_obligation_due" text="Word from {SETTLEMENT}: {NAME} would like a word next time you're in town. You did take the gift." />
+		<string id="lmmi_obligation_ignored" text="You took {NAME}'s gift in {SETTLEMENT} and never came back to hear them out. They won't forget it." />
+		<string id="lmmi_petition_charter_ask" text="{?PLAYER.GENDER}My lady{?}My lord{\?}, this is your town now. Grant my house a charter, first right at the market before the others, and I'll see {LMMI_SETTLEMENT} grow fat on it. The other guilds will grumble, of course. They always do." />
+		<string id="lmmi_petition_charter_hint" text="Want? Nothing! Though a house like mine could do great things for your town, with the right charter. Another day." />
+		<string id="lmmi_petition_charter_msg" text="{SETTLEMENT}: {NAME}'s house has its charter. Prosperity +{PROSPERITY}, loyalty -{LOYALTY}; the other guilds grumble." />
+		<string id="lmmi_petition_charter_no" text="The market stays open to all." />
+		<string id="lmmi_petition_charter_sulk" text="Open to all. How noble. How... unprofitable. Good day." />
+		<string id="lmmi_petition_charter_thanks" text="Your town won't regret it. And neither will you." />
+		<string id="lmmi_petition_charter_yes" text="You'll have your charter." />
+		<string id="lmmi_petition_invest_ask" text="{?PLAYER.GENDER}My lady{?}My lord{\?}, a proposition. A venture (a caravan share, never mind the details) wants a partner of means. {LMMI_AMOUNT}{GOLD_ICON} now, and in a month or so you'll have it back, and a good deal more." />
+		<string id="lmmi_petition_invest_hint" text="Want? Nothing! Though I have a venture in mind that could use a partner of means. We'll speak of it another day." />
+		<string id="lmmi_petition_invest_no" text="I keep my coin where I can see it." />
+		<string id="lmmi_petition_invest_sulk" text="Your loss, {?PLAYER.GENDER}my lady{?}my lord{\?}. Your loss." />
+		<string id="lmmi_petition_invest_thanks" text="You won't regret it. I'll send word, and your share, when the venture comes in." />
+		<string id="lmmi_petition_invest_yes" text="Count me in. [{LMMI_AMOUNT}{GOLD_ICON}]" />
+		<string id="lmmi_petition_no_room" text="You have no room in your party." />
+		<string id="lmmi_petition_rival_ask" text="{?PLAYER.GENDER}My lady{?}My lord{\?}, the small matter I mentioned. {LMMI_TARGET.NAME} has been... difficult. Squeezing my trade, spreading lies about me. A word from someone of your standing would put {?LMMI_TARGET.GENDER}her{?}him{\?} in {?LMMI_TARGET.GENDER}her{?}his{\?} place." />
+		<string id="lmmi_petition_rival_hint" text="Want? Nothing, nothing! Only... {LMMI_TARGET.NAME} has been making my life difficult. One day I may ask you to have a word. But that's for another day." />
+		<string id="lmmi_petition_rival_no" text="Your quarrels are your own." />
+		<string id="lmmi_petition_rival_sulk" text="I see. I had hoped my gift meant... well. Never mind. Good day." />
+		<string id="lmmi_petition_rival_thanks" text="You are too kind! I won't forget this. Nobody here will." />
+		<string id="lmmi_petition_rival_yes" text="I'll have a word with {LMMI_TARGET.NAME}." />
+		<string id="lmmi_petition_son_ask" text="{?PLAYER.GENDER}My lady{?}My lord{\?}, it's about my son. He's of age, he's restless, and he talks of nothing but your company. Take him with you. He'll serve well, and I'd sleep easier knowing whose banner he follows." />
+		<string id="lmmi_petition_son_hint" text="Want? Nothing! Though my son is of an age where he dreams of the road, and of banners like yours. Perhaps one day... but no. Another time." />
+		<string id="lmmi_petition_son_msg" text="{NAME}'s son joins your company as a {TROOP}." />
+		<string id="lmmi_petition_son_no" text="I have no place for him." />
+		<string id="lmmi_petition_son_sulk" text="No place. For my son. ...I see how it is." />
+		<string id="lmmi_petition_son_thanks" text="Bless you! He'll be at your camp by nightfall. Bring him home in one piece, {?PLAYER.GENDER}my lady{?}my lord{\?}." />
+		<string id="lmmi_petition_son_yes" text="Send him to me. He'll have a place in my company." />
+		<string id="lmmi_petition_word_ask" text="{?PLAYER.GENDER}My lady{?}My lord{\?}, the small matter I mentioned. {LMMI_TARGET.NAME} sets the tolls and grants the charters here, and hears a hundred petitions a week. A word from you, and mine might be the one {?LMMI_TARGET.GENDER}she{?}he{\?} actually reads." />
+		<string id="lmmi_petition_word_hint" text="Want? Nothing! Well... {LMMI_TARGET.NAME} listens to people like you. One day I may ask you to put in a word for me. Another day." />
+		<string id="lmmi_petition_word_msg" text="You put in a word for {NAME} with {LORD}. {LORD} doesn't much like being lobbied." />
+		<string id="lmmi_petition_word_no" text="I don't carry other people's petitions." />
+		<string id="lmmi_petition_word_sulk" text="Of course. I'll... find another way. Good day." />
+		<string id="lmmi_petition_word_thanks" text="You won't regret it. My house remembers its friends." />
+		<string id="lmmi_petition_word_yes" text="I'll speak to {LMMI_TARGET.NAME} for you." />
+		<string id="lmmi_street_lost_cry_far" text="(Somewhere nearby, a child is crying) {CRY}" />
+		<string id="lmmi_street_lost_cry_near" text="(Close by, a child is crying) {CRY}" />
+		<string id="lmmi_street_sentenced_clan" text="Word of your sentence reaches the {CLAN}. They think the less of you for it. (Relation {DELTA} with {COUNT} of them)" />
+		<string id="lmmi_street_thanks_debt_freed_foreign" text="A {DEMONYM}, standing between me and the moneylender's men... I don't know what to say. Thank you. Everyone will hear of it." />
+		<string id="lmmi_street_thanks_debt_freed_kin" text="I thought that was it for my hands. Thank you — I mean it. Everyone will hear what you did." />
+		<string id="lmmi_street_thanks_debt_paid_foreign" text="A {DEMONYM}, paying a stranger's debt out of {?PLAYER.GENDER}her{?}his{\?} own purse... Every coin of that is yours again the day I have it, I swear. And everyone will hear of it." />
+		<string id="lmmi_street_thanks_debt_paid_kin" text="You paid it — all of it, out of your own purse. I'll repay you when I can, every coin, I swear it. And I'll tell everyone what you did." />
+		<string id="lmmi_street_thanks_raiders_men_foreign" text="{DEMONYM} soldiers, running looters off our fields... Who'd have thought it. Bless them — and bless you for sending them." />
+		<string id="lmmi_street_thanks_raiders_men_kin" text="Your men ran them off! Bless them, every one — and bless you for sending them." />
+		<string id="lmmi_tribute_gift_gold" text="a purse of {GOLD}{GOLD_ICON}, for the road" />
+		<string id="lmmi_tribute_gift_msg" text="{NAME} gave you {COUNT}x {ITEM}." />
+		<string id="lmmi_tribute_gift_sheep" text="two fat sheep from our own flock" />
+		<string id="lmmi_tribute_gift_tools" text="a load of good tools from our own workshop" />
+		<string id="lmmi_tribute_gift_wine" text="two amphorae of our best wine" />
+		<string id="lmmi_village_harvest_men_grumble" text="Signed on to fight, I did. Not to cut somebody's barley..." />
+		<string id="lmmi_village_harvest_men_morale" text="Your men didn't sign on to bring in somebody else's harvest. (Morale -{MORALE})" />
+		<string id="lmmi_village_harvest_work_tip" text="Keep the blade low and let it swing — that's it! We'll make a farmer of you yet." />
+		<string id="lmmi_village_raiders_men_back" text="They won't be back, captain. Not these ones." />
+		<string id="lmmi_village_raiders_men_beaten" text="...There were more of them than we reckoned, captain." />
+		<string id="lmmi_village_raiders_men_cost" text="It cost you: {KILLED} of your men dead, {WOUNDED} wounded." />
+		<string id="lmmi_village_raiders_men_cost_wounded" text="It cost you: {WOUNDED} of your men wounded." />
+		<string id="lmmi_village_raiders_men_go" text="You heard {?PLAYER.GENDER}her{?}him{\?}, lads — run them off!" />
+		<string id="lmmi_village_raiders_men_lost" text="The looters see your men off — and half the flock goes with them." />
+		<string id="lmmi_village_raiders_men_lost_morale" text="Beaten by looters. Your men won't hear the end of it. (Morale -{MORALE})" />
+		<string id="lmmi_village_raiders_men_sheep" text="Your men run the looters off — but a couple of sheep went over the hill with them." />
+		<string id="lmmi_village_raiders_men_standoff" text="Soldiers? ...Hold your ground, lads. They're only farm-boys in mail." />
+		<string id="lmmi_camp_bar_hint" text="Make camp" />
+		<string id="lmmi_camp_bar_off" text="Making camp is turned off in the mod's options." />
+		<string id="lmmi_camp_busy" text="Not now — the men are busy." />
+		<string id="lmmi_camp_drill_bark_again" text="Recover! Again — like you mean it!" />
+		<string id="lmmi_camp_drill_bark_arms" text="Arms!" />
+		<string id="lmmi_camp_drill_bark_cry" text="Now let the whole valley hear you!" />
+		<string id="lmmi_camp_drill_bark_dismissed" text="Dismissed! Back to your fires." />
+		<string id="lmmi_camp_drill_bark_fallin" text="Fall in! {ROWS} ranks — move, move, move!" />
+		<string id="lmmi_camp_drill_bark_hold" text="Hold the line! Nobody moves until I say!" />
+		<string id="lmmi_camp_drill_bark_strike" text="Strike!" />
+		<string id="lmmi_camp_drill_bark_thrust" text="Forward — strike!" />
+		<string id="lmmi_camp_drilled_idle" text="You drill them until the light goes — {MEN} men, sharper for it, and glad of something to do." />
+		<string id="lmmi_camp_drink_lost" text="The wine goes round. Someone starts a song for the ones who didn't come back, and the whole camp joins in." />
+		<string id="lmmi_camp_drink_plain" text="The wine goes round. It's a good night." />
+		<string id="lmmi_camp_drink_won" text="The wine goes round, and the battle gets bigger with every cup." />
+		<string id="lmmi_camp_food_beer" text="beer" />
+		<string id="lmmi_camp_food_butter" text="butter" />
+		<string id="lmmi_camp_food_cheese" text="cheese" />
+		<string id="lmmi_camp_food_dates" text="dates" />
+		<string id="lmmi_camp_food_fish" text="fish" />
+		<string id="lmmi_camp_food_grain" text="grain" />
+		<string id="lmmi_camp_food_grapes" text="grapes" />
+		<string id="lmmi_camp_food_meat" text="meat" />
+		<string id="lmmi_camp_food_olives" text="olives" />
+		<string id="lmmi_camp_food_wine" text="wine" />
+		<string id="lmmi_camp_gather_bark_1" text="A story! Shove over, you." />
+		<string id="lmmi_camp_gather_bark_2" text="This one's good, I've heard it. Twice." />
+		<string id="lmmi_camp_line_lost_1" text="We'll pay them back. Next time." />
+		<string id="lmmi_camp_line_lost_2" text="Leave his bedroll where it is. Just — leave it." />
+		<string id="lmmi_camp_line_won_1" text="Three of them, I swear. Three! Well — two and a half." />
+		<string id="lmmi_camp_list_and" text="{A} and {B}" />
+		<string id="lmmi_camp_list_comma" text="{A}, {B}" />
+		<string id="lmmi_camp_list_or" text="{A} or {B}" />
+		<string id="lmmi_camp_no_taste_of_home" text="Nothing from home in the stores" />
+		<string id="lmmi_camp_no_today" text="You've already made camp today." />
+		<string id="lmmi_camp_people_aserai" text="Aserai" />
+		<string id="lmmi_camp_people_battania" text="Battanians" />
+		<string id="lmmi_camp_people_empire" text="imperial lads" />
+		<string id="lmmi_camp_people_khuzait" text="Khuzaits" />
+		<string id="lmmi_camp_people_nord" text="Nords" />
+		<string id="lmmi_camp_people_other" text="others" />
+		<string id="lmmi_camp_people_sturgia" text="Sturgians" />
+		<string id="lmmi_camp_people_vlandia" text="Vlandians" />
+		<string id="lmmi_camp_rep_b_dead" text="{FIGHT} We buried {DEAD} of our own." />
+		<string id="lmmi_camp_rep_b_fine" text="{FIGHT} Otherwise, no complaints worth your ear." />
+		<string id="lmmi_camp_rep_b_fled" text="We pulled back from {FOE} {WHEN}. Some call it sense. Some call it something else." />
+		<string id="lmmi_camp_rep_b_issues" text="{FIGHT} {ISSUES}" />
+		<string id="lmmi_camp_rep_b_lost_1" text="That business with {FOE} {WHEN} — they haven't shaken it off." />
+		<string id="lmmi_camp_rep_b_lost_2" text="Nobody talks about {FOE}. Not since {WHEN}. That's how you know." />
+		<string id="lmmi_camp_rep_b_lost_old" text="They've stopped talking about {FOE}. That's a good sign, or a bad one." />
+		<string id="lmmi_camp_rep_b_none_1" text="We've not drawn steel together yet that anyone remembers." />
+		<string id="lmmi_camp_rep_b_none_2" text="No fights to speak of lately. The lads are getting soft." />
+		<string id="lmmi_camp_rep_b_old_1" text="It's been {DAYS} days since the last fight. Quiet's good — for a while." />
+		<string id="lmmi_camp_rep_b_old_2" text="{DAYS} days without a fight. Some of them are itching for one." />
+		<string id="lmmi_camp_rep_b_them" text="them" />
+		<string id="lmmi_camp_rep_b_won_1" text="They're still talking about {FOE} — {WHEN}. They'll be telling it for a month." />
+		<string id="lmmi_camp_rep_b_won_2" text="Beating {FOE} {WHEN} put a spring in every step." />
+		<string id="lmmi_camp_rep_b_won_old" text="We saw off {FOE} {WHEN}. The shine's wearing off, but they remember." />
+		<string id="lmmi_camp_rep_c_home_down" text="nothing from home in the wagons" />
+		<string id="lmmi_camp_rep_c_home_up" text="a taste of home in the pot" />
+		<string id="lmmi_camp_rep_c_leader" text="the way you lead them" />
+		<string id="lmmi_camp_rep_c_recent_down_1" text="how the last few days went" />
+		<string id="lmmi_camp_rep_c_recent_down_2" text="what happened lately — nobody's forgotten" />
+		<string id="lmmi_camp_rep_c_recent_up_1" text="the way things have gone lately" />
+		<string id="lmmi_camp_rep_c_recent_up_2" text="the last few days' work" />
+		<string id="lmmi_camp_rep_c_size" text="too many men for too few tents" />
+		<string id="lmmi_camp_rep_c_starving" text="empty bellies" />
+		<string id="lmmi_camp_rep_c_variety_down" text="the same gruel every night" />
+		<string id="lmmi_camp_rep_c_variety_up" text="a decent variety in the pot" />
+		<string id="lmmi_camp_rep_c_wages" text="the pay they're owed" />
+		<string id="lmmi_camp_rep_f_low_2" text="{DAYS} days of food, and that's counting the crusts." />
+		<string id="lmmi_camp_rep_f_missing" text="No {LIST}, though." />
+		<string id="lmmi_camp_rep_f_none_2" text="The wagons are near empty. Tomorrow we tighten belts." />
+		<string id="lmmi_camp_rep_f_ok_2" text="{DAYS} days of food in the wagons. Nobody's going hungry." />
+		<string id="lmmi_camp_rep_f_variety_good" text="There's {LIST} — a proper table." />
+		<string id="lmmi_camp_rep_f_variety_one" text="Nothing but {LIST}, day after day." />
+		<string id="lmmi_camp_rep_f_variety_some" text="There's {LIST}." />
+		<string id="lmmi_camp_rep_h_glad_1" text="The {PEOPLE} are glad of the {FOOD}." />
+		<string id="lmmi_camp_rep_h_glad_2" text="Give the {PEOPLE} their {FOOD} and they'll march anywhere." />
+		<string id="lmmi_camp_rep_h_miss_1" text="The {PEOPLE} would kill for some {FOOD}." />
+		<string id="lmmi_camp_rep_h_miss_2" text="The {PEOPLE} keep asking after {FOOD}. There's none." />
+		<string id="lmmi_camp_rep_i_desert" text="Men have been slipping away in the night. More will, if nothing changes." />
+		<string id="lmmi_camp_rep_i_desert_risk" text="Some of the newer lads are talking about slipping off in the night." />
+		<string id="lmmi_camp_rep_i_prisoners" text="{N} prisoners to guard and feed — the watch grumbles about it." />
+		<string id="lmmi_camp_rep_i_purse" text="The pay chest won't cover two more days' wages, and they know it." />
+		<string id="lmmi_camp_rep_i_size" text="We're {N} more than the column can carry — too many for the tents, too many for the pot." />
+		<string id="lmmi_camp_rep_i_unpaid" text="And they've not been paid. That won't hold long." />
+		<string id="lmmi_camp_rep_i_wounded" text="{N} still nursing wounds, nothing that won't mend." />
+		<string id="lmmi_camp_rep_i_wounded_many" text="{N} on the sick list — that's a lot of empty places in the line." />
+		<string id="lmmi_camp_rep_join" text="{A} {B}" />
+		<string id="lmmi_camp_rep_m_bad_1" text="The men are at the end of their rope, captain." />
+		<string id="lmmi_camp_rep_m_bad_2" text="Spirits are in the mud. I won't dress it up." />
+		<string id="lmmi_camp_rep_m_good_1" text="The men are in good heart." />
+		<string id="lmmi_camp_rep_m_good_2" text="They're content, mostly. Full bellies and a captain who knows what he's about." />
+		<string id="lmmi_camp_rep_m_low_1" text="The men are grumbling." />
+		<string id="lmmi_camp_rep_m_low_2" text="There's grumbling around the fires, and it's getting louder." />
+		<string id="lmmi_camp_rep_m_mid_1" text="The men are holding up." />
+		<string id="lmmi_camp_rep_m_mid_2" text="They're getting by, captain. No more than that." />
+		<string id="lmmi_camp_rep_m_top_1" text="The men are in fine spirits — they'd follow you into the sea." />
+		<string id="lmmi_camp_rep_m_top_2" text="Best spirits I've seen in this company, and I've seen a few companies." />
+		<string id="lmmi_camp_rep_morale" text="{HEAD} {WHY}" />
+		<string id="lmmi_camp_rep_why_bad_1" text="What's eating at them is {BAD}." />
+		<string id="lmmi_camp_rep_why_bad_2" text="If you want it straight: it's {BAD}." />
+		<string id="lmmi_camp_rep_why_both_1" text="What keeps them going is {GOOD}; what drags them down is {BAD}." />
+		<string id="lmmi_camp_rep_why_both_2" text="It's {GOOD} that holds them together — and {BAD} that wears at them." />
+		<string id="lmmi_camp_rep_why_good_1" text="It's {GOOD} that does it, mostly." />
+		<string id="lmmi_camp_rep_why_good_2" text="Ask any of them and they'll say it's {GOOD}." />
+		<string id="lmmi_camp_rep_why_none" text="Nothing much lifting them, nothing much sinking them." />
+		<string id="lmmi_camp_report_2" text="{LMMI_CAMP_REPORT_2}" />
+		<string id="lmmi_camp_report_3" text="{LMMI_CAMP_REPORT_3}" />
+		<string id="lmmi_camp_spar_enough" text="Come on, captain, calm down — who'll strike camp at this rate?" />
+		<string id="lmmi_camp_story_again" text="Another one, captain? We've heard enough for one night. Save it for the road." />
+		<string id="lmmi_camp_story_arg_charge" text="The charge. A handful of us, a slope, and twice our number at the top — and not one of you hung back." />
+		<string id="lmmi_camp_story_arg_fallen" text="The ones who didn't come back. Let me tell you who they were, so it's remembered right." />
+		<string id="lmmi_camp_story_arg_trick" text="The trick that won it. Here's the ford, here's the treeline — and here's where they never thought to look." />
+		<string id="lmmi_camp_story_bored_1" text="*yawns*" />
+		<string id="lmmi_camp_story_bored_2" text="Was there a point to that, captain?" />
+		<string id="lmmi_camp_story_bored_3" text="I was there. That's not how it went." />
+		<string id="lmmi_camp_story_bored_4" text="Wake me when we get to the part with the loot." />
+		<string id="lmmi_camp_story_lost" text="...Hrm. Sorry, captain — long day. Was that the end?" />
+		<string id="lmmi_camp_story_never" text="...On second thought — another night, lads." />
+		<string id="lmmi_camp_story_old" text="[Tell an old war story]" />
+		<string id="lmmi_camp_story_open" text="{LMMI_CAMP_STORY_OPEN}" />
+		<string id="lmmi_camp_story_open_1" text="Right, they're all ears, captain. Go on — and don't skip the good part." />
+		<string id="lmmi_camp_story_open_2" text="Settle down, lads, settle down. ...Go on, captain." />
+		<string id="lmmi_camp_story_opening_old" text="An old one, eh? Go on, captain. From the start." />
+		<string id="lmmi_camp_story_opening_recent" text="That one? We were there, captain. Go on then — tell it right." />
+		<string id="lmmi_camp_story_recent" text="[Tell them about the fight with {LMMI_CAMP_FOE}]" />
+		<string id="lmmi_camp_story_trail_off" text="[Trail off] ...Anyway. You had to be there." />
+		<string id="lmmi_camp_story_won" text="Ha! That's how it was — that's exactly how it was! To the captain!" />
+		<string id="lmmi_camp_taste_of_home" text="A taste of home" />
+		<string id="lmmi_camp_when_days" text="{N} days back" />
+		<string id="lmmi_camp_when_today" text="earlier today" />
+		<string id="lmmi_camp_when_yesterday" text="yesterday" />
+		<string id="lmmi_feast_maid" text="More wine, {?PLAYER.GENDER}my lady{?}my lord{\?}?" />
+		<string id="lmmi_feast_maid_fill" text="Fill it to the brim." />
+		<string id="lmmi_feast_maid_fill_resp" text="There you are. Mind the floor — it starts to tilt after the third cup." />
+		<string id="lmmi_feast_maid_herself" text="Pour one for yourself, too." />
+		<string id="lmmi_feast_maid_herself_resp" text="Ha! Not while the master's watching. ...Maybe later." />
+		<string id="lmmi_feast_maid_no" text="Not just now, thank you." />
+		<string id="lmmi_feast_maid_water" text="Just water for me, if you have it." />
+		<string id="lmmi_feast_maid_water_resp" text="Water? At a feast? ...I'll see what I can find." />
+		<string id="lmmi_street_flogged" text="Your time is served — but not before the lash. They strip you in the square of {LMMI_JAIL_TOWN} and the jailer counts out the strokes, one for every hour the watch's dead will go unburied. Then the gate opens and your gear is thrown after you. {LMMI_JAIL_TOWN} won't be glad to see you again." />
+		<string id="lmmi_street_flogged_msg" text="The lash has left you barely able to stand." />
+		<string id="lmmi_street_jailed_bloodmoney" text="Offer blood money ({GOLD}{GOLD_ICON})" />
+		<string id="lmmi_street_lord" text="{?LORD.GENDER}Lady{?}Lord{\?} {LORD.NAME}" />
+		<string id="lmmi_street_lord_magistrate" text="The magistrate" />
+		<string id="lmmi_street_noble_kin" text="Those were {LORD}'s men you killed. A great name won't make {LORD} forget it. (Relation -10)" />
+		<string id="lmmi_street_sentence_resisted_warn" text="Kill one of my men and you'll hang for it. Guards! To me!" />
+		<string id="lmmi_street_verdict_cruel" text="{LORD} is not a merciful man, and the watch's dead are still lying in the street. The magistrate will hear it at dawn — nobody expects it to take long." />
+		<string id="lmmi_street_verdict_fond" text="{LORD} thinks too well of you to see you hang, and commutes the sentence: {TAIL}" />
+		<string id="lmmi_street_verdict_lenient" text="{LORD} has no stomach for a hanging today, and commutes the sentence: {TAIL}" />
+		<string id="lmmi_street_verdict_merciful" text="{LORD} is a merciful man, and commutes the sentence: {TAIL}" />
+		<string id="lmmi_street_verdict_paid" text="{LORD} takes the blood money and spares your neck. {DAYS} days in the cells, and no welcome in {TOWN} after." />
+		<string id="lmmi_street_verdict_ransom" text="{LORD} is no butcher, but the watch's dead will be answered for: {GOLD}{GOLD_ICON} in blood money, or the headsman at dawn." />
+		<string id="lmmi_street_verdict_tail" text="{DAYS} days in the cells, a flogging for the watch's dead, and no welcome in {TOWN} after." />
+		<string id="lmmi_feast_hall_goes_on" text="The hall feasts on around you; nobody is in a hurry to leave the table." />
+		<string id="lmmi_camp_cask" text="Break out a cask from the wagons — a round for everyone. [{LMMI_CAMP_CASK_USE}]" />
+		<string id="lmmi_camp_cask_again" text="Another cask, captain? One a night. Any more and nobody stands watch." />
+		<string id="lmmi_camp_cask_none" text="There's no wine or beer in the wagons." />
+		<string id="lmmi_camp_cask_piece" text="{COUNT}x {ITEM}" />
+		<string id="lmmi_camp_cask_poured" text="You tap {POURED} from the wagons." />
+		<string id="lmmi_camp_cask_resp" text="Lads! The captain's opened a cask! To the captain!" />
+		<string id="lmmi_camp_cask_use_none" text="no wine or beer" />
+		<string id="lmmi_camp_drill_again" text="Again, captain? We've only just stopped aching. One drill a camp — let the lads eat." />
 	</strings>
 </base>

@@ -1,65 +1,76 @@
 ﻿using System;
 using System.Linq;
 using HarmonyLib;
+using LessMenusMoreImmersion.Constants;
 using LessMenusMoreImmersion.Logging;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Settlements;
+using TaleWorlds.CampaignSystem.Settlements.Locations;
 using TaleWorlds.Library;
+using TaleWorlds.Localization;
 using TaleWorlds.MountAndBlade.GauntletUI.Widgets.Menu.Overlay;
 
 namespace LessMenusMoreImmersion.Behaviors
 {
     /// <summary>
-    /// Harmony patch to disable Talk/Visit buttons when player hasn't met the notable before.
-    /// Uses "met before" logic instead of settlement access.
+    /// Harmony patch that hides the Talk/Visit buttons on settlement menu portraits unless the
+    /// player could plausibly walk up to that person: they must have met the hero, and must know
+    /// the way to the part of the settlement the hero is currently in (tavern, keep, arena...).
+    /// Notables never leave their settlement, so once met they stay reachable; lords and
+    /// wanderers move between locations, so their buttons follow the discovery system.
     /// </summary>
     [HarmonyPatch(typeof(OverlayPopupWidget), nameof(OverlayPopupWidget.SetCurrentCharacter))]
     internal static class PortraitActionBlocker
     {
         private static bool _marginsApplied = false;
 
-        /// <summary>
-        /// Patches OverlayPopupWidget.SetCurrentCharacter to disable action buttons when player hasn't met the notable
-        /// </summary>
         [HarmonyPostfix]
-        static void Postfix(OverlayPopupWidget __instance, object item)
+        static void Postfix(OverlayPopupWidget __instance, GameMenuPartyItemButtonWidget item)
         {
             try
             {
                 // Reset margins first to prevent cumulative expansion
                 ResetMargins(__instance);
 
-                // Try to get the hero from the widget
-                Hero targetHero = GetHeroFromWidget(item);
+                if (__instance.ActionButtonsList == null) return;
 
-                if (targetHero == null)
+                var settlement = Settlement.CurrentSettlement;
+                Hero? targetHero = GetHeroFromWidget(item, settlement);
+
+                if (targetHero == null || settlement == null)
                 {
-                    return; // No hero found, no blocking needed
+                    __instance.ActionButtonsList.IsVisible = true;
+                    return; // Party entries or unresolved names: leave vanilla behavior alone.
                 }
 
-                // Check if player has met this hero before
-                bool hasMetBefore = HasPlayerMetHero(targetHero);
+                bool hasMet = HasPlayerMetHero(targetHero);
+                bool knowsWay = KnowsWayToHero(targetHero, settlement, out var heroLocation);
+                TextObject? blockedText = null;
 
-                if (!hasMetBefore)
+                if (!hasMet)
+                {
+                    blockedText = new TextObject("{=lmmi_portrait_not_met}You need to be introduced to this person first.");
+                }
+                else if (!knowsWay)
+                {
+                    blockedText = new TextObject("{=lmmi_portrait_location_unknown}{HERO} is in the {LOCATION}. You don't know the way there yet.");
+                    blockedText.SetTextVariable("HERO", targetHero.Name);
+                    blockedText.SetTextVariable("LOCATION", heroLocation!.Name);
+                }
+
+                LmmiLog.Info($"Portrait: '{targetHero.Name}' in {settlement.Name} location='{heroLocation?.StringId ?? "none"}' " +
+                             $"met={hasMet} knowsWay={knowsWay} -> {(blockedText == null ? "open" : "blocked")}");
+
+                if (blockedText != null)
                 {
                     // Hide buttons and add visual compensation
-                    if (__instance.ActionButtonsList != null)
-                    {
-                        __instance.ActionButtonsList.IsVisible = false;
-                        ApplyMargins(__instance);
-
-                        // Show message to player
-                        InformationManager.DisplayMessage(new InformationMessage(
-                            "You need to be introduced to this person first."));
-                    }
+                    __instance.ActionButtonsList.IsVisible = false;
+                    ApplyMargins(__instance);
+                    InformationManager.DisplayMessage(new InformationMessage(blockedText.ToString()));
                 }
                 else
                 {
-                    // Ensure buttons are visible when player has met the hero
-                    if (__instance.ActionButtonsList != null)
-                    {
-                        __instance.ActionButtonsList.IsVisible = true;
-                    }
+                    __instance.ActionButtonsList.IsVisible = true;
                 }
             }
             catch (Exception ex)
@@ -70,66 +81,58 @@ namespace LessMenusMoreImmersion.Behaviors
         }
 
         /// <summary>
-        /// Attempts to extract a Hero from the widget item using various methods
+        /// Resolves the hero behind a menu portrait. The widget only carries display strings, so we
+        /// match its name against every hero present in the settlement: notables, heroes without a
+        /// party (wanderers, prisoners, lords staying in the keep) and leaders of parties inside.
         /// </summary>
-        private static Hero GetHeroFromWidget(object item)
+        private static Hero? GetHeroFromWidget(GameMenuPartyItemButtonWidget? item, Settlement? settlement)
         {
-            if (item == null) return null;
+            if (item == null || settlement == null || item.IsPartyItem) return null;
+
+            var name = item.Name;
+            if (string.IsNullOrEmpty(name)) return null;
 
             try
             {
-                // Method 1: Try to get hero by index
-                var indexProp = item.GetType().GetProperty("Index");
-                if (indexProp != null)
-                {
-                    var index = indexProp.GetValue(item);
-                    if (index is int intIndex && Settlement.CurrentSettlement?.Notables != null
-                        && intIndex >= 0 && intIndex < Settlement.CurrentSettlement.Notables.Count)
-                    {
-                        return Settlement.CurrentSettlement.Notables[intIndex];
-                    }
-                }
+                var candidates = settlement.Notables
+                    .Concat(settlement.HeroesWithoutParty)
+                    .Concat(settlement.Parties.Select(p => p.LeaderHero))
+                    .Where(h => h != null)
+                    .ToList();
 
-                // Method 2: Try to get hero by name matching
-                var nameProp = item.GetType().GetProperty("Name");
-                if (nameProp != null)
-                {
-                    var name = nameProp.GetValue(item);
-                    if (name is string notableName && Settlement.CurrentSettlement?.Notables != null)
-                    {
-                        return Settlement.CurrentSettlement.Notables
-                            .FirstOrDefault(n => n.Name.ToString() == notableName);
-                    }
-                }
-
-                // Method 3: Try to get hero from Character property
-                var characterProperty = item.GetType().GetProperty("Character");
-                if (characterProperty != null)
-                {
-                    var character = characterProperty.GetValue(item);
-                    if (character != null)
-                    {
-                        var heroProperty = character.GetType().GetProperty("HeroObject");
-                        if (heroProperty != null)
-                        {
-                            return heroProperty.GetValue(character) as Hero;
-                        }
-                    }
-                }
+                // Exact match first. Title mods prepend to the displayed name
+                // (Titles shows "Emir Count Adram" for Adram), so fall back to a suffix match.
+                var hero = candidates.FirstOrDefault(h => h.Name?.ToString() == name)
+                        ?? candidates.FirstOrDefault(h => EndsWithName(name, h.Name?.ToString()))
+                        ?? candidates.FirstOrDefault(h => EndsWithName(name, h.FirstName?.ToString()));
+                if (hero == null)
+                    LmmiLog.Info($"Portrait: no hero named '{name}' found in {settlement.Name} — leaving buttons to vanilla.");
+                return hero;
             }
             catch (Exception ex)
             {
-                LmmiLog.Debug($"GetHeroFromWidget reflection path failed: {ex.Message}");
+                LmmiLog.Debug($"GetHeroFromWidget failed for '{name}': {ex.Message}");
+                return null;
             }
+        }
 
-            // Fallback: use first notable (may not be accurate)
-            var settlement = Settlement.CurrentSettlement;
-            if (settlement?.Notables != null && settlement.Notables.Count > 0)
-            {
-                return settlement.Notables[0];
-            }
+        private static bool EndsWithName(string displayedName, string? heroName) =>
+            !string.IsNullOrEmpty(heroName) && displayedName.EndsWith(" " + heroName, StringComparison.Ordinal);
 
-            return null;
+        /// <summary>
+        /// True if the player knows the way to wherever the hero currently is in this settlement.
+        /// Locations without a discoverable feature (e.g. the town center) are always reachable.
+        /// </summary>
+        private static bool KnowsWayToHero(Hero hero, Settlement settlement, out Location? heroLocation)
+        {
+            heroLocation = (settlement.LocationComplex ?? LocationComplex.Current)?.GetLocationOfCharacter(hero);
+            if (heroLocation == null) return true;
+
+            if (!SettlementMenuOptions.LocationFeatureMap.TryGetValue(heroLocation.StringId, out var feature))
+                return true;
+
+            var discovery = Campaign.Current?.GetCampaignBehavior<DisableMenuBehavior>();
+            return discovery == null || discovery.HasFeatureAccess(settlement, feature);
         }
 
         /// <summary>

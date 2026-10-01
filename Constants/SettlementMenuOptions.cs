@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using TaleWorlds.Localization;
 
 namespace LessMenusMoreImmersion.Constants
 {
@@ -96,23 +97,28 @@ namespace LessMenusMoreImmersion.Constants
         public static List<string> AllOptions => OptionFeatureMap.Keys.ToList();
 
         /// <summary>
-        /// Returns a player-facing name for a feature, used in discovery messages.
+        /// Returns a player-facing localized name for a feature, used in discovery/escort messages.
         /// </summary>
-        public static string GetFeatureDisplayName(string feature)
+        public static TextObject GetFeatureDisplayNameText(string feature)
         {
             switch (feature)
             {
-                case Features.Keep: return "keep";
-                case Features.Arena: return "arena";
-                case Features.Backstreet: return "tavern district";
-                case Features.Trade: return "marketplace";
-                case Features.Smithy: return "smithy";
-                case Features.Alley: return "alley";
-                case Features.Waterfront: return "waterfront";
-                case Features.Clearing: return "clearing";
-                case Features.Barber: return "barber";
-                default: return feature;
+                case Features.Keep: return new TextObject("{=lmmi_feature_keep}keep");
+                case Features.Arena: return new TextObject("{=lmmi_feature_arena}arena");
+                case Features.Backstreet: return new TextObject("{=lmmi_feature_backstreet}tavern district");
+                case Features.Trade: return new TextObject("{=lmmi_feature_trade}marketplace");
+                case Features.Smithy: return new TextObject("{=lmmi_feature_smithy}smithy");
+                case Features.Alley: return new TextObject("{=lmmi_feature_alley}alley");
+                case Features.Waterfront: return new TextObject("{=lmmi_feature_waterfront}waterfront");
+                case Features.Clearing: return new TextObject("{=lmmi_feature_clearing}clearing");
+                case Features.Barber: return new TextObject("{=lmmi_feature_barber}barber");
+                default: return new TextObject(feature);
             }
         }
+
+        /// <summary>
+        /// Backward-compatible helper that returns the localized feature name as a string.
+        /// </summary>
+        public static string GetFeatureDisplayName(string feature) => GetFeatureDisplayNameText(feature).ToString();
     }
 }
