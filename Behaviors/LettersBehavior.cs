@@ -91,7 +91,11 @@ namespace LessMenusMoreImmersion.Behaviors
             starter.AddPlayerLine("lmmi_letter_take_yes", "lmmi_letter_take", "lmmi_letter_given",
                 "{=lmmi_letter_take_yes}I'll deliver it myself.", null, WriteLetter);
             starter.AddDialogLine("lmmi_letter_given", "lmmi_letter_given", "hero_main_options",
-                "{=lmmi_letter_given}Safe travels. And don't read it — the seal will tell.", null, null);
+                "{=!}{LMMI_LETTER_GIVEN}",
+                    () => Flavor.Say("LMMI_LETTER_GIVEN",
+                        "{=lmmi_letter_given}Safe travels. And don't read it — the seal will tell.",
+                        "{=lmmi_letter_given_2}Here. Deliver it yourself — and don't break the seal.",
+                        "{=lmmi_letter_given_3}Take it, and give my regards. In person, mind."), null);
 
             starter.AddPlayerLine("lmmi_letter_take_no", "lmmi_letter_take", "lmmi_favor_nevermind_resp",
                 "{=lmmi_letter_take_no}Perhaps another time.", null, null);

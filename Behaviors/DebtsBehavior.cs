@@ -95,8 +95,11 @@ namespace LessMenusMoreImmersion.Behaviors
                 (out TextObject why) => CanBorrow(out why));
 
             starter.AddDialogLine("lmmi_loan_poor", "lmmi_loan_offer", "hero_main_options",
-                "{=lmmi_loan_poor}I'm stretched thin myself, I'm afraid. Ask me another time.",
-                () => _offerAmount < 200, null);
+                "{=!}{LMMI_LOAN_POOR}",
+                () => _offerAmount < 200 && Flavor.Say("LMMI_LOAN_POOR",
+                        "{=lmmi_loan_poor}I'm stretched thin myself, I'm afraid. Ask me another time.",
+                        "{=lmmi_loan_poor_2}My own coffers are thin just now. Try me later.",
+                        "{=lmmi_loan_poor_3}I've nothing to spare this season, I'm sorry."), null);
 
             starter.AddDialogLine("lmmi_loan_offer", "lmmi_loan_offer", "lmmi_loan_terms",
                 "{=lmmi_loan_offer}{LMMI_LOAN_OFFER}",
@@ -105,12 +108,20 @@ namespace LessMenusMoreImmersion.Behaviors
             starter.AddPlayerLine("lmmi_loan_accept", "lmmi_loan_terms", "lmmi_loan_done",
                 "{=lmmi_loan_accept}Agreed.", null, AcceptLoan);
             starter.AddDialogLine("lmmi_loan_done", "lmmi_loan_done", "hero_main_options",
-                "{=lmmi_loan_done}Then it's done. Don't make me regret it.", null, null);
+                "{=!}{LMMI_LOAN_DONE}",
+                    () => Flavor.Say("LMMI_LOAN_DONE",
+                        "{=lmmi_loan_done}Then it's done. Don't make me regret it.",
+                        "{=lmmi_loan_done_2}Done. Pay me on time and we'll stay friends.",
+                        "{=lmmi_loan_done_3}Then we have a deal. I'll be counting the days."), null);
 
             starter.AddPlayerLine("lmmi_loan_decline", "lmmi_loan_terms", "lmmi_loan_declined",
                 "{=lmmi_loan_decline}On second thought, no.", null, null);
             starter.AddDialogLine("lmmi_loan_declined", "lmmi_loan_declined", "hero_main_options",
-                "{=lmmi_loan_declined}As you like.", null, null);
+                "{=!}{LMMI_LOAN_DECLINED}",
+                    () => Flavor.Say("LMMI_LOAN_DECLINED",
+                        "{=lmmi_loan_declined}As you like.",
+                        "{=lmmi_loan_declined_2}Suit yourself.",
+                        "{=lmmi_loan_declined_3}Your choice. The offer may not stand forever."), null);
 
             // ---- Repaying (any conversation with the lender) ----
             starter.AddPlayerLine("lmmi_loan_repay", "hero_main_options", "lmmi_loan_repaid",
@@ -176,21 +187,33 @@ namespace LessMenusMoreImmersion.Behaviors
             switch (_offerTerms)
             {
                 case Terms.Friend:
-                    offer = new TextObject("{=lmmi_loan_offer_fair}For you? I can spare {LMMI_LOAN_AMOUNT}{GOLD_ICON}. Pay me back {LMMI_LOAN_OWED}{GOLD_ICON} within {LMMI_LOAN_DAYS} days. I trust you — but my ledger doesn't.");
+                    offer = Flavor.Pick("{=lmmi_loan_offer_fair}For you? I can spare {LMMI_LOAN_AMOUNT}{GOLD_ICON}. Pay me back {LMMI_LOAN_OWED}{GOLD_ICON} within {LMMI_LOAN_DAYS} days. I trust you — but my ledger doesn't.",
+                        "{=lmmi_loan_offer_fair_2}I'll lend you {LMMI_LOAN_AMOUNT}{GOLD_ICON}. Bring back {LMMI_LOAN_OWED}{GOLD_ICON} within {LMMI_LOAN_DAYS} days, friend.",
+                        "{=lmmi_loan_offer_fair_3}{LMMI_LOAN_AMOUNT}{GOLD_ICON}, for a friend. {LMMI_LOAN_OWED}{GOLD_ICON} back in {LMMI_LOAN_DAYS} days — no more than fair.");
                     break;
                 case Terms.Business:
-                    offer = new TextObject("{=lmmi_loan_offer_business}I can do {LMMI_LOAN_AMOUNT}{GOLD_ICON}. Business is business: {LMMI_LOAN_OWED}{GOLD_ICON} back within {LMMI_LOAN_DAYS} days.");
+                    offer = Flavor.Pick("{=lmmi_loan_offer_business}I can do {LMMI_LOAN_AMOUNT}{GOLD_ICON}. Business is business: {LMMI_LOAN_OWED}{GOLD_ICON} back within {LMMI_LOAN_DAYS} days.",
+                        "{=lmmi_loan_offer_business_2}{LMMI_LOAN_AMOUNT}{GOLD_ICON}, at the usual rate: {LMMI_LOAN_OWED}{GOLD_ICON} in {LMMI_LOAN_DAYS} days.",
+                        "{=lmmi_loan_offer_business_3}I can lend {LMMI_LOAN_AMOUNT}{GOLD_ICON}. You'll owe {LMMI_LOAN_OWED}{GOLD_ICON} by {LMMI_LOAN_DAYS} days from now.");
                     break;
                 case Terms.Stranger:
                     offer = NotableDisposition.IsForeigner(n)
-                        ? new TextObject("{=lmmi_loan_offer_stranger_foreign}Your kind aren't known for settling their debts, {DEMONYM}. {LMMI_LOAN_AMOUNT}{GOLD_ICON}, and you pay back {LMMI_LOAN_OWED}{GOLD_ICON} within {LMMI_LOAN_DAYS} days. Miss it, and I go to the magistrate.")
-                        : new TextObject("{=lmmi_loan_offer_stranger}I don't know you, and I don't lend cheap to people I don't know. {LMMI_LOAN_AMOUNT}{GOLD_ICON}; you pay back {LMMI_LOAN_OWED}{GOLD_ICON} within {LMMI_LOAN_DAYS} days. Miss it, and I go to the magistrate.");
+                        ? Flavor.Pick("{=lmmi_loan_offer_stranger_foreign}Your kind aren't known for settling their debts, {DEMONYM}. {LMMI_LOAN_AMOUNT}{GOLD_ICON}, and you pay back {LMMI_LOAN_OWED}{GOLD_ICON} within {LMMI_LOAN_DAYS} days. Miss it, and I go to the magistrate.",
+                            "{=lmmi_loan_offer_stranger_foreign_2}I don't trust {DEMONYM} borrowers. {LMMI_LOAN_AMOUNT}{GOLD_ICON}, {LMMI_LOAN_OWED}{GOLD_ICON} back in {LMMI_LOAN_DAYS} days — or the magistrate hears of it.",
+                            "{=lmmi_loan_offer_stranger_foreign_3}A {DEMONYM} wanting coin. {LMMI_LOAN_AMOUNT}{GOLD_ICON}, then; {LMMI_LOAN_OWED}{GOLD_ICON} within {LMMI_LOAN_DAYS} days. Late, and I go to the law.")
+                        : Flavor.Pick("{=lmmi_loan_offer_stranger}I don't know you, and I don't lend cheap to people I don't know. {LMMI_LOAN_AMOUNT}{GOLD_ICON}; you pay back {LMMI_LOAN_OWED}{GOLD_ICON} within {LMMI_LOAN_DAYS} days. Miss it, and I go to the magistrate.",
+                            "{=lmmi_loan_offer_stranger_2}Strangers pay dear. {LMMI_LOAN_AMOUNT}{GOLD_ICON}, {LMMI_LOAN_OWED}{GOLD_ICON} back in {LMMI_LOAN_DAYS} days, or the magistrate hears your name.",
+                            "{=lmmi_loan_offer_stranger_3}{LMMI_LOAN_AMOUNT}{GOLD_ICON}. {LMMI_LOAN_OWED}{GOLD_ICON} within {LMMI_LOAN_DAYS} days. I don't know you, so I take no chances.");
                     offer.SetTextVariable("DEMONYM", CultureWords.Demonym(Hero.MainHero.Culture));
                     break;
                 default:
                     offer = n.IsGangLeader
-                        ? new TextObject("{=lmmi_loan_offer_gang}Need coin? Everyone does. {LMMI_LOAN_AMOUNT}{GOLD_ICON} now, {LMMI_LOAN_OWED}{GOLD_ICON} in {LMMI_LOAN_DAYS} days. You don't want to find out what happens if you're late.")
-                        : new TextObject("{=lmmi_loan_offer_shark}{LMMI_LOAN_AMOUNT}{GOLD_ICON}, today. You'll owe me {LMMI_LOAN_OWED}{GOLD_ICON} in {LMMI_LOAN_DAYS} days. And friend — I always collect.");
+                        ? Flavor.Pick("{=lmmi_loan_offer_gang}Need coin? Everyone does. {LMMI_LOAN_AMOUNT}{GOLD_ICON} now, {LMMI_LOAN_OWED}{GOLD_ICON} in {LMMI_LOAN_DAYS} days. You don't want to find out what happens if you're late.",
+                            "{=lmmi_loan_offer_gang_2}Coin? Sure. {LMMI_LOAN_AMOUNT}{GOLD_ICON} now, {LMMI_LOAN_OWED}{GOLD_ICON} in {LMMI_LOAN_DAYS} days. Don't make me send the boys.",
+                            "{=lmmi_loan_offer_gang_3}{LMMI_LOAN_AMOUNT}{GOLD_ICON}, cash in hand. {LMMI_LOAN_OWED}{GOLD_ICON} back in {LMMI_LOAN_DAYS} days. My lads hate chasing debtors — they do it anyway.")
+                        : Flavor.Pick("{=lmmi_loan_offer_shark}{LMMI_LOAN_AMOUNT}{GOLD_ICON}, today. You'll owe me {LMMI_LOAN_OWED}{GOLD_ICON} in {LMMI_LOAN_DAYS} days. And friend — I always collect.",
+                            "{=lmmi_loan_offer_shark_2}{LMMI_LOAN_AMOUNT}{GOLD_ICON} now. {LMMI_LOAN_OWED}{GOLD_ICON} in {LMMI_LOAN_DAYS} days. I've never lost a debtor yet.",
+                            "{=lmmi_loan_offer_shark_3}Here's {LMMI_LOAN_AMOUNT}{GOLD_ICON}. You owe me {LMMI_LOAN_OWED}{GOLD_ICON} in {LMMI_LOAN_DAYS} days. Late payers have accidents.");
                     break;
             }
             offer.SetTextVariable("LMMI_LOAN_AMOUNT", _offerAmount);
@@ -225,14 +248,22 @@ namespace LessMenusMoreImmersion.Behaviors
 
             TextObject reply;
             if (d.Shark)
-                reply = new TextObject(d.Defaulted
-                    ? "{=lmmi_loan_repaid_shark_late}There. Was that so hard? My men will be glad to hear they can stand down."
-                    : "{=lmmi_loan_repaid_shark}Smart. Very smart.");
+                reply = (d.Defaulted
+                    ? Flavor.Pick("{=lmmi_loan_repaid_shark_late}There. Was that so hard? My men will be glad to hear they can stand down.",
+                        "{=lmmi_loan_repaid_shark_late_2}About time. I'll call off the dogs.",
+                        "{=lmmi_loan_repaid_shark_late_3}Paid at last. You were lucky my men hadn't found you yet.")
+                    : Flavor.Pick("{=lmmi_loan_repaid_shark}Smart. Very smart.",
+                        "{=lmmi_loan_repaid_shark_2}Good. We understand each other.",
+                        "{=lmmi_loan_repaid_shark_3}Prompt. I like that in a debtor."));
             else if (d.Defaulted)
-                reply = new TextObject("{=lmmi_loan_repaid_late}Late, but paid. I'll remember both.");
+                reply = Flavor.Pick("{=lmmi_loan_repaid_late}Late, but paid. I'll remember both.",
+                        "{=lmmi_loan_repaid_late_2}Late. Paid, but late. I won't forget it.",
+                        "{=lmmi_loan_repaid_late_3}Finally. Next time, be on time.");
             else
             {
-                reply = new TextObject("{=lmmi_loan_repaid_fair}Right on time. A pleasure doing business with you.");
+                reply = Flavor.Pick("{=lmmi_loan_repaid_fair}Right on time. A pleasure doing business with you.",
+                        "{=lmmi_loan_repaid_fair_2}On the day, as promised. Good dealing.",
+                        "{=lmmi_loan_repaid_fair_3}Paid in full, and on time. My door's open next time.");
                 ChangeRelationAction.ApplyPlayerRelation(n, d.Terms == Terms.Stranger ? 3 : 2, affectRelatives: false);   // a stranger who pays earns trust
             }
             MBTextManager.SetTextVariable("LMMI_LOAN_REPAID_TEXT", reply);
@@ -260,17 +291,23 @@ namespace LessMenusMoreImmersion.Behaviors
 
                     TextObject news;
                     if (d.Shark)
-                        news = new TextObject("{=lmmi_loan_overdue_shark}Your debt to {NAME} of {TOWN} is overdue. They say {NAME} always collects. You should watch the roads.");
+                        news = Flavor.Pick("{=lmmi_loan_overdue_shark}Your debt to {NAME} of {TOWN} is overdue. They say {NAME} always collects. You should watch the roads.",
+                        "{=lmmi_loan_overdue_shark_2}Your debt to {NAME} of {TOWN} is overdue. {NAME}'s men are asking where you ride.",
+                        "{=lmmi_loan_overdue_shark_3}Overdue: your debt to {NAME} of {TOWN}. Mind the roads — {NAME} collects.");
                     else if (d.Terms == Terms.Stranger && lender.CurrentSettlement?.MapFaction != null)
                     {
                         // A stranger's loan comes with the magistrate.
-                        news = new TextObject("{=lmmi_loan_overdue_stranger}Your debt to {NAME} of {TOWN} is overdue. {NAME} has gone to the magistrate: the watch there will be looking for you.");
+                        news = Flavor.Pick("{=lmmi_loan_overdue_stranger}Your debt to {NAME} of {TOWN} is overdue. {NAME} has gone to the magistrate: the watch there will be looking for you.",
+                        "{=lmmi_loan_overdue_stranger_2}Your debt to {NAME} of {TOWN} is overdue. The magistrate there has your name now.",
+                        "{=lmmi_loan_overdue_stranger_3}{NAME} of {TOWN} has reported your overdue debt. The watch will be looking for you.");
                         ChangeCrimeRatingAction.Apply(lender.CurrentSettlement.MapFaction, 15f);
                         TownStandingBehavior.Adjust(lender.CurrentSettlement, -5f, $"defaulted on {lender.Name}'s loan");
                     }
                     else
                     {
-                        news = new TextObject("{=lmmi_loan_overdue_fair}Your debt to {NAME} of {TOWN} is overdue. {NAME} is telling anyone who'll listen.");
+                        news = Flavor.Pick("{=lmmi_loan_overdue_fair}Your debt to {NAME} of {TOWN} is overdue. {NAME} is telling anyone who'll listen.",
+                        "{=lmmi_loan_overdue_fair_2}Your debt to {NAME} of {TOWN} is overdue. {NAME} is complaining about you to everyone.",
+                        "{=lmmi_loan_overdue_fair_3}{NAME} of {TOWN} is waiting on your overdue debt — and telling the whole town about it.");
                         TownStandingBehavior.Adjust(lender.CurrentSettlement, -5f, $"defaulted on {lender.Name}'s loan");
                     }
                     news.SetTextVariable("NAME", lender.Name);

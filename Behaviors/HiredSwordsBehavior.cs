@@ -944,7 +944,9 @@ namespace LessMenusMoreImmersion.Behaviors
             v.Step = VisitStep.Fighting;
             v.StepAt = _sceneTime;
             _fightActive = true;
-            StreetEventsBehavior.Bark(v.Lead, new TextObject("{=lmmi_hired_scene_take_him}Take {?PLAYER.GENDER}her{?}him{\\?}!"));
+            StreetEventsBehavior.Bark(v.Lead, Flavor.Pick("{=lmmi_hired_scene_take_him}Take {?PLAYER.GENDER}her{?}him{\\?}!",
+                    "{=lmmi_hired_scene_take_him_2}Get {?PLAYER.GENDER}her{?}him{\\?}!",
+                    "{=lmmi_hired_scene_take_him_3}Now — take {?PLAYER.GENDER}her{?}him{\\?}!"));
             handler.StartCustomFight(new List<Agent> { main }, men, dropWeapons: false, isItemUseDisabled: false,
                 won =>
                 {
@@ -1327,11 +1329,17 @@ namespace LessMenusMoreImmersion.Behaviors
                     var band = TalkingBand();
                     if (band == null) return false;
                     var sender = SenderOf(band);
-                    var line = new TextObject(band.Job switch
+                    var line = (band.Job switch
                     {
-                        Job.Beat => "{=lmmi_hired_greet_beat}{SENDER} sends regards, {PLAYER.NAME}. Nothing personal — we're paid to leave you sorry, not dead.[if:convo_nonchalant][ib:hip]",
-                        Job.Deliver => "{=lmmi_hired_greet_deliver}{SENDER} wants a word with you, {PLAYER.NAME} — in person. Come quietly, or come in pieces.[if:convo_predatory][ib:warrior]",
-                        _ => "{=lmmi_hired_greet_hold}{SENDER} pays well for highborn guests, {PLAYER.NAME}. Come quietly, or come in pieces.[if:convo_predatory][ib:warrior]",
+                        Job.Beat => Flavor.Pick("{=lmmi_hired_greet_beat}{SENDER} sends regards, {PLAYER.NAME}. Nothing personal — we're paid to leave you sorry, not dead.[if:convo_nonchalant][ib:hip]",
+                            "{=lmmi_hired_greet_beat_2}{PLAYER.NAME}, is it? {SENDER} paid us to rearrange your face. Hold still and it'll be quick.[if:convo_nonchalant][ib:hip]",
+                            "{=lmmi_hired_greet_beat_3}Message from {SENDER}, {PLAYER.NAME}. It's written on our knuckles.[if:convo_nonchalant][ib:hip]"),
+                        Job.Deliver => Flavor.Pick("{=lmmi_hired_greet_deliver}{SENDER} wants a word with you, {PLAYER.NAME} — in person. Come quietly, or come in pieces.[if:convo_predatory][ib:warrior]",
+                            "{=lmmi_hired_greet_deliver_2}{SENDER} wants you brought in, {PLAYER.NAME}. Walking or carried — your choice.[if:convo_predatory][ib:warrior]",
+                            "{=lmmi_hired_greet_deliver_3}You're coming with us, {PLAYER.NAME}. {SENDER} is waiting, and doesn't like to wait.[if:convo_predatory][ib:warrior]"),
+                        _ => Flavor.Pick("{=lmmi_hired_greet_hold}{SENDER} pays well for highborn guests, {PLAYER.NAME}. Come quietly, or come in pieces.[if:convo_predatory][ib:warrior]",
+                            "{=lmmi_hired_greet_hold_2}{SENDER}'s paying good silver for you, {PLAYER.NAME}. Hands where we can see them.[if:convo_predatory][ib:warrior]",
+                            "{=lmmi_hired_greet_hold_3}There's a ransom on your head, {PLAYER.NAME}, and {SENDER} wants to collect. Come along.[if:convo_predatory][ib:warrior]"),
                     });
                     line.SetTextVariable("SENDER", sender?.Name ?? new TextObject("{=lmmi_thugs_someone}Someone you crossed"));
                     LordsBehavior.NoteGrievance(sender);
@@ -1344,7 +1352,11 @@ namespace LessMenusMoreImmersion.Behaviors
             starter.AddPlayerLine("lmmi_hired_fight", "lmmi_hired_greet_resp", "lmmi_hired_fight_resp",
                 "{=lmmi_hired_fight}Come and try it.", null, null);
             starter.AddDialogLine("lmmi_hired_fight_resp", "lmmi_hired_fight_resp", "close_window",
-                "{=lmmi_hired_fight_resp}Have it your way.[if:convo_bared_teeth][ib:aggressive]", null, null);
+                "{=!}{LMMI_HIRED_FIGHT}",
+                    () => Flavor.Say("LMMI_HIRED_FIGHT",
+                        "{=lmmi_hired_fight_resp}Have it your way.[if:convo_bared_teeth][ib:aggressive]",
+                        "{=lmmi_hired_fight_resp_2}Suit yourself.[if:convo_bared_teeth][ib:aggressive]",
+                        "{=lmmi_hired_fight_resp_3}Thought you'd say that.[if:convo_bared_teeth][ib:aggressive]"), null);
 
             // Sellswords are loyal to coin — up to a point.
             starter.AddPlayerLine("lmmi_hired_outbid", "lmmi_hired_greet_resp", "lmmi_hired_outbid_resp",
@@ -1362,7 +1374,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     LmmiLog.Info($"Hired swords: you outbid {SenderOf(band)?.Name} ({paid}).");
                 }, 100, CanBuyThemOff);
             starter.AddDialogLine("lmmi_hired_outbid_resp", "lmmi_hired_outbid_resp", "close_window",
-                "{=lmmi_hired_outbid_resp}...Coin's coin. We never found you.[if:convo_mocking_teasing][ib:hip]", null, null);
+                "{=!}{LMMI_HIRED_OUTBID}",
+                    () => Flavor.Say("LMMI_HIRED_OUTBID",
+                        "{=lmmi_hired_outbid_resp}...Coin's coin. We never found you.[if:convo_mocking_teasing][ib:hip]",
+                        "{=lmmi_hired_outbid_resp_2}...Gold talks. We'll tell them you'd already left town.[if:convo_mocking_teasing][ib:hip]",
+                        "{=lmmi_hired_outbid_resp_3}...Fair enough. Pleasure doing business.[if:convo_mocking_teasing][ib:hip]"), null);
         }
 
         private bool TalkingInScene()
@@ -1381,11 +1397,17 @@ namespace LessMenusMoreImmersion.Behaviors
                 {
                     if (!TalkingInScene()) return false;
                     var v = _visit!;
-                    var line = new TextObject(v.Contract.Job switch
+                    var line = (v.Contract.Job switch
                     {
-                        Job.Beat => "{=lmmi_hired_scene_beat}{PLAYER.NAME}? {SENDER} sends regards. Nothing personal — we're paid to leave you sorry, not dead.[if:convo_nonchalant][ib:hip]",
-                        Job.Deliver => "{=lmmi_hired_scene_deliver}{PLAYER.NAME}. {SENDER} wants a word with you — in person. Come quietly, or we carry you.[if:convo_predatory][ib:warrior]",
-                        _ => "{=lmmi_hired_scene_hold}{PLAYER.NAME}. {SENDER} pays well for highborn guests. Come quietly, or we carry you.[if:convo_predatory][ib:warrior]",
+                        Job.Beat => Flavor.Pick("{=lmmi_hired_scene_beat}{PLAYER.NAME}? {SENDER} sends regards. Nothing personal — we're paid to leave you sorry, not dead.[if:convo_nonchalant][ib:hip]",
+                            "{=lmmi_hired_scene_beat_2}{PLAYER.NAME}? Thought so. {SENDER} sends regards — the painful kind.[if:convo_nonchalant][ib:hip]",
+                            "{=lmmi_hired_scene_beat_3}There you are, {PLAYER.NAME}. {SENDER} paid us to leave a few bruises. Nothing personal.[if:convo_nonchalant][ib:hip]"),
+                        Job.Deliver => Flavor.Pick("{=lmmi_hired_scene_deliver}{PLAYER.NAME}. {SENDER} wants a word with you — in person. Come quietly, or we carry you.[if:convo_predatory][ib:warrior]",
+                            "{=lmmi_hired_scene_deliver_2}{PLAYER.NAME}. {SENDER} would like a word. Come along nicely.[if:convo_predatory][ib:warrior]",
+                            "{=lmmi_hired_scene_deliver_3}Found you, {PLAYER.NAME}. {SENDER} wants you in person. Walk, or be dragged.[if:convo_predatory][ib:warrior]"),
+                        _ => Flavor.Pick("{=lmmi_hired_scene_hold}{PLAYER.NAME}. {SENDER} pays well for highborn guests. Come quietly, or we carry you.[if:convo_predatory][ib:warrior]",
+                            "{=lmmi_hired_scene_hold_2}{PLAYER.NAME}. {SENDER} has a cell waiting for you. Come quietly.[if:convo_predatory][ib:warrior]",
+                            "{=lmmi_hired_scene_hold_3}Ransom money on two legs. {SENDER} sends for you, {PLAYER.NAME}.[if:convo_predatory][ib:warrior]"),
                     });
                     line.SetTextVariable("SENDER", v.Sender.Name);
                     LordsBehavior.NoteGrievance(v.Sender);
@@ -1398,7 +1420,11 @@ namespace LessMenusMoreImmersion.Behaviors
             starter.AddPlayerLine("lmmi_hired_scene_fight", "lmmi_hired_scene_resp", "lmmi_hired_scene_fight_resp",
                 "{=lmmi_hired_fight}Come and try it.", null, () => ChooseInScene(Fight));
             starter.AddDialogLine("lmmi_hired_scene_fight_resp", "lmmi_hired_scene_fight_resp", "close_window",
-                "{=lmmi_hired_fight_resp}Have it your way.[if:convo_bared_teeth][ib:aggressive]", null, null);
+                "{=!}{LMMI_HIRED_FIGHT}",
+                    () => Flavor.Say("LMMI_HIRED_FIGHT",
+                        "{=lmmi_hired_fight_resp}Have it your way.[if:convo_bared_teeth][ib:aggressive]",
+                        "{=lmmi_hired_fight_resp_2}Suit yourself.[if:convo_bared_teeth][ib:aggressive]",
+                        "{=lmmi_hired_fight_resp_3}Thought you'd say that.[if:convo_bared_teeth][ib:aggressive]"), null);
 
             starter.AddPlayerLine("lmmi_hired_scene_outbid", "lmmi_hired_scene_resp", "lmmi_hired_scene_outbid_resp",
                 "{=lmmi_hired_outbid_more}Whatever {LMMI_HIRED_SENDER} is paying you, I'll pay more. Turn around.{LMMI_HIRED_BRIBE_TAG}", null,
@@ -1412,19 +1438,31 @@ namespace LessMenusMoreImmersion.Behaviors
                     ChooseInScene(BoughtOff);
                 }, 100, CanBuyThemOff);
             starter.AddDialogLine("lmmi_hired_scene_outbid_resp", "lmmi_hired_scene_outbid_resp", "close_window",
-                "{=lmmi_hired_outbid_resp}...Coin's coin. We never found you.[if:convo_mocking_teasing][ib:hip]", null, null);
+                "{=!}{LMMI_HIRED_OUTBID}",
+                    () => Flavor.Say("LMMI_HIRED_OUTBID",
+                        "{=lmmi_hired_outbid_resp}...Coin's coin. We never found you.[if:convo_mocking_teasing][ib:hip]",
+                        "{=lmmi_hired_outbid_resp_2}...Gold talks. We'll tell them you'd already left town.[if:convo_mocking_teasing][ib:hip]",
+                        "{=lmmi_hired_outbid_resp_3}...Fair enough. Pleasure doing business.[if:convo_mocking_teasing][ib:hip]"), null);
 
             starter.AddPlayerLine("lmmi_hired_scene_take", "lmmi_hired_scene_resp", "lmmi_hired_scene_take_resp",
                 "{=lmmi_hired_scene_take}Get it over with.", () => _visit?.Contract.Job == Job.Beat,
                 () => ChooseInScene(v => Beaten(v, fought: false)));
             starter.AddDialogLine("lmmi_hired_scene_take_resp", "lmmi_hired_scene_take_resp", "close_window",
-                "{=lmmi_hired_scene_take_resp}Sensible. This won't take long.[if:convo_nonchalant][ib:confident]", null, null);
+                "{=!}{LMMI_HIRED_TAKE}",
+                    () => Flavor.Say("LMMI_HIRED_TAKE",
+                        "{=lmmi_hired_scene_take_resp}Sensible. This won't take long.[if:convo_nonchalant][ib:confident]",
+                        "{=lmmi_hired_scene_take_resp_2}Wise. Won't take long.[if:convo_nonchalant][ib:confident]",
+                        "{=lmmi_hired_scene_take_resp_3}Good. Less trouble for everyone.[if:convo_nonchalant][ib:confident]"), null);
 
             starter.AddPlayerLine("lmmi_hired_scene_yield", "lmmi_hired_scene_resp", "lmmi_hired_scene_yield_resp",
                 "{=lmmi_hired_scene_yield}I'll come quietly.", () => _visit != null && _visit.Contract.Job != Job.Beat,
                 () => ChooseInScene(v => Taken(v, fought: false)));
             starter.AddDialogLine("lmmi_hired_scene_yield_resp", "lmmi_hired_scene_yield_resp", "close_window",
-                "{=lmmi_hired_scene_yield_resp}Sensible. Hands where we can see them.[if:convo_stern][ib:warrior]", null, null);
+                "{=!}{LMMI_HIRED_YIELD}",
+                    () => Flavor.Say("LMMI_HIRED_YIELD",
+                        "{=lmmi_hired_scene_yield_resp}Sensible. Hands where we can see them.[if:convo_stern][ib:warrior]",
+                        "{=lmmi_hired_scene_yield_resp_2}Good choice. Walk ahead of us.[if:convo_stern][ib:warrior]",
+                        "{=lmmi_hired_scene_yield_resp_3}Smart. Keep your hands where we can see them.[if:convo_stern][ib:warrior]"), null);
 
             // Carried off: out of the town, and onto the road as their prisoner.
             starter.AddGameMenu("lmmi_hired_taken",
@@ -1461,11 +1499,17 @@ namespace LessMenusMoreImmersion.Behaviors
                 {
                     if (!Judging()) return false;
                     _judgment!.Seen = true;
-                    var line = new TextObject(_judgment!.Verdict switch
+                    var line = (_judgment!.Verdict switch
                     {
-                        Verdict.Hold => "{=lmmi_hired_judge_hold}Well, well. {PLAYER.NAME}, at my mercy — and it cost me less than a good horse. You'll be my guest until your people find the ransom.[if:convo_very_stern][ib:closed2]",
-                        Verdict.Doom => "{=lmmi_hired_judge_doom}Kneel. ...I've waited a long time for this, {PLAYER.NAME}. Any last words, before my men earn their pay?[if:convo_furious][ib:aggressive]",
-                        _ => "{=lmmi_hired_judge_humiliate}Look at you. I wanted you to see my face, so you'd know who did this to you. Now crawl back to your people — and stay out of my way.[if:convo_contemptuous][ib:hip]",
+                        Verdict.Hold => Flavor.Pick("{=lmmi_hired_judge_hold}Well, well. {PLAYER.NAME}, at my mercy — and it cost me less than a good horse. You'll be my guest until your people find the ransom.[if:convo_very_stern][ib:closed2]",
+                            "{=lmmi_hired_judge_hold_2}So. {PLAYER.NAME}, in my hall, in chains. Your family will pay, or you'll grow old here.[if:convo_very_stern][ib:closed2]",
+                            "{=lmmi_hired_judge_hold_3}Welcome, {PLAYER.NAME}. You'll be staying a while — until somebody pays what you're worth.[if:convo_very_stern][ib:closed2]"),
+                        Verdict.Doom => Flavor.Pick("{=lmmi_hired_judge_doom}Kneel. ...I've waited a long time for this, {PLAYER.NAME}. Any last words, before my men earn their pay?[if:convo_furious][ib:aggressive]",
+                            "{=lmmi_hired_judge_doom_2}On your knees, {PLAYER.NAME}. I've dreamed of this. Say your prayers.[if:convo_furious][ib:aggressive]",
+                            "{=lmmi_hired_judge_doom_3}At last. {PLAYER.NAME}, kneeling before me. Anything to say before the end?[if:convo_furious][ib:aggressive]"),
+                        _ => Flavor.Pick("{=lmmi_hired_judge_humiliate}Look at you. I wanted you to see my face, so you'd know who did this to you. Now crawl back to your people — and stay out of my way.[if:convo_contemptuous][ib:hip]",
+                            "{=lmmi_hired_judge_humiliate_2}Look at the great {PLAYER.NAME} now. Remember this the next time you cross me.[if:convo_contemptuous][ib:hip]",
+                            "{=lmmi_hired_judge_humiliate_3}Bound and beaten. That's how I'll remember you, {PLAYER.NAME}. Now get out of my sight.[if:convo_contemptuous][ib:hip]"),
                     });
                     MBTextManager.SetTextVariable("LMMI_HIRED_JUDGE", line);
                     return true;
@@ -1477,7 +1521,11 @@ namespace LessMenusMoreImmersion.Behaviors
             starter.AddPlayerLine("lmmi_hired_hold_ransom", "lmmi_hired_judge_resp", "lmmi_hired_hold_end",
                 "{=lmmi_hired_hold_ransom}Name your price, then.", () => Judging(Verdict.Hold), null);
             starter.AddDialogLine("lmmi_hired_hold_end", "lmmi_hired_hold_end", "close_window",
-                "{=lmmi_hired_hold_end}In good time. Take {?PLAYER.GENDER}her{?}him{\\?} away.[if:convo_stern][ib:closed]", null,
+                "{=!}{LMMI_HIRED_HOLD_END}",
+                    () => Flavor.Say("LMMI_HIRED_HOLD_END",
+                        "{=lmmi_hired_hold_end}In good time. Take {?PLAYER.GENDER}her{?}him{\\?} away.[if:convo_stern][ib:closed]",
+                        "{=lmmi_hired_hold_end_2}We'll see. Lock {?PLAYER.GENDER}her{?}him{\\?} up.[if:convo_stern][ib:closed]",
+                        "{=lmmi_hired_hold_end_3}Later. Get {?PLAYER.GENDER}her{?}him{\\?} out of my sight.[if:convo_stern][ib:closed]"),
                 () => Then(Imprison));
 
             // Humiliated.
@@ -1486,7 +1534,11 @@ namespace LessMenusMoreImmersion.Behaviors
             starter.AddPlayerLine("lmmi_hired_humiliate_silent", "lmmi_hired_judge_resp", "lmmi_hired_humiliate_end",
                 "{=lmmi_hired_humiliate_silent}(Say nothing.)", () => Judging(Verdict.Humiliate), null);
             starter.AddDialogLine("lmmi_hired_humiliate_end", "lmmi_hired_humiliate_end", "close_window",
-                "{=lmmi_hired_humiliate_end}It is for today. Empty {?PLAYER.GENDER}her{?}his{\\?} purse and throw {?PLAYER.GENDER}her{?}him{\\?} out.[if:convo_mocking_revenge][ib:hip]", null,
+                "{=!}{LMMI_HIRED_HUMILIATE_END}",
+                    () => Flavor.Say("LMMI_HIRED_HUMILIATE_END",
+                        "{=lmmi_hired_humiliate_end}It is for today. Empty {?PLAYER.GENDER}her{?}his{\\?} purse and throw {?PLAYER.GENDER}her{?}him{\\?} out.[if:convo_mocking_revenge][ib:hip]",
+                        "{=lmmi_hired_humiliate_end_2}Over for now. Strip {?PLAYER.GENDER}her{?}his{\\?} purse and toss {?PLAYER.GENDER}her{?}him{\\?} in the road.[if:convo_mocking_revenge][ib:hip]",
+                        "{=lmmi_hired_humiliate_end_3}We'll see. Take {?PLAYER.GENDER}her{?}his{\\?} coin and throw {?PLAYER.GENDER}her{?}him{\\?} out.[if:convo_mocking_revenge][ib:hip]"),
                 () => Then(s => SendOff(s, 0.2f)));
 
             // Doomed: plead, or face it.
@@ -1515,9 +1567,15 @@ namespace LessMenusMoreImmersion.Behaviors
                             NativePersuasion.Argument(DefaultSkills.Roguery, DefaultTraits.Valor,
                                 new TextObject("{=lmmi_hired_plea_threat}My people know where I rode. Kill me, and they'll burn everything you own."), listener, resentment),
                         },
-                        new TextObject("{=lmmi_hired_plea_opening}Go on, then. Beg.[if:convo_mocking_revenge][ib:closed]"),
-                        new TextObject("{=lmmi_hired_plea_again}Is that all?[if:convo_undecided_closed][ib:closed2]"),
-                        new TextObject("{=lmmi_hired_plea_won}...Damn you. You're worth more to me breathing — for now.[if:convo_thinking][ib:closed2]"),
+                        Flavor.Pick("{=lmmi_hired_plea_opening}Go on, then. Beg.[if:convo_mocking_revenge][ib:closed]",
+                            "{=lmmi_hired_plea_opening_2}Beg, then. I'm listening.[if:convo_mocking_revenge][ib:closed]",
+                            "{=lmmi_hired_plea_opening_3}Let's hear you grovel.[if:convo_mocking_revenge][ib:closed]"),
+                        Flavor.Pick("{=lmmi_hired_plea_again}Is that all?[if:convo_undecided_closed][ib:closed2]",
+                            "{=lmmi_hired_plea_again_2}And?[if:convo_undecided_closed][ib:closed2]",
+                            "{=lmmi_hired_plea_again_3}Go on.[if:convo_undecided_closed][ib:closed2]"),
+                        Flavor.Pick("{=lmmi_hired_plea_won}...Damn you. You're worth more to me breathing — for now.[if:convo_thinking][ib:closed2]",
+                            "{=lmmi_hired_plea_won_2}...Fine. You live. For now.[if:convo_thinking][ib:closed2]",
+                            "{=lmmi_hired_plea_won_3}...Curse you. Alive, you're worth more. Don't make me regret it.[if:convo_thinking][ib:closed2]"),
                         lost,
                         onWon: () =>
                         {

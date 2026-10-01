@@ -141,10 +141,14 @@ namespace LessMenusMoreImmersion.Contacts
 
             if (hideouts.Count == 0)
                 return new FavorOutcome(false,
-                    new TextObject("{=lmmi_favor_gang_hideouts_none}Nothing out there worth your while. The roads have been quiet."));
+                    Flavor.Pick("{=lmmi_favor_gang_hideouts_none}Nothing out there worth your while. The roads have been quiet.",
+                        "{=lmmi_favor_gang_hideouts_none_2}Quiet out there. No nests worth mentioning.",
+                        "{=lmmi_favor_gang_hideouts_none_3}Nothing worth your time. The bandits have moved on."));
 
             var places = hideouts.Select(h => NearestPlace(h.Settlement).Name.ToString()).Distinct().ToList();
-            var reply = new TextObject("{=lmmi_favor_gang_hideouts_reply}There's a nest of bandits holed up near {PLACES}. You didn't hear it from me.");
+            var reply = Flavor.Pick("{=lmmi_favor_gang_hideouts_reply}There's a nest of bandits holed up near {PLACES}. You didn't hear it from me.",
+                        "{=lmmi_favor_gang_hideouts_reply_2}Bandits are holed up near {PLACES}. Not a word about where you heard it.",
+                        "{=lmmi_favor_gang_hideouts_reply_3}There's a hideout near {PLACES}. Keep my name out of it.");
             reply.SetTextVariable("PLACES", JoinWithAnd(places));
 
             return new FavorOutcome(true, reply, () =>
@@ -174,14 +178,18 @@ namespace LessMenusMoreImmersion.Contacts
         {
             var faction = gangLeader.CurrentSettlement?.MapFaction;
             return faction == null || faction.MainHeroCrimeRating <= 0
-                ? new TextObject("{=lmmi_favor_gang_crime_clean}You're not wanted for anything here.")
+                ? Flavor.Pick("{=lmmi_favor_gang_crime_clean}You're not wanted for anything here.",
+                        "{=lmmi_favor_gang_crime_clean_2}Nobody's after you here. Relax.",
+                        "{=lmmi_favor_gang_crime_clean_3}Your name's clean in this town.")
                 : null;
         }
 
         private static FavorOutcome ClearCrimeRating(Hero gangLeader, bool treacherous)
         {
             var faction = gangLeader.CurrentSettlement.MapFaction;
-            var reply = new TextObject("{=lmmi_favor_gang_crime_reply}Consider it done. A few coins in the right hands and the watch forgets a face.");
+            var reply = Flavor.Pick("{=lmmi_favor_gang_crime_reply}Consider it done. A few coins in the right hands and the watch forgets a face.",
+                        "{=lmmi_favor_gang_crime_reply_2}It's handled. The right people will forget your face.",
+                        "{=lmmi_favor_gang_crime_reply_3}Done. A purse here, a word there, and you were never here.");
 
             if (treacherous)
             {
@@ -206,7 +214,9 @@ namespace LessMenusMoreImmersion.Contacts
         {
             var here = merchant.CurrentSettlement?.Town;
             var noTips = new FavorOutcome(false,
-                new TextObject("{=lmmi_favor_merchant_tips_none}Nothing worth the trip right now. Ask me again in a few days."));
+                Flavor.Pick("{=lmmi_favor_merchant_tips_none}Nothing worth the trip right now. Ask me again in a few days.",
+                        "{=lmmi_favor_merchant_tips_none_2}Nothing worth hauling just now. Come back later.",
+                        "{=lmmi_favor_merchant_tips_none_3}The markets are flat this week. Nothing I'd bet on."));
             if (here == null) return noTips;
 
             var market = here.Settlement.ItemRoster;
@@ -269,7 +279,9 @@ namespace LessMenusMoreImmersion.Contacts
             var onSale = Items.AllTradeGoods.Where(item => market.GetItemNumber(item) > 0).ToList();
             if (onSale.Count == 0)
                 return new FavorOutcome(false,
-                    new TextObject("{=lmmi_favor_merchant_tips_none}Nothing worth the trip right now. Ask me again in a few days."));
+                    Flavor.Pick("{=lmmi_favor_merchant_tips_none}Nothing worth the trip right now. Ask me again in a few days.",
+                        "{=lmmi_favor_merchant_tips_none_2}Nothing worth hauling just now. Come back later.",
+                        "{=lmmi_favor_merchant_tips_none_3}The markets are flat this week. Nothing I'd bet on."));
 
             var tips = onSale.OrderBy(_ => MBRandom.RandomFloat).Take(TipsGiven).Select(item =>
             {
@@ -315,13 +327,17 @@ namespace LessMenusMoreImmersion.Contacts
 
             if (prisoners.Count == 0)
                 return new FavorOutcome(false,
-                    new TextObject("{=lmmi_favor_gang_prisoners_none}Nobody worth knowing. Drunks and debtors, the lot of them."));
+                    Flavor.Pick("{=lmmi_favor_gang_prisoners_none}Nobody worth knowing. Drunks and debtors, the lot of them.",
+                        "{=lmmi_favor_gang_prisoners_none_2}Nobody important. Thieves and drunkards.",
+                        "{=lmmi_favor_gang_prisoners_none_3}Just the usual — debtors and pickpockets."));
 
             var names = prisoners.Take(5).Select(h => h.Clan != null && h.Clan != Clan.PlayerClan
                 ? new TextObject("{=lmmi_favor_prisoner_of_clan}{NAME} of the {CLAN}").SetTextVariable("NAME", h.Name).SetTextVariable("CLAN", h.Clan.Name).ToString()
                 : h.Name.ToString()).ToList();
 
-            var reply = new TextObject("{=lmmi_favor_gang_prisoners_reply}Down in the dungeon? {NAMES}. The guards drink more than they should, and some of them owe me. If you ever wanted someone out... you didn't hear it from me.");
+            var reply = Flavor.Pick("{=lmmi_favor_gang_prisoners_reply}Down in the dungeon? {NAMES}. The guards drink more than they should, and some of them owe me. If you ever wanted someone out... you didn't hear it from me.",
+                        "{=lmmi_favor_gang_prisoners_reply_2}In the cells? {NAMES}. A few of the guards owe me favors, if it ever comes to that.",
+                        "{=lmmi_favor_gang_prisoners_reply_3}{NAMES}, down in the dungeon. The jailers can be bought. Just saying.");
             reply.SetTextVariable("NAMES", JoinWithAnd(names));
             return new FavorOutcome(true, reply);
         }
@@ -332,7 +348,9 @@ namespace LessMenusMoreImmersion.Contacts
         {
             var party = MobileParty.MainParty;
             int grain = Math.Max(4, Math.Min(30, party.MemberRoster.TotalManCount / 6));
-            var reply = new TextObject("{=lmmi_favor_village_provisions_reply}We can spare {AMOUNT} sacks of grain. It isn't much, but it will carry your people a few days.");
+            var reply = Flavor.Pick("{=lmmi_favor_village_provisions_reply}We can spare {AMOUNT} sacks of grain. It isn't much, but it will carry your people a few days.",
+                        "{=lmmi_favor_village_provisions_reply_2}We can give you {AMOUNT} sacks of grain. Not much, but it's honest.",
+                        "{=lmmi_favor_village_provisions_reply_3}{AMOUNT} sacks — that's what we can spare. It'll keep your people going a while.");
             reply.SetTextVariable("AMOUNT", grain);
             return new FavorOutcome(true, reply, () =>
             {
@@ -352,11 +370,17 @@ namespace LessMenusMoreImmersion.Contacts
             int wounded = party.MemberRoster.TotalWoundedRegulars;
             if (wounded <= 0)
                 return new FavorOutcome(false,
-                    new TextObject("{=lmmi_favor_tend_wounded_none}Your people look hale enough to me."));
+                    Flavor.Pick("{=lmmi_favor_tend_wounded_none}Your people look hale enough to me.",
+                        "{=lmmi_favor_tend_wounded_none_2}Your men seem fit enough.",
+                        "{=lmmi_favor_tend_wounded_none_3}Nobody here needs tending that I can see."));
 
             var reply = notable.IsArtisan
-                ? new TextObject("{=lmmi_favor_tend_wounded_guild}Bring them to the guildhall. Our bonesetter has seen worse — mostly from our own apprentices.")
-                : new TextObject("{=lmmi_favor_tend_wounded_village}Bring them in. Our wise-woman will see to them. She's stubborn, but she knows her herbs.");
+                ? Flavor.Pick("{=lmmi_favor_tend_wounded_guild}Bring them to the guildhall. Our bonesetter has seen worse — mostly from our own apprentices.",
+                        "{=lmmi_favor_tend_wounded_guild_2}Send them to the guildhall. Our bonesetter is rough, but good.",
+                        "{=lmmi_favor_tend_wounded_guild_3}The guild has a surgeon. Bring them along.")
+                : Flavor.Pick("{=lmmi_favor_tend_wounded_village}Bring them in. Our wise-woman will see to them. She's stubborn, but she knows her herbs.",
+                        "{=lmmi_favor_tend_wounded_village_2}Bring them to the wise-woman. She'll grumble, but she'll heal them.",
+                        "{=lmmi_favor_tend_wounded_village_3}Our healer will see to them. She's done it for every war since her grandmother's.");
 
             return new FavorOutcome(true, reply, () =>
             {

@@ -115,7 +115,9 @@ namespace LessMenusMoreImmersion.Behaviors
                 {
                     _lastSlanderer = slanderer.StringId;
                     _lastSlanderHours = CampaignTime.Now.ToHours;
-                    var msg = new TextObject("{=lmmi_lords_slander}Word reaches you: {LORD} has been speaking ill of you at court. {N} of {LORD}'s friends think less of you for it.");
+                    var msg = Flavor.Pick("{=lmmi_lords_slander}Word reaches you: {LORD} has been speaking ill of you at court. {N} of {LORD}'s friends think less of you for it.",
+                        "{=lmmi_lords_slander_2}You hear it from a friend at court: {LORD} has been running your name into the mud. {N} of {LORD}'s friends listened.",
+                        "{=lmmi_lords_slander_3}{LORD} has been whispering against you. {N} of {LORD}'s circle now think the worse of you.");
                     msg.SetTextVariable("LORD", slanderer.Name);
                     msg.SetTextVariable("N", slandered);
                     InformationManager.DisplayMessage(new InformationMessage(msg.ToString(), Colors.Red));
@@ -123,7 +125,9 @@ namespace LessMenusMoreImmersion.Behaviors
                 }
                 if (praiser != null)
                 {
-                    var msg = new TextObject("{=lmmi_lords_praise}Word reaches you: {LORD} has been speaking well of you. {N} of {LORD}'s friends think better of you for it.");
+                    var msg = Flavor.Pick("{=lmmi_lords_praise}Word reaches you: {LORD} has been speaking well of you. {N} of {LORD}'s friends think better of you for it.",
+                        "{=lmmi_lords_praise_2}A friend at court writes: {LORD} spoke up for you. {N} of {LORD}'s friends think the better of you now.",
+                        "{=lmmi_lords_praise_3}{LORD} has been singing your praises. {N} of {LORD}'s circle took note.");
                     msg.SetTextVariable("LORD", praiser.Name);
                     msg.SetTextVariable("N", praised);
                     InformationManager.DisplayMessage(new InformationMessage(msg.ToString(), Colors.Green));
@@ -212,18 +216,26 @@ namespace LessMenusMoreImmersion.Behaviors
                         toWound -= n;
                     }
                 }
-                msg = new TextObject(target.IsLord
-                    ? "{=lmmi_lords_revenge_done_lord}Word comes: {TARGET}'s column was set upon by sellswords on the road. They left with {TARGET}'s purse, and {TARGET} is abed with wounds."
-                    : "{=lmmi_lords_revenge_done_notable}Word comes: {TARGET} was waylaid in a back street and badly beaten. {TARGET}'s strongbox is lighter, too.");
+                msg = (target.IsLord
+                    ? Flavor.Pick("{=lmmi_lords_revenge_done_lord}Word comes: {TARGET}'s column was set upon by sellswords on the road. They left with {TARGET}'s purse, and {TARGET} is abed with wounds.",
+                        "{=lmmi_lords_revenge_done_lord_2}Word comes: sellswords fell on {TARGET}'s column on the road. {TARGET} lies wounded, and poorer.",
+                        "{=lmmi_lords_revenge_done_lord_3}News on the wind: {TARGET} was ambushed on the road — wounded, robbed, and humbled.")
+                    : Flavor.Pick("{=lmmi_lords_revenge_done_notable}Word comes: {TARGET} was waylaid in a back street and badly beaten. {TARGET}'s strongbox is lighter, too.",
+                        "{=lmmi_lords_revenge_done_notable_2}Word comes: {TARGET} took a beating in an alley. The strongbox came off worse.",
+                        "{=lmmi_lords_revenge_done_notable_3}They say {TARGET} was found in a gutter, bruised and robbed. Somebody paid for that."));
             }
             else
-                msg = new TextObject("{=lmmi_lords_revenge_failed}Word comes: the men you paid for came back bloodied and empty-handed. {TARGET} was ready for them.");
+                msg = Flavor.Pick("{=lmmi_lords_revenge_failed}Word comes: the men you paid for came back bloodied and empty-handed. {TARGET} was ready for them.",
+                        "{=lmmi_lords_revenge_failed_2}Word comes: your hired men failed. {TARGET} saw them coming and saw them off.",
+                        "{=lmmi_lords_revenge_failed_3}Bad news: {TARGET} had guards waiting. Your sellswords barely got away.");
             msg.SetTextVariable("TARGET", target.Name);
             InformationManager.DisplayMessage(new InformationMessage(msg.ToString(), done ? Colors.Green : Colors.Red));
             if (found)
             {
                 ChangeRelationAction.ApplyPlayerRelation(target, -15, affectRelatives: true);
-                var known = new TextObject("{=lmmi_lords_revenge_found}And {TARGET} knows who paid for it.");
+                var known = Flavor.Pick("{=lmmi_lords_revenge_found}And {TARGET} knows who paid for it.",
+                        "{=lmmi_lords_revenge_found_2}And {TARGET} has worked out who paid.",
+                        "{=lmmi_lords_revenge_found_3}{TARGET} knows your name in this, too.");
                 known.SetTextVariable("TARGET", target.Name);
                 InformationManager.DisplayMessage(new InformationMessage(known.ToString(), Colors.Red));
             }
@@ -258,7 +270,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     return true;
                 }, null);
             starter.AddDialogLine("lmmi_lords_grievance_resp", "lmmi_lords_grievance_resp", "lmmi_lords_grievance_choice",
-                "{=lmmi_lords_grievance_resp}That's a grave charge against one of my own. What proof do you have?", null, null);
+                "{=!}{LMMI_LORDS_GRIEVANCE}",
+                    () => Flavor.Say("LMMI_LORDS_GRIEVANCE",
+                        "{=lmmi_lords_grievance_resp}That's a grave charge against one of my own. What proof do you have?",
+                        "{=lmmi_lords_grievance_resp_2}A serious accusation against one of mine. Can you prove it?",
+                        "{=lmmi_lords_grievance_resp_3}You accuse one of my own? You'd better have proof."), null);
 
             starter.AddPlayerLine("lmmi_lords_grievance_argue", "lmmi_lords_grievance_choice", _grievance.Entry,
                 "{=lmmi_lords_grievance_argue}Their own men named {LMMI_GRIEVANCE_SENDER} — and came with {?LMMI_GRIEVANCE_FEMALE}her{?}his{\\?} silver in their purses.", null,
@@ -280,10 +296,18 @@ namespace LessMenusMoreImmersion.Behaviors
                             NativePersuasion.Argument(DefaultSkills.Charm, DefaultTraits.Generosity,
                                 new TextObject("{=lmmi_lords_grievance_generous}Let it be seen to be settled, and I'll bear no grudge against your house."), listener),
                         },
-                        new TextObject("{=lmmi_lords_grievance_opening}Go on."),
-                        new TextObject("{=lmmi_lords_grievance_again}And?"),
-                        new TextObject("{=lmmi_lords_grievance_won}...You're right. {LMMI_GRIEVANCE_SENDER} will answer for this, and pay for it."),
-                        new TextObject("{=lmmi_lords_grievance_lost}I'll not have my own shamed on the word of hired thugs. Leave it."),
+                        Flavor.Pick("{=lmmi_lords_grievance_opening}Go on.",
+                            "{=lmmi_lords_grievance_opening_2}Speak.",
+                            "{=lmmi_lords_grievance_opening_3}I'm listening."),
+                        Flavor.Pick("{=lmmi_lords_grievance_again}And?",
+                            "{=lmmi_lords_grievance_again_2}Go on.",
+                            "{=lmmi_lords_grievance_again_3}Anything more?"),
+                        Flavor.Pick("{=lmmi_lords_grievance_won}...You're right. {LMMI_GRIEVANCE_SENDER} will answer for this, and pay for it.",
+                            "{=lmmi_lords_grievance_won_2}...So be it. {LMMI_GRIEVANCE_SENDER} will pay for this.",
+                            "{=lmmi_lords_grievance_won_3}...You've convinced me. {LMMI_GRIEVANCE_SENDER} answers to my court."),
+                        Flavor.Pick("{=lmmi_lords_grievance_lost}I'll not have my own shamed on the word of hired thugs. Leave it.",
+                            "{=lmmi_lords_grievance_lost_2}The word of sellswords against one of my own? No.",
+                            "{=lmmi_lords_grievance_lost_3}Enough. I won't shame my own over this."),
                         onWon: () => Punish(lord, sender),
                         onLost: () =>
                         {
@@ -352,11 +376,21 @@ namespace LessMenusMoreImmersion.Behaviors
             var leaders = kingdom.Clans.Where(c => !c.IsEliminated && c.Leader != null && c.Leader != Hero.MainHero && c != Clan.PlayerClan)
                 .Select(c => c.Leader).ToList();
             float avg = leaders.Count > 0 ? leaders.Average(h => h.GetRelationWithPlayer()) : 0f;
-            var court = new TextObject(avg >= 20f ? "{=lmmi_lords_rep_liked}The lords of {KINGDOM} speak well of you — most would ride with you."
-                : avg >= 5f ? "{=lmmi_lords_rep_respected}In {KINGDOM} your name carries some weight. Men listen when it's spoken."
-                : avg >= -5f ? "{=lmmi_lords_rep_unknown}Honestly? Most at the court of {KINGDOM} couldn't put a face to your name."
-                : avg >= -20f ? "{=lmmi_lords_rep_distrusted}At the court of {KINGDOM}, they don't trust you. I'd tread carefully."
-                : "{=lmmi_lords_rep_hated}They hate you in {KINGDOM}. I'd not turn my back at court, were I you.");
+            var court = (avg >= 20f ? Flavor.Pick("{=lmmi_lords_rep_liked}The lords of {KINGDOM} speak well of you — most would ride with you.",
+                        "{=lmmi_lords_rep_liked_2}You're well thought of in {KINGDOM}. Most lords there would call you friend.",
+                        "{=lmmi_lords_rep_liked_3}{KINGDOM}'s lords like you. You'd find allies there.")
+                : avg >= 5f ? Flavor.Pick("{=lmmi_lords_rep_respected}In {KINGDOM} your name carries some weight. Men listen when it's spoken.",
+                        "{=lmmi_lords_rep_respected_2}Your name means something in {KINGDOM}. People take note.",
+                        "{=lmmi_lords_rep_respected_3}In {KINGDOM}, they listen when you speak.")
+                : avg >= -5f ? Flavor.Pick("{=lmmi_lords_rep_unknown}Honestly? Most at the court of {KINGDOM} couldn't put a face to your name.",
+                        "{=lmmi_lords_rep_unknown_2}In {KINGDOM}? Few have heard of you, to be honest.",
+                        "{=lmmi_lords_rep_unknown_3}You're barely known at the court of {KINGDOM}.")
+                : avg >= -20f ? Flavor.Pick("{=lmmi_lords_rep_distrusted}At the court of {KINGDOM}, they don't trust you. I'd tread carefully.",
+                        "{=lmmi_lords_rep_distrusted_2}They're wary of you in {KINGDOM}. Watch your step.",
+                        "{=lmmi_lords_rep_distrusted_3}{KINGDOM}'s court doesn't trust you. I'd be careful.")
+                : Flavor.Pick("{=lmmi_lords_rep_hated}They hate you in {KINGDOM}. I'd not turn my back at court, were I you.",
+                        "{=lmmi_lords_rep_hated_2}In {KINGDOM}, they'd cheer your funeral.",
+                        "{=lmmi_lords_rep_hated_3}{KINGDOM}'s lords loathe you. Watch your back there."));
             court.SetTextVariable("KINGDOM", kingdom.Name);
 
             var places = kingdom.Settlements.Where(st => st.IsTown || st.IsCastle).ToList();
@@ -365,15 +399,21 @@ namespace LessMenusMoreImmersion.Behaviors
             var line = new TextObject("{=lmmi_lords_rep_line}{COURT}{BEST}{WORST}{TALK}");
             line.SetTextVariable("COURT", court);
             line.SetTextVariable("BEST", best != null && TownStandingBehavior.Band(best) >= StandingBand.Known
-                ? new TextObject("{=lmmi_lords_rep_best} In {PLACE} they're fond of you.").SetTextVariable("PLACE", best.Name)
+                ? Flavor.Pick("{=lmmi_lords_rep_best} In {PLACE} they're fond of you.",
+                        "{=lmmi_lords_rep_best_2} They think highly of you in {PLACE}.",
+                        "{=lmmi_lords_rep_best_3} {PLACE} would welcome you.").SetTextVariable("PLACE", best.Name)
                 : TextObject.GetEmpty());
             line.SetTextVariable("WORST", worst != null && TownStandingBehavior.Band(worst) <= StandingBand.Disliked
-                ? new TextObject("{=lmmi_lords_rep_worst} In {PLACE}, though, they spit at your name.").SetTextVariable("PLACE", worst.Name)
+                ? Flavor.Pick("{=lmmi_lords_rep_worst} In {PLACE}, though, they spit at your name.",
+                        "{=lmmi_lords_rep_worst_2} In {PLACE}, though, your name's a curse.",
+                        "{=lmmi_lords_rep_worst_3} They'd run you out of {PLACE}, mind.").SetTextVariable("PLACE", worst.Name)
                 : TextObject.GetEmpty());
             var slanderer = _lastSlanderHours >= 0 && CampaignTime.Now.ToHours - _lastSlanderHours < 30 * CampaignTime.HoursInDay
                 ? Hero.FindFirst(h => h.StringId == _lastSlanderer) : null;
             line.SetTextVariable("TALK", slanderer != null && slanderer != lord
-                ? new TextObject("{=lmmi_lords_rep_slander} And {NAME} has been saying things about you. I'd find out why.").SetTextVariable("NAME", slanderer.Name)
+                ? Flavor.Pick("{=lmmi_lords_rep_slander} And {NAME} has been saying things about you. I'd find out why.",
+                        "{=lmmi_lords_rep_slander_2} And {NAME} has been talking about you. Not kindly.",
+                        "{=lmmi_lords_rep_slander_3} {NAME}'s been spreading tales about you, too.").SetTextVariable("NAME", slanderer.Name)
                 : TextObject.GetEmpty());
             return line;
         }
@@ -391,7 +431,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     return _enemies.Count > 0 && _revenge.Count == 0;
                 }, null);
             starter.AddDialogLine("lmmi_lords_revenge_who", "lmmi_lords_revenge_who", "lmmi_lords_revenge_pick",
-                "{=lmmi_lords_revenge_who}Who?", null, null);
+                "{=!}{LMMI_LORDS_WHO}",
+                    () => Flavor.Say("LMMI_LORDS_WHO",
+                        "{=lmmi_lords_revenge_who}Who?",
+                        "{=lmmi_lords_revenge_who_2}Name them.",
+                        "{=lmmi_lords_revenge_who_3}Who's got under your skin?"), null);
             for (int i = 0; i < 3; i++)
             {
                 int k = i;
@@ -457,7 +501,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     return false;
                 });
             starter.AddDialogLine("lmmi_lords_revenge_done", "lmmi_lords_revenge_done", "lord_pretalk",
-                "{=lmmi_lords_revenge_done}Give it a day or three. You'll hear. Everyone will.", null, null);
+                "{=!}{LMMI_LORDS_DONE}",
+                    () => Flavor.Say("LMMI_LORDS_DONE",
+                        "{=lmmi_lords_revenge_done}Give it a day or three. You'll hear. Everyone will.",
+                        "{=lmmi_lords_revenge_done_2}Consider it done. You'll hear about it soon enough.",
+                        "{=lmmi_lords_revenge_done_3}A few days. Then the whole town will be talking."), null);
             starter.AddPlayerLine("lmmi_lords_revenge_no", "lmmi_lords_revenge_deal", "lord_pretalk",
                 "{=lmmi_lords_revenge_no}Too rich for me.", null, null);
         }
