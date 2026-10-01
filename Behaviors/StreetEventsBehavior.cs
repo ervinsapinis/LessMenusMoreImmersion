@@ -1169,7 +1169,9 @@ namespace LessMenusMoreImmersion.Behaviors
                     }
                     if (inStep > GuideTimeout || toSpot > (sc.Kind == Kind.LostChild ? LostMaxDistance + 40f : 90f))
                     {
-                        Say("{=lmmi_street_too_late}By the time you get there, it's over. Nobody looks at you.");
+                        Say("{=lmmi_street_too_late}By the time you get there, it's over. Nobody looks at you.",
+                        "{=lmmi_street_too_late_2}You arrive to an empty street. Whatever happened, it's over.",
+                        "{=lmmi_street_too_late_3}Too late. The street's quiet again, and nobody meets your eye.");
                         if (!sc.Ambush) TownStandingBehavior.Adjust(sc.Settlement, -1f, "said they'd help, and didn't");
                         sc.Outcome = "you never came";
                         LetItPlayOut(sc);
@@ -1234,12 +1236,16 @@ namespace LessMenusMoreImmersion.Behaviors
                     if (d < LostCryDistance && _sceneTime >= sc.NextCryAt)
                     {
                         sc.NextCryAt = _sceneTime + 7f + MBRandom.RandomFloat * 4f;
-                        var cry = new TextObject(MBRandom.RandomInt(3) switch
-                        {
-                            0 => "{=lmmi_street_lost_cry_1}Mama! Mamaaa!",
-                            1 => "{=lmmi_street_lost_cry_2}*sniff* ...Mama? Where are you?",
-                            _ => "{=lmmi_street_lost_cry_3}I want to go home... I want my mama...",
-                        });
+                        var cry = Flavor.Pick(
+                            "{=lmmi_street_lost_cry_1}Mama! Mamaaa!",
+                            "{=lmmi_street_lost_cry_2}*sniff* ...Mama? Where are you?",
+                            "{=lmmi_street_lost_cry_3}I want to go home... I want my mama...",
+                            "{=lmmi_street_lost_cry_4}Mama! Mama, where are you?",
+                            "{=lmmi_street_lost_cry_5}*sobs* I'm lost... I'm lost...",
+                            "{=lmmi_street_lost_cry_6}Mama, I'm scared!",
+                            "{=lmmi_street_lost_cry_7}Somebody help me find my mama!",
+                            "{=lmmi_street_lost_cry_8}*hiccup* I want to go home!",
+                            "{=lmmi_street_lost_cry_9}Mamaaa! I'm here!");
                         var heard = new TextObject(d < LostCryNearDistance
                             ? "{=lmmi_street_lost_cry_near}(Close by, a child is crying) {CRY}"
                             : "{=lmmi_street_lost_cry_far}(Somewhere nearby, a child is crying) {CRY}");
@@ -1257,7 +1263,9 @@ namespace LessMenusMoreImmersion.Behaviors
                     }
                     if (inStep > LostSearchTimeout)
                     {
-                        Say("{=lmmi_street_lost_turned_up}Somewhere behind you, a woman shrieks with relief. The little one turned up on his own.");
+                        Say("{=lmmi_street_lost_turned_up}Somewhere behind you, a woman shrieks with relief. The little one turned up on his own.",
+                        "{=lmmi_street_lost_turned_up_2}Behind you, a mother's cry turns to laughter. The little one found his own way back.",
+                        "{=lmmi_street_lost_turned_up_3}Word comes down the street: the child turned up by himself, safe and sound.");
                         sc.Outcome = "he turned up on his own";
                         Finish(sc);
                         return;
@@ -1291,7 +1299,9 @@ namespace LessMenusMoreImmersion.Behaviors
                     if (Dist(nearest, main) < ToughsCatchDistance)
                     {
                         foreach (var t in chasers) Direct(t)?.Follow(main, 1.2f, run: true);   // the sprint's over
-                        Bark(nearest, new TextObject("{=lmmi_street_toughs_caught}Got you!"));
+                        Bark(nearest, Flavor.Pick("{=lmmi_street_toughs_caught}Got you!",
+                        "{=lmmi_street_toughs_caught_2}Gotcha!",
+                        "{=lmmi_street_toughs_caught_3}Not so fast!"));
                         sc.BeatOnly = true;   // past talking now
                         LmmiLog.Info("Street: the toughs catch you.");
                         StartFight(sc, 0.04f, won => OnAmbushFightEnd(sc, won));
@@ -1300,13 +1310,20 @@ namespace LessMenusMoreImmersion.Behaviors
                     bool watch = FindGuard(mission, main.Position, 10f) != null;
                     if (watch || chasers.All(a => Dist(a, main) > 30f) || inStep > FleeTimeout)
                     {
-                        Bark(nearest, new TextObject(watch
-                            ? "{=lmmi_street_toughs_watch}The watch — leave it!"
-                            : "{=lmmi_street_toughs_coward}Run, then! Run home to your mother!"));
+                        Bark(nearest, (watch
+                            ? Flavor.Pick("{=lmmi_street_toughs_watch}The watch — leave it!",
+                        "{=lmmi_street_toughs_watch_2}The watch! Scatter!",
+                        "{=lmmi_street_toughs_watch_3}Guards — leave it, leave it!")
+                            : Flavor.Pick("{=lmmi_street_toughs_coward}Run, then! Run home to your mother!",
+                        "{=lmmi_street_toughs_coward_2}Go on, run! Coward!",
+                        "{=lmmi_street_toughs_coward_3}That's it, run! Don't come back!")));
                         TownStandingBehavior.Adjust(sc.Settlement, -1f, "ran from a pack of street toughs");
-                        Say(watch
-                            ? "{=lmmi_street_ran_to_watch}They pull up short at the sight of the watch. Half the street saw you run to them."
-                            : "{=lmmi_street_ran_toughs}You got away. Half the street watched you run.");
+                        if (watch) Say("{=lmmi_street_ran_to_watch}They pull up short at the sight of the watch. Half the street saw you run to them.",
+                            "{=lmmi_street_ran_to_watch_2}The watch! They scatter — but the street saw you run behind the guards.",
+                            "{=lmmi_street_ran_to_watch_3}They stop dead when they see the guards. You're safe — and the whole street saw you run.");
+                        else Say("{=lmmi_street_ran_toughs}You got away. Half the street watched you run.",
+                            "{=lmmi_street_ran_toughs_2}You lose them in the alleys. Somebody laughs as you pass.",
+                            "{=lmmi_street_ran_toughs_3}They give up the chase. You're safe — and the talk of the street.");
                         Disperse(sc, chasers);
                         sc.Outcome = watch ? "ran to the watch" : "outran them";
                         Finish(sc);
@@ -1326,7 +1343,9 @@ namespace LessMenusMoreImmersion.Behaviors
             var main = Agent.Main;
             var lead = sc.Actors.FirstOrDefault(a => a.IsActive());
             if (lead == null || main == null) { Finish(sc); return; }
-            Bark(lead, new TextObject("{=lmmi_street_toughs_after}After {?PLAYER.GENDER}her{?}him{\\?}!"));
+            Bark(lead, Flavor.Pick("{=lmmi_street_toughs_after}After {?PLAYER.GENDER}her{?}him{\\?}!",
+                        "{=lmmi_street_toughs_after_2}Don't let {?PLAYER.GENDER}her{?}him{\\?} get away!",
+                        "{=lmmi_street_toughs_after_3}Catch {?PLAYER.GENDER}her{?}him{\\?}!"));
             // Flat out, all the way: no slowing as they close in (see LmmiStageBehavior.Chase).
             foreach (var t in sc.Actors.Where(a => a.IsActive())) Direct(t)?.Chase(main, ToughsSprintFactor);
             sc.TalkTo = null;
@@ -1380,13 +1399,21 @@ namespace LessMenusMoreImmersion.Behaviors
             // A parting word from the bait, and they're gone.
             Agent? talker = sc.Kind == Kind.Rescue || sc.Kind == Kind.Debt ? sc.Victim : sc.Kind == Kind.Thief ? bait.FirstOrDefault(b => b != sc.Victim) : sc.Requester;
             if (talker != null && bait.Contains(talker))
-                Bark(talker, new TextObject(sc.Kind == Kind.Rescue
-                    ? "{=lmmi_street_bait_girl}Sorry, love. Nothing personal."
+                Bark(talker, (sc.Kind == Kind.Rescue
+                    ? Flavor.Pick("{=lmmi_street_bait_girl}Sorry, love. Nothing personal.",
+                        "{=lmmi_street_bait_girl_2}Don't look so surprised, sweetheart.",
+                        "{=lmmi_street_bait_girl_3}Thanks for coming. Really.")
                     : sc.Kind == Kind.Thief
-                        ? "{=lmmi_street_bait_thief}Told you, lads. Soft as butter, this one."
+                        ? Flavor.Pick("{=lmmi_street_bait_thief}Told you, lads. Soft as butter, this one.",
+                        "{=lmmi_street_bait_thief_2}Told you they'd follow. Every time.",
+                        "{=lmmi_street_bait_thief_3}Easy pickings, lads.")
                         : sc.Kind == Kind.Debt
-                            ? "{=lmmi_street_bait_debtor}Told you someone would come running."
-                            : "{=lmmi_street_bait_sorry}...Sorry. It was you or me."));
+                            ? Flavor.Pick("{=lmmi_street_bait_debtor}Told you someone would come running.",
+                        "{=lmmi_street_bait_debtor_2}See? Never fails.",
+                        "{=lmmi_street_bait_debtor_3}Good of you to drop by.")
+                            : Flavor.Pick("{=lmmi_street_bait_sorry}...Sorry. It was you or me.",
+                        "{=lmmi_street_bait_sorry_2}...Forgive me. They made me.",
+                        "{=lmmi_street_bait_sorry_3}I'm sorry. I had no choice.")));
             foreach (var b in bait)
             {
                 Contour(b, null);
@@ -1423,7 +1450,9 @@ namespace LessMenusMoreImmersion.Behaviors
             float roll = MBRandom.RandomFloat;
             bool hunch = roll < (sc.Ambush ? HunchOnSetup : HunchOnGenuine);
             LmmiLog.Info($"Street: Roguery {roguery} hunch roll {roll:0.00} ({(sc.Ambush ? "setup" : "genuine")}) -> {(hunch ? "a bad feeling" : "nothing")}.");
-            if (hunch) Say("{=lmmi_street_hunch}Something in the way they ask sets your teeth on edge. (Roguery)");
+            if (hunch) Say("{=lmmi_street_hunch}Something in the way they ask sets your teeth on edge. (Roguery)",
+                        "{=lmmi_street_hunch_2}Something's not right about this. You can't say what. (Roguery)",
+                        "{=lmmi_street_hunch_3}The plea sounds rehearsed. Your hand drifts to your purse. (Roguery)");
         }
 
         /// <summary>A refusal the street remembers — unless nobody was really in trouble (a setup: nobody saw a thing).</summary>
@@ -1459,7 +1488,9 @@ namespace LessMenusMoreImmersion.Behaviors
                 if (guard == null) { sc.NoWatchNearby = true; return false; }
                 sc.Watch = guard;
                 Direct(guard)?.Follow(main, 2.5f, run: true);
-                Bark(guard, new TextObject("{=lmmi_street_watch_coming}Oi! What's going on over there?"));
+                Bark(guard, Flavor.Pick("{=lmmi_street_watch_coming}Oi! What's going on over there?",
+                        "{=lmmi_street_watch_coming_2}Hey! What's this?",
+                        "{=lmmi_street_watch_coming_3}You there! Stop that!"));
                 LmmiLog.Info($"Street: {guard.Name} of the watch comes to see ({(passing != null ? "passing by" : "it took too long")}).");
                 return false;
             }
@@ -1565,7 +1596,9 @@ namespace LessMenusMoreImmersion.Behaviors
             _aftercare = Aftercare.Jail;
             _aftercareIn = settlement;
             _endMissionAt = _sceneTime + 1.5f;
-            Say("{=lmmi_street_jail_walk}The watch closes in on either side of you.");
+            Say("{=lmmi_street_jail_walk}The watch closes in on either side of you.",
+                        "{=lmmi_street_jail_walk_2}Two of the watch take you by the arms.",
+                        "{=lmmi_street_jail_walk_3}The watch fall in on either side of you, hands on their clubs.");
         }
 
         /// <summary>
@@ -2220,7 +2253,9 @@ namespace LessMenusMoreImmersion.Behaviors
                     if (sc.Actors.Count > 1 && sc.Actors[1].IsActive())
                     {
                         Direct(sc.Actors[1])?.Hold(face: main, loop: "act_argue_2");
-                        Bark(sc.Actors[1], new TextObject("{=lmmi_village_dispute_other}Don't listen to him! That stone's stood there since my grandfather's day!"));
+                        Bark(sc.Actors[1], Flavor.Pick("{=lmmi_village_dispute_other}Don't listen to him! That stone's stood there since my grandfather's day!",
+                        "{=lmmi_village_dispute_other_2}Lies! My family's farmed that strip for three generations!",
+                        "{=lmmi_village_dispute_other_3}Don't believe a word! He moved it himself, the snake!"));
                     }
                     Direct(accuser)?.Follow(main, 1.8f, run: false);
                     sc.TalkTo = accuser;
@@ -2237,13 +2272,17 @@ namespace LessMenusMoreImmersion.Behaviors
                 {
                     var lead = sc.Actors.FirstOrDefault(a => a.IsActive());
                     if (lead == null) { sc.Outcome = "the looters left"; Finish(sc); return; }
-                    Bark(lead, new TextObject("{=lmmi_village_raiders_spotted}Oi! This one wants a fight — have at {?PLAYER.GENDER}her{?}him{\\?}!"));
+                    Bark(lead, Flavor.Pick("{=lmmi_village_raiders_spotted}Oi! This one wants a fight — have at {?PLAYER.GENDER}her{?}him{\\?}!",
+                        "{=lmmi_village_raiders_spotted_2}Look, lads — a hero! Get {?PLAYER.GENDER}her{?}him{\\?}!",
+                        "{=lmmi_village_raiders_spotted_3}Fresh meat! Have at {?PLAYER.GENDER}her{?}him{\\?}!"));
                     ArmedFight(sc, won => OnRaidersFightEnd(sc, won));
                     return;
                 }
                 case Kind.LostChild:
                     // She only knows roughly: "He was just here!" You look.
-                    Bark(sc.Requester, new TextObject("{=lmmi_street_lost_here}He was just here — I swear he was just here!"));
+                    Bark(sc.Requester, Flavor.Pick("{=lmmi_street_lost_here}He was just here — I swear he was just here!",
+                        "{=lmmi_street_lost_here_2}He was right here a moment ago!",
+                        "{=lmmi_street_lost_here_3}This is where I lost him — oh gods, where is he?"));
                     Direct(sc.Requester)?.Hold(face: main);
                     Contour(sc.Requester, GuideContour);
                     sc.TalkTo = null;
@@ -2315,12 +2354,20 @@ namespace LessMenusMoreImmersion.Behaviors
                     var lead = sc.Actors.FirstOrDefault(a => a.IsActive());
                     if (lead == null) break;
                     var menace = new Menace(lead, sc.Actors.Where(a => a != lead && a.IsActive()).ToList(), sc.Victim,
-                        new TextObject(sc.Kind == Kind.Debt
-                            ? "{=lmmi_street_debt_menace}Next week. Every coin — or it's your hands."
-                            : "{=lmmi_street_shakedown_menace}Pleasure doing business. Same time next week."),
-                        new TextObject(sc.Kind == Kind.Debt
-                            ? "{=lmmi_street_debt_after}...They took the lot. Everything."
-                            : "{=lmmi_street_shakedown_after}Thieves. The watch are the worst thieves of all."));
+                        (sc.Kind == Kind.Debt
+                            ? Flavor.Pick("{=lmmi_street_debt_menace}Next week. Every coin — or it's your hands.",
+                        "{=lmmi_street_debt_menace_2}Next time we come, it's your fingers.",
+                        "{=lmmi_street_debt_menace_3}One week. Then we stop asking nicely.")
+                            : Flavor.Pick("{=lmmi_street_shakedown_menace}Pleasure doing business. Same time next week.",
+                        "{=lmmi_street_shakedown_menace_2}See you next week, friend. Have the fine ready.",
+                        "{=lmmi_street_shakedown_menace_3}That's the law, that is. Same time next week.")),
+                        (sc.Kind == Kind.Debt
+                            ? Flavor.Pick("{=lmmi_street_debt_after}...They took the lot. Everything.",
+                        "{=lmmi_street_debt_after_2}...Everything. They took everything.",
+                        "{=lmmi_street_debt_after_3}...How am I to feed my family now?")
+                            : Flavor.Pick("{=lmmi_street_shakedown_after}Thieves. The watch are the worst thieves of all.",
+                        "{=lmmi_street_shakedown_after_2}That's the watch for you. Robbers with a badge.",
+                        "{=lmmi_street_shakedown_after_3}Who do we call when the watch is the thief?")));
                     HandOver(sc, menace, sc.Actors.Append(sc.Victim).ToArray());
                     break;
                 }
@@ -2342,7 +2389,9 @@ namespace LessMenusMoreImmersion.Behaviors
                         if (to != null) HandOver(sc, new SlipAway(a, to.Value, fade: true), a);
                     }
                     if (sc.Settlement.Village != null) sc.Settlement.Village.Hearth = Math.Max(0f, sc.Settlement.Village.Hearth - 3f);
-                    Say("{=lmmi_village_raiders_gone}The looters drive half the flock off into the hills.");
+                    Say("{=lmmi_village_raiders_gone}The looters drive half the flock off into the hills.",
+                        "{=lmmi_village_raiders_gone_2}The looters drive off half the sheep, whooping as they go.",
+                        "{=lmmi_village_raiders_gone_3}Bleating fades into the hills. Half the flock is gone.");
                     break;
                 }
                 case Kind.LostChild when mission != null && sc.Actors.FirstOrDefault() is Agent lost && lost.IsActive() && sc.Requester.IsActive():
@@ -2389,7 +2438,9 @@ namespace LessMenusMoreImmersion.Behaviors
                 Direct(_lead)?.GoTo(_to, run: false);
                 foreach (var m in _men) Direct(m)?.Follow(_lead, 1.6f, run: false);
                 Direct(_victim)?.Follow(_lead, 1.2f, run: false);
-                Bark(_lead, new TextObject("{=lmmi_street_drag_lead}Come along, girl. Nobody's coming for you."));
+                Bark(_lead, Flavor.Pick("{=lmmi_street_drag_lead}Come along, girl. Nobody's coming for you.",
+                        "{=lmmi_street_drag_lead_2}Quiet, girl. You're coming with us.",
+                        "{=lmmi_street_drag_lead_3}Move it, girl. Nobody's going to help you."));
                 LmmiLog.Info("Street: the men lead the girl away.");
             }
 
@@ -2398,7 +2449,9 @@ namespace LessMenusMoreImmersion.Behaviors
                 if (!_barked && now - StartedAt > 6f)
                 {
                     _barked = true;
-                    Bark(_requester, new TextObject("{=lmmi_street_drag_requester}Heaven help her. Nobody else will."));
+                    Bark(_requester, Flavor.Pick("{=lmmi_street_drag_requester}Heaven help her. Nobody else will.",
+                        "{=lmmi_street_drag_requester_2}Nobody will help her. Nobody.",
+                        "{=lmmi_street_drag_requester_3}Gods forgive us all."));
                 }
                 return now - StartedAt > 30f || !_lead.IsActive() || Direct(_lead)?.Arrived == true && now - StartedAt > 5f;
             }
@@ -2470,7 +2523,9 @@ namespace LessMenusMoreImmersion.Behaviors
                     {
                         _brawl.Stop();
                         _guardArrived = true;
-                        Bark(_guard, new TextObject("{=lmmi_street_guard_breakup}Oi! Break it up, the pair of you! Go home before I take you in!"));
+                        Bark(_guard, Flavor.Pick("{=lmmi_street_guard_breakup}Oi! Break it up, the pair of you! Go home before I take you in!",
+                        "{=lmmi_street_guard_breakup_2}Oi! Enough! Both of you, home — now!",
+                        "{=lmmi_street_guard_breakup_3}Break it up! Do I have to crack your heads?"));
                         Scatter(mission);
                         Settle(now, "the watch broke it up");
                     }
@@ -2485,7 +2540,9 @@ namespace LessMenusMoreImmersion.Behaviors
                     else if (_koStarted && _loser != null && !_loser.IsActive())
                     {
                         _brawl.Stop();
-                        Say("{=lmmi_street_brawl_ko}One of the youths goes down and doesn't get up. The other stands over him, breathing hard, then runs.");
+                        Say("{=lmmi_street_brawl_ko}One of the youths goes down and doesn't get up. The other stands over him, breathing hard, then runs.",
+                        "{=lmmi_street_brawl_ko_2}A sickening crack — one of them is down and not moving. The other bolts.",
+                        "{=lmmi_street_brawl_ko_3}One lad drops like a sack of grain. The other stares, then runs.");
                         Scatter(mission);
                         Settle(now, "someone got knocked out");
                     }
@@ -2503,7 +2560,9 @@ namespace LessMenusMoreImmersion.Behaviors
                     && Dist(_guard, a.IsActive() ? a : b.IsActive() ? b : _guard) < 4f)
                 {
                     _guardArrived = true;
-                    Bark(_guard, new TextObject("{=lmmi_street_guard_late}What happened here? ...Someone fetch a healer."));
+                    Bark(_guard, Flavor.Pick("{=lmmi_street_guard_late}What happened here? ...Someone fetch a healer.",
+                        "{=lmmi_street_guard_late_2}What's all this? ...Get a healer, quick.",
+                        "{=lmmi_street_guard_late_3}Who did this? Someone fetch a healer!"));
                 }
                 return now - _settledAt > (_guard != null && !_guardArrived ? 12f : 5f);
             }
@@ -2514,7 +2573,9 @@ namespace LessMenusMoreImmersion.Behaviors
                 _settledAt = now;
                 LmmiLog.Info($"Street: the brawl is over — {how}.");
                 if (_shrugged)
-                    Bark(_requester, new TextObject("{=lmmi_street_brawl_reproach}Well. Thanks for nothing."));
+                    Bark(_requester, Flavor.Pick("{=lmmi_street_brawl_reproach}Well. Thanks for nothing.",
+                        "{=lmmi_street_brawl_reproach_2}You could have stopped it. You didn't.",
+                        "{=lmmi_street_brawl_reproach_3}A lot of help you were."));
             }
 
             private void Scatter(Mission mission)
@@ -2602,7 +2663,9 @@ namespace LessMenusMoreImmersion.Behaviors
                 if (_togetherAt < 0f && _together) _togetherAt = now;
                 if (!_together && (Dist(_mother, _child) < 2f || now - StartedAt > 35f))
                 {
-                    Bark(_mother, new TextObject("{=lmmi_street_lost_scold}There you are! Don't you ever, ever do that again!"));
+                    Bark(_mother, Flavor.Pick("{=lmmi_street_lost_scold}There you are! Don't you ever, ever do that again!",
+                        "{=lmmi_street_lost_scold_2}Where have you been? You scared me half to death!",
+                        "{=lmmi_street_lost_scold_3}Never, ever run off like that again! Come here!"));
                     GoHome();
                     _togetherAt = now;
                 }
@@ -2672,7 +2735,9 @@ namespace LessMenusMoreImmersion.Behaviors
             {
                 Direct(_thief)?.Hold(face: _guard, loop: "act_scared_idle_2");
                 if (_guard != null) Direct(_guard)?.Follow(_thief, 1.3f, run: true);
-                else Say("{=lmmi_street_thief_taken}The watch drags the boy off, still protesting.");
+                else Say("{=lmmi_street_thief_taken}The watch drags the boy off, still protesting.",
+                        "{=lmmi_street_thief_taken_2}The guard hauls the boy away by the collar.",
+                        "{=lmmi_street_thief_taken_3}The watch takes the thief off, kicking and wailing.");
                 LmmiLog.Info(_guard != null ? $"Street: {_guard.Name} of the watch comes for the thief." : "Street: no watch nearby; the thief is taken off-scene.");
             }
 
@@ -2684,7 +2749,9 @@ namespace LessMenusMoreImmersion.Behaviors
                 {
                     _collared = true;
                     _collaredAt = now;
-                    Bark(_guard, new TextObject("{=lmmi_street_guard_collar}Right, you. You're coming with me."));
+                    Bark(_guard, Flavor.Pick("{=lmmi_street_guard_collar}Right, you. You're coming with me.",
+                        "{=lmmi_street_guard_collar_2}That's it, you. You're coming with me.",
+                        "{=lmmi_street_guard_collar_3}Hands where I can see them. You're coming along."));
                     Direct(_guard)?.GoTo(_to, run: false);
                     Direct(_thief)?.Follow(_guard, 1.1f, run: false);
                 }
@@ -2782,7 +2849,9 @@ namespace LessMenusMoreImmersion.Behaviors
             }
             TownStandingBehavior.Adjust(sc.Settlement, 1f, "fought looters for a village's flock");
             if (village != null) village.Hearth = Math.Max(0f, village.Hearth - 3f);
-            Say("{=lmmi_village_raiders_lost}You come to in the grass. The looters are gone — and so is half the flock.");
+            Say("{=lmmi_village_raiders_lost}You come to in the grass. The looters are gone — and so is half the flock.",
+                        "{=lmmi_village_raiders_lost_2}You wake in the grass with a splitting head. Half the flock's gone with the looters.",
+                        "{=lmmi_village_raiders_lost_3}The world spins back into place. The looters — and half the sheep — are long gone.");
             sc.Outcome = "the looters won";
             Finish(sc);
         }
@@ -2971,7 +3040,9 @@ namespace LessMenusMoreImmersion.Behaviors
             {
                 SteppedUp(sc, 4f, "stood up to a crooked guard");
                 if (sc.Settlement.MapFaction != null) ChangeCrimeRatingAction.Apply(sc.Settlement.MapFaction, 5f);
-                Say("{=lmmi_street_shakedown_won}The guard picks himself up and stalks off. He won't report it — how would he explain it? — but he'll know your face.");
+                Say("{=lmmi_street_shakedown_won}The guard picks himself up and stalks off. He won't report it — how would he explain it? — but he'll know your face.",
+                        "{=lmmi_street_shakedown_won_2}The guard limps off, cursing under his breath. He'll remember you.",
+                        "{=lmmi_street_shakedown_won_3}He scrambles up and hurries away, looking back at you over his shoulder.");
                 var guard = sc.Actors.FirstOrDefault(a => a.IsActive());
                 if (guard != null) Disperse(sc, new[] { guard });
                 Thank(sc, sc.Victim, "shakedown");
@@ -2999,7 +3070,9 @@ namespace LessMenusMoreImmersion.Behaviors
             if (won)
             {
                 TownStandingBehavior.Adjust(sc.Settlement, 1f, "fought off robbers in an alley");
-                Say("{=lmmi_street_lure_won}They stay down. Word will get around: that one's no easy prey.");
+                Say("{=lmmi_street_lure_won}They stay down. Word will get around: that one's no easy prey.",
+                        "{=lmmi_street_lure_won_2}They lie groaning in the dirt. They'll pick easier marks from now on.",
+                        "{=lmmi_street_lure_won_3}Nobody gets up. The street will hear about this.");
                 if (sc.Gang && sc.Settlement.Notables.FirstOrDefault(n => n.IsGangLeader && n.IsAlive) is Hero boss)
                 {
                     ChangeRelationAction.ApplyPlayerRelation(boss, -2, affectRelatives: false);
@@ -3033,7 +3106,9 @@ namespace LessMenusMoreImmersion.Behaviors
             else
             {
                 TownStandingBehavior.Adjust(sc.Settlement, 1f, "tried to stop a brawl");
-                Say("{=lmmi_street_brawl_beaten}The youths leave you in the dirt and wander off laughing. Well. You tried.");
+                Say("{=lmmi_street_brawl_beaten}The youths leave you in the dirt and wander off laughing. Well. You tried.",
+                        "{=lmmi_street_brawl_beaten_2}The two of them shove you in the mud and walk off arm in arm. Youth.",
+                        "{=lmmi_street_brawl_beaten_3}You end up flat on your back while they laugh and go back to their quarrel.");
                 sc.Outcome = "you lost";
                 Finish(sc);
             }
@@ -3058,7 +3133,9 @@ namespace LessMenusMoreImmersion.Behaviors
         {
             var thief = sc.Actors.FirstOrDefault();
             if (thief != null && thief.IsActive()) { Contour(thief, null); thief.FadeOut(false, true); }
-            Say("{=lmmi_street_thief_escaped}The thief ducks into an alley and is gone.");
+            Say("{=lmmi_street_thief_escaped}The thief ducks into an alley and is gone.",
+                        "{=lmmi_street_thief_escaped_2}The boy vanishes into the crowd. Gone.",
+                        "{=lmmi_street_thief_escaped_3}A flash of heels round a corner, and the thief is gone.");
             LmmiLog.Info("Street: the thief got away.");
             sc.Actors.Clear();
             sc.TalkTo = sc.Victim;
@@ -3074,8 +3151,12 @@ namespace LessMenusMoreImmersion.Behaviors
             TownStandingBehavior.MarkSteppedUp(sc.Settlement, standing, why);
             if (!sc.Ambush) Instance?.NoteSoftTouch(sc.Settlement);   // word gets round who stops to help
             var word = sc.Settlement.Culture == Hero.MainHero.Culture
-                ? new TextObject("{=lmmi_street_word_kin}People saw that. By nightfall half of {SETTLEMENT} will know one of their own stepped in.")
-                : new TextObject("{=lmmi_street_word_foreign}People saw that. By nightfall half of {SETTLEMENT} will know a {DEMONYM} stepped in when their own didn't.");
+                ? Flavor.Pick("{=lmmi_street_word_kin}People saw that. By nightfall half of {SETTLEMENT} will know one of their own stepped in.",
+                        "{=lmmi_street_word_kin_2}Folk saw that. One of their own stepped in — {SETTLEMENT} will be talking about it tonight.",
+                        "{=lmmi_street_word_kin_3}Heads turn. By morning, all of {SETTLEMENT} will know you stepped in.")
+                : Flavor.Pick("{=lmmi_street_word_foreign}People saw that. By nightfall half of {SETTLEMENT} will know a {DEMONYM} stepped in when their own didn't.",
+                        "{=lmmi_street_word_foreign_2}Folk saw that. A {DEMONYM}, stepping in when their own wouldn't — {SETTLEMENT} won't forget it.",
+                        "{=lmmi_street_word_foreign_3}People stare. A {DEMONYM}, doing what their own neighbors wouldn't. Word will spread through {SETTLEMENT}.");
             word.SetTextVariable("SETTLEMENT", sc.Settlement.Name);
             word.SetTextVariable("DEMONYM", CultureWords.Demonym(Hero.MainHero.Culture));
             InformationManager.DisplayMessage(new InformationMessage(word.ToString(), Colors.Green));
@@ -3083,6 +3164,10 @@ namespace LessMenusMoreImmersion.Behaviors
 
         private static void Say(string text) =>
             InformationManager.DisplayMessage(new InformationMessage(new TextObject(text).ToString()));
+
+        /// <summary>One of several ways of saying it.</summary>
+        private static void Say(params string[] lines) =>
+            InformationManager.DisplayMessage(new InformationMessage(Flavor.Pick(lines).ToString()));
 
         private static bool CanAfford(int gold, out TextObject why)
         {
@@ -3175,8 +3260,11 @@ namespace LessMenusMoreImmersion.Behaviors
         private void AddRescueDialogs(CampaignGameStarter starter)
         {
             starter.AddDialogLine("lmmi_street_rescue", "start", "lmmi_street_rescue_resp",
-                "{=lmmi_street_rescue}Please, {?PLAYER.GENDER}madam{?}sir{\\?}! Some men have cornered a girl over there, and nobody's doing a thing! Please — help her!",
-                () => Talk(Kind.Rescue, Step.Asking), null, 1100);
+                "{=!}{LMMI_STREET_RESCUE}",
+                () => Talk(Kind.Rescue, Step.Asking) && Flavor.Say("LMMI_STREET_RESCUE",
+                        "{=lmmi_street_rescue}Please, {?PLAYER.GENDER}madam{?}sir{\\?}! Some men have cornered a girl over there, and nobody's doing a thing! Please — help her!",
+                        "{=lmmi_street_rescue_2}{?PLAYER.GENDER}Madam{?}Sir{\\?}, please! There's a girl down there with men all round her — nobody will lift a finger!",
+                        "{=lmmi_street_rescue_3}Help, please! They've got a girl backed against a wall, and the watch is nowhere!"), null, 1100);
 
             starter.AddPlayerLine("lmmi_street_rescue_go", "lmmi_street_rescue_resp", "lmmi_street_lead_on",
                 "{=lmmi_street_rescue_go}Show me.", null, () => Choose(LeadOn));
@@ -3188,10 +3276,18 @@ namespace LessMenusMoreImmersion.Behaviors
                     Choose(sc => { sc.Outcome = "you refused"; LetItPlayOut(sc); });
                 });
             starter.AddDialogLine("lmmi_street_rescue_refused", "lmmi_street_rescue_refused", "close_window",
-                "{=lmmi_street_rescue_refused}...Heaven help her, then. Nobody else will.", null, null);
+                "{=!}{LMMI_STREET_R1}",
+                    () => Flavor.Say("LMMI_STREET_R1",
+                        "{=lmmi_street_rescue_refused}...Heaven help her, then. Nobody else will.",
+                        "{=lmmi_street_rescue_refused_2}...Then she's on her own. Gods help her.",
+                        "{=lmmi_street_rescue_refused_3}...Coward."), null);
 
             starter.AddDialogLine("lmmi_street_lead_on", "lmmi_street_lead_on", "close_window",
-                "{=lmmi_street_lead_on}This way — hurry!", null, null);
+                "{=!}{LMMI_STREET_R2}",
+                    () => Flavor.Say("LMMI_STREET_R2",
+                        "{=lmmi_street_lead_on}This way — hurry!",
+                        "{=lmmi_street_lead_on_2}Follow me, quick!",
+                        "{=lmmi_street_lead_on_3}Over here — hurry, please!"), null);
 
             // The men: one of them steps up to you.
             starter.AddDialogLine("lmmi_street_confront", "start", "lmmi_street_confront_resp",
@@ -3203,12 +3299,20 @@ namespace LessMenusMoreImmersion.Behaviors
                     TextObject line;
                     if (sc.Gang)
                         line = Foreign(sc)
-                            ? new TextObject("{=lmmi_street_confront_gang_foreign}This street's ours, {SLUR}. Walk away while you still can.")
-                            : new TextObject("{=lmmi_street_confront_gang}This street's ours. Walk away while you still can, {?PLAYER.GENDER}woman{?}friend{\\?}.");
+                            ? Flavor.Pick("{=lmmi_street_confront_gang_foreign}This street's ours, {SLUR}. Walk away while you still can.",
+                            "{=lmmi_street_confront_gang_foreign_2}Our street, {SLUR}. Turn around.",
+                            "{=lmmi_street_confront_gang_foreign_3}Get lost, {SLUR}, or join her.")
+                            : Flavor.Pick("{=lmmi_street_confront_gang}This street's ours. Walk away while you still can, {?PLAYER.GENDER}woman{?}friend{\\?}.",
+                            "{=lmmi_street_confront_gang_2}This is our patch. Clear off, {?PLAYER.GENDER}woman{?}friend{\\?}.",
+                            "{=lmmi_street_confront_gang_3}You're on our street. Walk away.");
                     else
                         line = Foreign(sc)
-                            ? new TextObject("{=lmmi_street_confront_foreign}Keep walking, {SLUR}. This is between us and the girl.")
-                            : new TextObject("{=lmmi_street_confront_kin}Keep walking, friend. This is none of your business.");
+                            ? Flavor.Pick("{=lmmi_street_confront_foreign}Keep walking, {SLUR}. This is between us and the girl.",
+                            "{=lmmi_street_confront_foreign_2}Move along, {SLUR}. Nothing to see.",
+                            "{=lmmi_street_confront_foreign_3}Mind your business, {SLUR}.")
+                            : Flavor.Pick("{=lmmi_street_confront_kin}Keep walking, friend. This is none of your business.",
+                            "{=lmmi_street_confront_kin_2}Walk away, friend. It's nothing to do with you.",
+                            "{=lmmi_street_confront_kin_3}Go on, mind your own business.");
                     SetWords(line);
                     MBTextManager.SetTextVariable("LMMI_STREET_CONFRONT", line);
                     return true;
@@ -3218,7 +3322,11 @@ namespace LessMenusMoreImmersion.Behaviors
                 "{=lmmi_street_confront_fight}Let her go. Now.", null,
                 () => Choose(sc => StartFight(sc, 0.04f, won => OnRescueFightEnd(sc, won))));
             starter.AddDialogLine("lmmi_street_confront_wrong", "lmmi_street_confront_wrong", "close_window",
-                "{=lmmi_street_confront_wrong}Wrong answer.", null, null);
+                "{=!}{LMMI_STREET_R3}",
+                    () => Flavor.Say("LMMI_STREET_R3",
+                        "{=lmmi_street_confront_wrong}Wrong answer.",
+                        "{=lmmi_street_confront_wrong_2}Bad choice.",
+                        "{=lmmi_street_confront_wrong_3}Have it your way."), null);
 
             starter.AddPlayerLine("lmmi_street_confront_talk", "lmmi_street_confront_resp", _talkDownMen.Entry,
                 "{=lmmi_street_confront_talk}[Talk them down] Listen to me, all of you...", null,
@@ -3238,10 +3346,18 @@ namespace LessMenusMoreImmersion.Behaviors
                             NativePersuasion.Argument(DefaultSkills.Charm, DefaultTraits.Mercy,
                                 new TextObject("{=lmmi_street_confront_mercy}She's somebody's daughter. Go home to yours."), listener, r, st, gang),
                         },
-                        new TextObject("{=lmmi_street_confront_opening}Talk fast."),
-                        new TextObject("{=lmmi_street_confront_again}Is that all you've got?"),
-                        new TextObject("{=lmmi_street_confront_scared_won}...Tch. She's not worth the trouble. Come on, lads."),
-                        new TextObject("{=lmmi_street_confront_scared_lost}Big words. Let's see you back them up."),
+                        Flavor.Pick("{=lmmi_street_confront_opening}Talk fast.",
+                            "{=lmmi_street_confront_opening_2}Make it quick.",
+                            "{=lmmi_street_confront_opening_3}Well? We're listening."),
+                        Flavor.Pick("{=lmmi_street_confront_again}Is that all you've got?",
+                            "{=lmmi_street_confront_again_2}That's it?",
+                            "{=lmmi_street_confront_again_3}Go on, then."),
+                        Flavor.Pick("{=lmmi_street_confront_scared_won}...Tch. She's not worth the trouble. Come on, lads.",
+                            "{=lmmi_street_confront_scared_won_2}...Fine. She's not worth it. Let's go.",
+                            "{=lmmi_street_confront_scared_won_3}...Tch. Not worth a fight. Come on."),
+                        Flavor.Pick("{=lmmi_street_confront_scared_lost}Big words. Let's see you back them up.",
+                            "{=lmmi_street_confront_scared_lost_2}Talk's cheap. Let's see what you've got.",
+                            "{=lmmi_street_confront_scared_lost_3}Nice speech. Now let's dance."),
                         onWon: () => Choose(s2 =>
                         {
                             SteppedUp(s2, 4f, "talked down the men harassing a girl");
@@ -3264,7 +3380,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     });
                 }, 100, (out TextObject why) => CanAfford(PayOffGold, out why));
             starter.AddDialogLine("lmmi_street_confront_paid", "lmmi_street_confront_paid", "close_window",
-                "{=lmmi_street_confront_paid}...Easiest coin I ever made. Come on, lads.", null, null);
+                "{=!}{LMMI_STREET_R4}",
+                    () => Flavor.Say("LMMI_STREET_R4",
+                        "{=lmmi_street_confront_paid}...Easiest coin I ever made. Come on, lads.",
+                        "{=lmmi_street_confront_paid_2}...Heh. Generous. Let's go, lads.",
+                        "{=lmmi_street_confront_paid_3}...Your coin, your girl. Come on, boys."), null);
 
             starter.AddPlayerLine("lmmi_street_confront_leave", "lmmi_street_confront_resp", "lmmi_street_confront_left",
                 "{=lmmi_street_confront_leave}...Never mind.", null,
@@ -3274,14 +3394,21 @@ namespace LessMenusMoreImmersion.Behaviors
                     Choose(sc => { sc.Outcome = "you backed down"; LetItPlayOut(sc); });
                 });
             starter.AddDialogLine("lmmi_street_confront_left", "lmmi_street_confront_left", "close_window",
-                "{=lmmi_street_confront_left}Thought so.", null, null);
+                "{=!}{LMMI_STREET_R5}",
+                    () => Flavor.Say("LMMI_STREET_R5",
+                        "{=lmmi_street_confront_left}Thought so.",
+                        "{=lmmi_street_confront_left_2}Smart.",
+                        "{=lmmi_street_confront_left_3}That's right. Keep walking."), null);
         }
 
         private void AddBrawlDialogs(CampaignGameStarter starter)
         {
             starter.AddDialogLine("lmmi_street_brawl", "start", "lmmi_street_brawl_resp",
-                "{=lmmi_street_brawl}Somebody stop them! Two youngsters are beating each other bloody over there, and the watch is nowhere!",
-                () => Talk(Kind.Brawl, Step.Asking), null, 1100);
+                "{=!}{LMMI_STREET_BRAWL}",
+                () => Talk(Kind.Brawl, Step.Asking) && Flavor.Say("LMMI_STREET_BRAWL",
+                        "{=lmmi_street_brawl}Somebody stop them! Two youngsters are beating each other bloody over there, and the watch is nowhere!",
+                        "{=lmmi_street_brawl_2}Quick! Two lads are trying to kill each other over there, and everyone's just watching!",
+                        "{=lmmi_street_brawl_3}Please, somebody! Two boys are fighting — there's blood everywhere!"), null, 1100);
             starter.AddPlayerLine("lmmi_street_brawl_go", "lmmi_street_brawl_resp", "lmmi_street_lead_on",
                 "{=lmmi_street_rescue_go}Show me.", null, () => Choose(LeadOn));
             starter.AddPlayerLine("lmmi_street_brawl_no", "lmmi_street_brawl_resp", "lmmi_street_brawl_shrug",
@@ -3292,7 +3419,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     Choose(sc => { sc.Outcome = "you shrugged"; LetItPlayOut(sc); });
                 });
             starter.AddDialogLine("lmmi_street_brawl_shrug", "lmmi_street_brawl_shrug", "close_window",
-                "{=lmmi_street_brawl_shrug}...Fine. I'll fetch the guard myself.", null, null);
+                "{=!}{LMMI_STREET_R6}",
+                    () => Flavor.Say("LMMI_STREET_R6",
+                        "{=lmmi_street_brawl_shrug}...Fine. I'll fetch the guard myself.",
+                        "{=lmmi_street_brawl_shrug_2}...I'll find the watch, then.",
+                        "{=lmmi_street_brawl_shrug_3}...Somebody's going to die and you don't care. Fine."), null);
 
             // One of the youths, when you get there.
             starter.AddDialogLine("lmmi_street_lads", "start", "lmmi_street_lads_resp",
@@ -3301,8 +3432,12 @@ namespace LessMenusMoreImmersion.Behaviors
                 {
                     if (!Talk(Kind.Brawl, Step.Confronting)) return false;
                     var line = Foreign(_scene!)
-                        ? new TextObject("{=lmmi_street_lads_foreign}What are you looking at, {SLUR}? This is between me and him!")
-                        : new TextObject("{=lmmi_street_lads_kin}Stay out of it! This is between me and him!");
+                        ? Flavor.Pick("{=lmmi_street_lads_foreign}What are you looking at, {SLUR}? This is between me and him!",
+                            "{=lmmi_street_lads_foreign_2}Get lost, {SLUR}!",
+                            "{=lmmi_street_lads_foreign_3}Back off, {SLUR}, this isn't your fight!")
+                        : Flavor.Pick("{=lmmi_street_lads_kin}Stay out of it! This is between me and him!",
+                            "{=lmmi_street_lads_kin_2}Keep out of it!",
+                            "{=lmmi_street_lads_kin_3}This is our fight!");
                     SetWords(line);
                     MBTextManager.SetTextVariable("LMMI_STREET_LADS", line);
                     return true;
@@ -3325,10 +3460,18 @@ namespace LessMenusMoreImmersion.Behaviors
                             NativePersuasion.Argument(DefaultSkills.Roguery, DefaultTraits.Calculating,
                                 new TextObject("{=lmmi_street_lads_watch}The watch is coming. Scatter — or spend the night in a cell."), listener, r, st, 1),
                         },
-                        new TextObject("{=lmmi_street_lads_opening}...What?"),
-                        new TextObject("{=lmmi_street_lads_again}So?"),
-                        new TextObject("{=lmmi_street_lads_talked_won}...Yeah. Alright. It's not worth it."),
-                        new TextObject("{=lmmi_street_lads_talked_lost}Piss off. Nobody asked you."),
+                        Flavor.Pick("{=lmmi_street_lads_opening}...What?",
+                            "{=lmmi_street_lads_opening_2}...Yeah?",
+                            "{=lmmi_street_lads_opening_3}What do you want?"),
+                        Flavor.Pick("{=lmmi_street_lads_again}So?",
+                            "{=lmmi_street_lads_again_2}And?",
+                            "{=lmmi_street_lads_again_3}Is that it?"),
+                        Flavor.Pick("{=lmmi_street_lads_talked_won}...Yeah. Alright. It's not worth it.",
+                            "{=lmmi_street_lads_talked_won_2}...Fine. Fine! It's over.",
+                            "{=lmmi_street_lads_talked_won_3}...He started it. But — alright."),
+                        Flavor.Pick("{=lmmi_street_lads_talked_lost}Piss off. Nobody asked you.",
+                            "{=lmmi_street_lads_talked_lost_2}Get lost, this is our business.",
+                            "{=lmmi_street_lads_talked_lost_3}Mind your own business!"),
                         onWon: () => Choose(s2 =>
                         {
                             SteppedUp(s2, 3f, "talked down a brawl");
@@ -3353,16 +3496,27 @@ namespace LessMenusMoreImmersion.Behaviors
                 });
 
             starter.AddDialogLine("lmmi_street_lads_tryit", "lmmi_street_lads_tryit", "close_window",
-                "{=lmmi_street_lads_tryit}Try it!", null, null);
+                "{=!}{LMMI_STREET_R7}",
+                    () => Flavor.Say("LMMI_STREET_R7",
+                        "{=lmmi_street_lads_tryit}Try it!",
+                        "{=lmmi_street_lads_tryit_2}Go on, then!",
+                        "{=lmmi_street_lads_tryit_3}You and whose army?"), null);
             starter.AddDialogLine("lmmi_street_lads_carry_on", "lmmi_street_lads_carry_on", "close_window",
-                "{=lmmi_street_lads_carry_on}Don't mind if we do.", null, null);
+                "{=!}{LMMI_STREET_R8}",
+                    () => Flavor.Say("LMMI_STREET_R8",
+                        "{=lmmi_street_lads_carry_on}Don't mind if we do.",
+                        "{=lmmi_street_lads_carry_on_2}Thought so.",
+                        "{=lmmi_street_lads_carry_on_3}Ha! Right, then."), null);
         }
 
         private void AddThiefDialogs(CampaignGameStarter starter)
         {
             starter.AddDialogLine("lmmi_street_thief", "start", "lmmi_street_thief_resp",
-                "{=lmmi_street_thief}Thief! That little rat just cut my purse — he's still standing right over there, bold as you like! Please, the rent's in it!",
-                () => Talk(Kind.Thief, Step.Asking), null, 1100);
+                "{=!}{LMMI_STREET_THIEF}",
+                () => Talk(Kind.Thief, Step.Asking) && Flavor.Say("LMMI_STREET_THIEF",
+                        "{=lmmi_street_thief}Thief! That little rat just cut my purse — he's still standing right over there, bold as you like! Please, the rent's in it!",
+                        "{=lmmi_street_thief_2}My purse! That boy cut my purse — look, he's right over there, laughing at me! It's all our rent money!",
+                        "{=lmmi_street_thief_3}Stop him! He's got my purse — the little thief's still hanging about over there! That was our rent!"), null, 1100);
 
             starter.AddPlayerLine("lmmi_street_thief_chase", "lmmi_street_thief_resp", "lmmi_street_thief_go",
                 "{=lmmi_street_thief_chase}Stop, thief!", null,
@@ -3373,25 +3527,37 @@ namespace LessMenusMoreImmersion.Behaviors
                     Contour(thief, ThiefContour);
                     Direct(thief)?.GoTo(sc.Escape, run: true, speed: ThiefSpeed);   // quick, but catchable
                     Direct(sc.Victim)?.Hold(face: thief);
-                    Bark(thief, new TextObject("{=lmmi_street_thief_bolts}Catch me if you can!"));
+                    Bark(thief, Flavor.Pick("{=lmmi_street_thief_bolts}Catch me if you can!",
+                        "{=lmmi_street_thief_bolts_2}Too slow!",
+                        "{=lmmi_street_thief_bolts_3}You'll never catch me!"));
                     Go(sc, Step.Chasing);
                 }));
             starter.AddDialogLine("lmmi_street_thief_go", "lmmi_street_thief_go", "close_window",
-                "{=lmmi_street_thief_go}Go! Go!", null, null);
+                "{=!}{LMMI_STREET_R9}",
+                    () => Flavor.Say("LMMI_STREET_R9",
+                        "{=lmmi_street_thief_go}Go! Go!",
+                        "{=lmmi_street_thief_go_2}Run! Get him!",
+                        "{=lmmi_street_thief_go_3}After him — quick!"), null);
 
             starter.AddPlayerLine("lmmi_street_thief_rogue", "lmmi_street_thief_resp", "lmmi_street_thief_wait",
                 "{=lmmi_street_thief_rogue}[Roguery] (Catch the boy's eye) I know that trick, lad. Drop it, or the watch hears your name.",
                 () => Hero.MainHero.GetSkillValue(DefaultSkills.Roguery) >= Treachery.RogueryToSpot,
                 () => Choose(sc =>
                 {
-                    Say("{=lmmi_street_thief_dropped}The boy freezes, sets the purse down on a step, and walks off very fast.");
+                    Say("{=lmmi_street_thief_dropped}The boy freezes, sets the purse down on a step, and walks off very fast.",
+                        "{=lmmi_street_thief_dropped_2}The boy's face goes white. He drops the purse and slinks away.",
+                        "{=lmmi_street_thief_dropped_3}The purse hits the cobbles. The boy is already halfway down the alley.");
                     SteppedUp(sc, 3f, "saw through a cutpurse");
                     var thief = sc.Actors.FirstOrDefault();
                     if (thief != null && thief.IsActive()) HandOver(sc, new SlipAway(thief, sc.Escape), thief);
                     Thank(sc, sc.Victim, "purse_back");
                 }));
             starter.AddDialogLine("lmmi_street_thief_wait", "lmmi_street_thief_wait", "close_window",
-                "{=lmmi_street_thief_wait}...He's putting it down. He's putting it down!", null, null);
+                "{=!}{LMMI_STREET_R10}",
+                    () => Flavor.Say("LMMI_STREET_R10",
+                        "{=lmmi_street_thief_wait}...He's putting it down. He's putting it down!",
+                        "{=lmmi_street_thief_wait_2}He's dropping it! He's dropping it!",
+                        "{=lmmi_street_thief_wait_3}Look — he's leaving it on the step!"), null);
 
             starter.AddPlayerLine("lmmi_street_thief_pay", "lmmi_street_thief_resp", "lmmi_street_purse_blessed",
                 "{=lmmi_street_thief_pay}Let him go. Here — this should cover the rent. [50{GOLD_ICON}]", null,
@@ -3406,18 +3572,29 @@ namespace LessMenusMoreImmersion.Behaviors
                     });
                 }, 100, (out TextObject why) => CanAfford(RentGold, out why));
             starter.AddDialogLine("lmmi_street_purse_blessed", "lmmi_street_purse_blessed", "close_window",
-                "{=lmmi_street_purse_blessed}Bless you! I'll tell everyone — everyone!", null, null);
+                "{=!}{LMMI_STREET_R11}",
+                    () => Flavor.Say("LMMI_STREET_R11",
+                        "{=lmmi_street_purse_blessed}Bless you! I'll tell everyone — everyone!",
+                        "{=lmmi_street_purse_blessed_2}You've saved us! Thank you — thank you!",
+                        "{=lmmi_street_purse_blessed_3}The gods bless you, {?PLAYER.GENDER}madam{?}sir{\\?}!"), null);
 
             starter.AddPlayerLine("lmmi_street_thief_no", "lmmi_street_thief_resp", "lmmi_street_purse_shrug",
                 "{=lmmi_street_purse_no}Tough luck.", null,
                 () => Choose(sc => { sc.Outcome = "you shrugged"; LetItPlayOut(sc); }));
             starter.AddDialogLine("lmmi_street_purse_shrug", "lmmi_street_purse_shrug", "close_window",
-                "{=lmmi_street_purse_shrug}...Of course. Why would you care.", null, null);
+                "{=!}{LMMI_STREET_R12}",
+                    () => Flavor.Say("LMMI_STREET_R12",
+                        "{=lmmi_street_purse_shrug}...Of course. Why would you care.",
+                        "{=lmmi_street_purse_shrug_2}...Right. Thanks for nothing.",
+                        "{=lmmi_street_purse_shrug_3}...Of course. Nobody ever cares."), null);
 
             // Caught him.
             starter.AddDialogLine("lmmi_street_caught", "start", "lmmi_street_caught_resp",
-                "{=lmmi_street_caught}Alright! Alright! Here — take it, just don't call the guard!",
-                () => Talk(Kind.Thief, Step.Caught), null, 1100);
+                "{=!}{LMMI_STREET_CAUGHT}",
+                () => Talk(Kind.Thief, Step.Caught) && Flavor.Say("LMMI_STREET_CAUGHT",
+                        "{=lmmi_street_caught}Alright! Alright! Here — take it, just don't call the guard!",
+                        "{=lmmi_street_caught_2}Ow! Let go! Fine — take it, take it!",
+                        "{=lmmi_street_caught_3}Don't call the watch! Please — here's the purse!"), null, 1100);
             starter.AddPlayerLine("lmmi_street_caught_return", "lmmi_street_caught_resp", "lmmi_street_caught_off",
                 "{=lmmi_street_caught_return}Give it here. Now get lost.", null,
                 () => Choose(sc =>
@@ -3428,7 +3605,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     Thank(sc, sc.Victim, "purse_back");
                 }));
             starter.AddDialogLine("lmmi_street_caught_off", "lmmi_street_caught_off", "close_window",
-                "{=lmmi_street_caught_off}...Yes, {?PLAYER.GENDER}madam{?}sir{\\?}.", null, null);
+                "{=!}{LMMI_STREET_R13}",
+                    () => Flavor.Say("LMMI_STREET_R13",
+                        "{=lmmi_street_caught_off}...Yes, {?PLAYER.GENDER}madam{?}sir{\\?}.",
+                        "{=lmmi_street_caught_off_2}...Going, {?PLAYER.GENDER}madam{?}sir{\\?}.",
+                        "{=lmmi_street_caught_off_3}...Yes. Sorry. Going."), null);
 
             starter.AddPlayerLine("lmmi_street_caught_split", "lmmi_street_caught_resp", "lmmi_street_caught_split_ok",
                 "{=lmmi_street_caught_split}[Roguery] Half for me, and I never saw your face.", null,
@@ -3439,7 +3620,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     Choose(sc => { sc.Outcome = "you split the purse with the thief"; LetItPlayOut(sc); });
                 });
             starter.AddDialogLine("lmmi_street_caught_split_ok", "lmmi_street_caught_split_ok", "close_window",
-                "{=lmmi_street_caught_split_ok}...Heh. You're alright. Here.", null, null);
+                "{=!}{LMMI_STREET_R14}",
+                    () => Flavor.Say("LMMI_STREET_R14",
+                        "{=lmmi_street_caught_split_ok}...Heh. You're alright. Here.",
+                        "{=lmmi_street_caught_split_ok_2}...Heh. Deal. Here's yours.",
+                        "{=lmmi_street_caught_split_ok_3}...You're one of us, then. Here."), null);
 
             starter.AddPlayerLine("lmmi_street_caught_guard", "lmmi_street_caught_resp", "lmmi_street_caught_dragged",
                 "{=lmmi_street_caught_guard}Guards! Over here!", null,
@@ -3457,12 +3642,19 @@ namespace LessMenusMoreImmersion.Behaviors
                     Thank(sc, sc.Victim, "purse_back");
                 }));
             starter.AddDialogLine("lmmi_street_caught_dragged", "lmmi_street_caught_dragged", "close_window",
-                "{=lmmi_street_caught_dragged}No! No, please — I'll give it back!", null, null);
+                "{=!}{LMMI_STREET_R15}",
+                    () => Flavor.Say("LMMI_STREET_R15",
+                        "{=lmmi_street_caught_dragged}No! No, please — I'll give it back!",
+                        "{=lmmi_street_caught_dragged_2}Let go of me! I'll give it back, I swear!",
+                        "{=lmmi_street_caught_dragged_3}No! Not the cells — please!"), null);
 
             // He got away: she comes back to you.
             starter.AddDialogLine("lmmi_street_gone", "start", "lmmi_street_gone_resp",
-                "{=lmmi_street_gone}He's gone... it was everything we had. The rent's due tomorrow.",
-                () => Talk(Kind.Thief, Step.Consoling), null, 1100);
+                "{=!}{LMMI_STREET_GONE}",
+                () => Talk(Kind.Thief, Step.Consoling) && Flavor.Say("LMMI_STREET_GONE",
+                        "{=lmmi_street_gone}He's gone... it was everything we had. The rent's due tomorrow.",
+                        "{=lmmi_street_gone_2}Gone... and the rent with him. What do I tell the landlord?",
+                        "{=lmmi_street_gone_3}He's vanished. That was everything we had."), null, 1100);
             starter.AddPlayerLine("lmmi_street_gone_pay", "lmmi_street_gone_resp", "lmmi_street_purse_blessed",
                 "{=lmmi_street_gone_pay}Here. This should cover it. [50{GOLD_ICON}]", null,
                 () =>
@@ -3474,7 +3666,11 @@ namespace LessMenusMoreImmersion.Behaviors
                 "{=lmmi_street_gone_sorry}I'm sorry. He was too quick.", null,
                 () => Choose(Finish));
             starter.AddDialogLine("lmmi_street_gone_sorry_resp", "lmmi_street_gone_sorry_resp", "close_window",
-                "{=lmmi_street_gone_sorry_resp}...You tried. That's more than most.", null, null);
+                "{=!}{LMMI_STREET_R16}",
+                    () => Flavor.Say("LMMI_STREET_R16",
+                        "{=lmmi_street_gone_sorry_resp}...You tried. That's more than most.",
+                        "{=lmmi_street_gone_sorry_resp_2}...At least you tried.",
+                        "{=lmmi_street_gone_sorry_resp_3}...Thank you anyway. Few would have bothered."), null);
         }
 
         private void AddWatchDialogs(CampaignGameStarter starter)
@@ -3488,8 +3684,12 @@ namespace LessMenusMoreImmersion.Behaviors
                         || ConversationMission.OneToOneConversationAgent != sc.TalkTo) return false;
                     if (!sc.Talking) { sc.Talking = true; sc.TalkAt = _sceneTime; sc.Chosen = false; }
                     var line = Foreign(sc) && Resentment(sc) > 0f
-                        ? new TextObject("{=lmmi_street_watch_foreign}You. {DEMONYM}. Trouble in our streets — I might have known. Explain yourself.")
-                        : new TextObject("{=lmmi_street_watch_kin}What's all this, then? Explain yourself.");
+                        ? Flavor.Pick("{=lmmi_street_watch_foreign}You. {DEMONYM}. Trouble in our streets — I might have known. Explain yourself.",
+                            "{=lmmi_street_watch_foreign_2}Trouble, and a {DEMONYM} in the middle of it. Talk.",
+                            "{=lmmi_street_watch_foreign_3}Of course it's a {DEMONYM}. Explain yourself.")
+                        : Flavor.Pick("{=lmmi_street_watch_kin}What's all this, then? Explain yourself.",
+                            "{=lmmi_street_watch_kin_2}Right. What happened here?",
+                            "{=lmmi_street_watch_kin_3}Explain this. Now.");
                     SetWords(line);
                     MBTextManager.SetTextVariable("LMMI_STREET_WATCH", line);
                     return true;
@@ -3523,10 +3723,18 @@ namespace LessMenusMoreImmersion.Behaviors
                             NativePersuasion.Argument(DefaultSkills.Roguery, DefaultTraits.Calculating,
                                 new TextObject("{=lmmi_street_watch_rogue}Nobody got hurt who didn't have it coming. Let's not make paperwork for either of us."), listener, r, st),
                         },
-                        new TextObject("{=lmmi_street_watch_opening}Go on, then. I'm listening."),
-                        new TextObject("{=lmmi_street_watch_again}Hm. And?"),
-                        new TextObject("{=lmmi_street_watch_won}...Right. Move along. And next time, fetch the watch."),
-                        new TextObject("{=lmmi_street_watch_lost}Save it for the magistrate. That's a hundred denars, or your name in the ledger."),
+                        Flavor.Pick("{=lmmi_street_watch_opening}Go on, then. I'm listening.",
+                            "{=lmmi_street_watch_opening_2}Talk. I'm listening.",
+                            "{=lmmi_street_watch_opening_3}Let's hear it."),
+                        Flavor.Pick("{=lmmi_street_watch_again}Hm. And?",
+                            "{=lmmi_street_watch_again_2}And?",
+                            "{=lmmi_street_watch_again_3}Go on."),
+                        Flavor.Pick("{=lmmi_street_watch_won}...Right. Move along. And next time, fetch the watch.",
+                            "{=lmmi_street_watch_won_2}...Fine. Move on, and keep out of trouble.",
+                            "{=lmmi_street_watch_won_3}...Alright. But I'll be watching you."),
+                        Flavor.Pick("{=lmmi_street_watch_lost}Save it for the magistrate. That's a hundred denars, or your name in the ledger.",
+                            "{=lmmi_street_watch_lost_2}Tell it to the magistrate. A hundred denars, or your name goes in the book.",
+                            "{=lmmi_street_watch_lost_3}Not good enough. A hundred, or the ledger."),
                         onWon: () => Choose(Cleared),
                         onLost: () => LmmiLog.Info("Street: the watch didn't buy it — sentencing."));
                 });
@@ -3567,26 +3775,49 @@ namespace LessMenusMoreImmersion.Behaviors
                 "{=lmmi_street_sentence_resist}You'll have to take me.", null,
                 () => Choose(ResistArrest));
             starter.AddDialogLine("lmmi_street_sentence_paid", "lmmi_street_sentence_paid", "close_window",
-                "{=lmmi_street_sentence_paid}Wise. Now move along.", null, null);
+                "{=!}{LMMI_STREET_R17}",
+                    () => Flavor.Say("LMMI_STREET_R17",
+                        "{=lmmi_street_sentence_paid}Wise. Now move along.",
+                        "{=lmmi_street_sentence_paid_2}Good. On your way.",
+                        "{=lmmi_street_sentence_paid_3}That'll do. Off with you, and keep out of trouble."), null);
             starter.AddDialogLine("lmmi_street_sentence_quietly", "lmmi_street_sentence_quietly", "close_window",
-                "{=lmmi_street_sentence_quietly}Smart. This way — and no sudden moves.", null, null);
+                "{=!}{LMMI_STREET_R18}",
+                    () => Flavor.Say("LMMI_STREET_R18",
+                        "{=lmmi_street_sentence_quietly}Smart. This way — and no sudden moves.",
+                        "{=lmmi_street_sentence_quietly_2}Sensible. Come along.",
+                        "{=lmmi_street_sentence_quietly_3}Good. Walk ahead of me, slowly."), null);
             starter.AddDialogLine("lmmi_street_sentence_resisted_warn", "lmmi_street_sentence_resisted", "close_window",
                 "{=lmmi_street_sentence_resisted_warn}Kill one of my men and you'll hang for it. Guards! To me!",
                 () => ExecutionPossible(_scene?.Settlement), null, 110);
             starter.AddDialogLine("lmmi_street_sentence_resisted", "lmmi_street_sentence_resisted", "close_window",
-                "{=lmmi_street_sentence_resisted}Guards! To me!", null, null);
+                "{=!}{LMMI_STREET_R19}",
+                    () => Flavor.Say("LMMI_STREET_R19",
+                        "{=lmmi_street_sentence_resisted}Guards! To me!",
+                        "{=lmmi_street_sentence_resisted_2}Guards! Here, now!",
+                        "{=lmmi_street_sentence_resisted_3}Help! Guards! Resisting!"), null);
 
             starter.AddDialogLine("lmmi_street_watch_bribed", "lmmi_street_watch_bribed", "close_window",
-                "{=lmmi_street_watch_bribed}...I didn't see anything. Neither did you.", null, null);
+                "{=!}{LMMI_STREET_R20}",
+                    () => Flavor.Say("LMMI_STREET_R20",
+                        "{=lmmi_street_watch_bribed}...I didn't see anything. Neither did you.",
+                        "{=lmmi_street_watch_bribed_2}...Well. I suppose I was looking the other way.",
+                        "{=lmmi_street_watch_bribed_3}...Nothing happened here. Move along."), null);
             starter.AddDialogLine("lmmi_street_watch_fine_resp", "lmmi_street_watch_fine_resp", "close_window",
-                "{=lmmi_street_watch_fine_resp}At least you know how this works.", null, null);
+                "{=!}{LMMI_STREET_R21}",
+                    () => Flavor.Say("LMMI_STREET_R21",
+                        "{=lmmi_street_watch_fine_resp}At least you know how this works.",
+                        "{=lmmi_street_watch_fine_resp_2}At least you're sensible.",
+                        "{=lmmi_street_watch_fine_resp_3}Good. Paperwork it is."), null);
         }
 
         private void AddInjuredDialogs(CampaignGameStarter starter)
         {
             starter.AddDialogLine("lmmi_street_injured", "start", "lmmi_street_injured_resp",
-                "{=lmmi_street_lure}Please, {?PLAYER.GENDER}madam{?}sir{\\?}! My brother fell — down that way — and I can't lift him alone. Please, help me!",
-                () => Talk(Kind.Injured, Step.Asking), null, 1100);
+                "{=!}{LMMI_STREET_LURE}",
+                () => Talk(Kind.Injured, Step.Asking) && Flavor.Say("LMMI_STREET_LURE",
+                        "{=lmmi_street_lure}Please, {?PLAYER.GENDER}madam{?}sir{\\?}! My brother fell — down that way — and I can't lift him alone. Please, help me!",
+                        "{=lmmi_street_lure_2}Please, help! My brother's hurt — just down there — he can't stand up!",
+                        "{=lmmi_street_lure_3}{?PLAYER.GENDER}Madam{?}Sir{\\?}, please! My brother fell and hurt his leg — I can't move him by myself!"), null, 1100);
             starter.AddPlayerLine("lmmi_street_injured_go", "lmmi_street_injured_resp", "lmmi_street_lead_on",
                 "{=lmmi_street_rescue_go}Show me.", null, () => Choose(LeadOn));
             starter.AddPlayerLine("lmmi_street_injured_no", "lmmi_street_injured_resp", "lmmi_street_injured_refused",
@@ -3597,12 +3828,19 @@ namespace LessMenusMoreImmersion.Behaviors
                     Choose(sc => { sc.Outcome = "you didn't follow"; LetItPlayOut(sc); });
                 });
             starter.AddDialogLine("lmmi_street_injured_refused", "lmmi_street_injured_refused", "close_window",
-                "{=lmmi_street_lure_refused}...Suit yourself.", null, null);
+                "{=!}{LMMI_STREET_R22}",
+                    () => Flavor.Say("LMMI_STREET_R22",
+                        "{=lmmi_street_lure_refused}...Suit yourself.",
+                        "{=lmmi_street_lure_refused_2}...Fine. I'll find someone kinder.",
+                        "{=lmmi_street_lure_refused_3}...As you like."), null);
 
             // There he is, sitting in the street.
             starter.AddDialogLine("lmmi_street_injured_here", "start", "lmmi_street_injured_here_resp",
-                "{=lmmi_street_injured_here}Here — this is him. He came off a ladder and his leg went under him. Can you help me get him up?",
-                () => Talk(Kind.Injured, Step.Confronting), null, 1100);
+                "{=!}{LMMI_STREET_INJURED}",
+                () => Talk(Kind.Injured, Step.Confronting) && Flavor.Say("LMMI_STREET_INJURED",
+                        "{=lmmi_street_injured_here}Here — this is him. He came off a ladder and his leg went under him. Can you help me get him up?",
+                        "{=lmmi_street_injured_here_2}This is him. Fell off a cart and twisted his leg badly. Can you help?",
+                        "{=lmmi_street_injured_here_3}Here he is. The leg's bent wrong, see? Help me get him up?"), null, 1100);
 
             starter.AddPlayerLine("lmmi_street_injured_medicine", "lmmi_street_injured_here_resp", "lmmi_street_injured_looked",
                 "{=lmmi_street_injured_medicine}[Medicine] Let me look at that leg first.", null,
@@ -3623,7 +3861,9 @@ namespace LessMenusMoreImmersion.Behaviors
                         if (s2.Mended)
                         {
                             Hero.MainHero.AddSkillXp(DefaultSkills.Medicine, 60f);
-                            Say("{=lmmi_street_injured_splint}You splint the leg with a slat and his own belt. He'll walk on it again.");
+                            Say("{=lmmi_street_injured_splint}You splint the leg with a slat and his own belt. He'll walk on it again.",
+                        "{=lmmi_street_injured_splint_2}A slat of wood and a strip of cloth, and the leg is set straight.",
+                        "{=lmmi_street_injured_splint_3}You set the bone with one sharp pull. He screams — then sighs with relief.");
                             SteppedUp(s2, 3f, "set a stranger's broken leg");
                         }
                         else TownStandingBehavior.Adjust(s2.Settlement, 1f, "helped a man who fell");
@@ -3631,17 +3871,27 @@ namespace LessMenusMoreImmersion.Behaviors
                     });
                 });
             starter.AddDialogLine("lmmi_street_injured_set", "lmmi_street_injured_looked", "close_window",
-                "{=lmmi_street_injured_set}You... you set it, like a proper physician! Bless you — we won't forget this.",
-                () => _scene?.Mended == true, null);
+                "{=!}{LMMI_STREET_SET}",
+                () => _scene?.Mended == true && Flavor.Say("LMMI_STREET_SET",
+                        "{=lmmi_street_injured_set}You... you set it, like a proper physician! Bless you — we won't forget this.",
+                        "{=lmmi_street_injured_set_2}You've done this before! He'll walk again — thank you!",
+                        "{=lmmi_street_injured_set_3}A proper bone-setter! The gods sent you. Thank you!"), null);
             starter.AddDialogLine("lmmi_street_injured_howl", "lmmi_street_injured_looked", "close_window",
-                "{=lmmi_street_injured_howl}He howls the moment you touch it. ...Best leave it to a physician. Thank you for trying — I'll get him home.",
-                () => _scene?.Mended != true, null);
+                "{=!}{LMMI_STREET_HOWL}",
+                () => _scene?.Mended != true && Flavor.Say("LMMI_STREET_HOWL",
+                        "{=lmmi_street_injured_howl}He howls the moment you touch it. ...Best leave it to a physician. Thank you for trying — I'll get him home.",
+                        "{=lmmi_street_injured_howl_2}He screams when you touch it. Best leave it — I'll find a physician. Thank you anyway.",
+                        "{=lmmi_street_injured_howl_3}No, no — stop, it's hurting him. I'll fetch a healer. Thanks for trying."), null);
 
             starter.AddPlayerLine("lmmi_street_injured_up", "lmmi_street_injured_here_resp", "lmmi_street_injured_up_resp",
                 "{=lmmi_street_injured_up}Up you get. Lean on me.", null,
                 () => Choose(sc => { SteppedUp(sc, 2f, "helped a man who fell"); HelpHome(sc); }));
             starter.AddDialogLine("lmmi_street_injured_up_resp", "lmmi_street_injured_up_resp", "close_window",
-                "{=lmmi_street_injured_up_resp}Thank you. There's not many who'd stop.", null, null);
+                "{=!}{LMMI_STREET_R23}",
+                    () => Flavor.Say("LMMI_STREET_R23",
+                        "{=lmmi_street_injured_up_resp}Thank you. There's not many who'd stop.",
+                        "{=lmmi_street_injured_up_resp_2}Thanks. Most people just walk past.",
+                        "{=lmmi_street_injured_up_resp_3}Bless you. He'll be alright now."), null);
 
             starter.AddPlayerLine("lmmi_street_injured_leave", "lmmi_street_injured_here_resp", "lmmi_street_injured_leave_resp",
                 "{=lmmi_street_injured_leave}He'll live. Fetch a physician.", null,
@@ -3651,7 +3901,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     Choose(sc => { sc.Outcome = "you left him there"; LetItPlayOut(sc); });
                 });
             starter.AddDialogLine("lmmi_street_injured_leave_resp", "lmmi_street_injured_leave_resp", "close_window",
-                "{=lmmi_street_injured_leave_resp}...Right. Thanks for nothing.", null, null);
+                "{=!}{LMMI_STREET_R24}",
+                    () => Flavor.Say("LMMI_STREET_R24",
+                        "{=lmmi_street_injured_leave_resp}...Right. Thanks for nothing.",
+                        "{=lmmi_street_injured_leave_resp_2}...Thanks for nothing, then.",
+                        "{=lmmi_street_injured_leave_resp_3}...Right. A physician. With what money?"), null);
         }
 
         /// <summary>He's on his feet: the two of them hobble off, grateful.</summary>
@@ -3679,7 +3933,9 @@ namespace LessMenusMoreImmersion.Behaviors
                         if (sc.Ambush)
                         {
                             Hero.MainHero.AddSkillXp(DefaultSkills.Roguery, 30f);
-                            Say("{=lmmi_street_suspect_right}They melt back into the crowd. Whatever was waiting for you is waiting for someone else now.");
+                            Say("{=lmmi_street_suspect_right}They melt back into the crowd. Whatever was waiting for you is waiting for someone else now.",
+                        "{=lmmi_street_suspect_right_2}They exchange a look and drift off. Whatever was planned won't happen to you.",
+                        "{=lmmi_street_suspect_right_3}They back away, muttering. You were right to be wary.");
                             sc.Outcome = "you saw through it";
                             Finish(sc);
                         }
@@ -3784,7 +4040,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     Choose(s2 => { Disperse(s2, s2.Actors.ToList()); s2.Outcome = "paid the toll"; Finish(s2); });
                 }, 100, (out TextObject why) => CanAfford(_scene?.Toll ?? 50, out why));
             starter.AddDialogLine("lmmi_street_toughs_paid", "lmmi_street_toughs_paid", "close_window",
-                "{=lmmi_street_toughs_paid}Pleasure doing business. Don't come back this way.", null, null);
+                "{=!}{LMMI_STREET_R25}",
+                    () => Flavor.Say("LMMI_STREET_R25",
+                        "{=lmmi_street_toughs_paid}Pleasure doing business. Don't come back this way.",
+                        "{=lmmi_street_toughs_paid_2}Nice doing business. Now get lost.",
+                        "{=lmmi_street_toughs_paid_3}Good. Don't let us see you round here again."), null);
 
             starter.AddPlayerLine("lmmi_street_toughs_talk", "lmmi_street_toughs_resp", _talkPastToughs.Entry,
                 "{=lmmi_street_toughs_talk}[Talk your way out] Think this through, lads.",
@@ -3805,10 +4065,18 @@ namespace LessMenusMoreImmersion.Behaviors
                             NativePersuasion.Argument(DefaultSkills.Charm, DefaultTraits.Generosity,
                                 new TextObject("{=lmmi_street_toughs_generous}Ten denars for your trouble, and we all go home. That's the best deal you'll get today."), listener, r, st, gang),
                         },
-                        new TextObject("{=lmmi_street_toughs_opening}Go on. Make it good."),
-                        new TextObject("{=lmmi_street_toughs_again}Anything else?"),
-                        new TextObject("{=lmmi_street_toughs_won}...Not worth it. Go on, get out of here."),
-                        new TextObject("{=lmmi_street_toughs_lost}Enough talk."),
+                        Flavor.Pick("{=lmmi_street_toughs_opening}Go on. Make it good.",
+                            "{=lmmi_street_toughs_opening_2}Talk fast.",
+                            "{=lmmi_street_toughs_opening_3}Go on, then. Amuse us."),
+                        Flavor.Pick("{=lmmi_street_toughs_again}Anything else?",
+                            "{=lmmi_street_toughs_again_2}Is that all?",
+                            "{=lmmi_street_toughs_again_3}And?"),
+                        Flavor.Pick("{=lmmi_street_toughs_won}...Not worth it. Go on, get out of here.",
+                            "{=lmmi_street_toughs_won_2}...Not worth the trouble. Go on.",
+                            "{=lmmi_street_toughs_won_3}...Fine. Off with you, before we change our minds."),
+                        Flavor.Pick("{=lmmi_street_toughs_lost}Enough talk.",
+                            "{=lmmi_street_toughs_lost_2}We're done talking.",
+                            "{=lmmi_street_toughs_lost_3}Talk's over."),
                         onWon: () => Choose(s2 =>
                         {
                             TownStandingBehavior.Adjust(s2.Settlement, 1f, "talked past robbers in an alley");
@@ -3829,9 +4097,17 @@ namespace LessMenusMoreImmersion.Behaviors
                 "{=lmmi_street_toughs_run}[Back away and run]", null,
                 () => Choose(sc => { sc.Outcome = "you ran"; LetItPlayOut(sc); }));
             starter.AddDialogLine("lmmi_street_toughs_fighting", "lmmi_street_toughs_fighting", "close_window",
-                "{=lmmi_street_toughs_fighting}Get {?PLAYER.GENDER}her{?}him{\\?}!", null, null);
+                "{=!}{LMMI_STREET_R26}",
+                    () => Flavor.Say("LMMI_STREET_R26",
+                        "{=lmmi_street_toughs_fighting}Get {?PLAYER.GENDER}her{?}him{\\?}!",
+                        "{=lmmi_street_toughs_fighting_2}Take {?PLAYER.GENDER}her{?}him{\\?}!",
+                        "{=lmmi_street_toughs_fighting_3}Grab {?PLAYER.GENDER}her{?}him{\\?}, lads!"), null);
             starter.AddDialogLine("lmmi_street_toughs_ran", "lmmi_street_toughs_ran", "close_window",
-                "{=lmmi_street_toughs_ran}Ha! Look at {?PLAYER.GENDER}her{?}him{\\?} go!", null, null);
+                "{=!}{LMMI_STREET_R27}",
+                    () => Flavor.Say("LMMI_STREET_R27",
+                        "{=lmmi_street_toughs_ran}Ha! Look at {?PLAYER.GENDER}her{?}him{\\?} go!",
+                        "{=lmmi_street_toughs_ran_2}Ha! Run, rabbit, run!",
+                        "{=lmmi_street_toughs_ran_3}Look at that! Off like a hare!"), null);
 
             _talkPastToughs.Register(starter);
             _talkPastToughs.AddLeave(starter, "{=lmmi_street_toughs_pay_after}...Fine. Take it.", "lmmi_street_toughs_paid",
@@ -3860,8 +4136,11 @@ namespace LessMenusMoreImmersion.Behaviors
         private void AddDebtDialogs(CampaignGameStarter starter)
         {
             starter.AddDialogLine("lmmi_street_debt", "start", "lmmi_street_debt_resp",
-                "{=lmmi_street_debt}Please, {?PLAYER.GENDER}madam{?}sir{\\?}! The moneylender's men have my neighbour cornered over a debt — they say they'll break his hands! Please!",
-                () => Talk(Kind.Debt, Step.Asking), null, 1100);
+                "{=!}{LMMI_STREET_DEBT}",
+                () => Talk(Kind.Debt, Step.Asking) && Flavor.Say("LMMI_STREET_DEBT",
+                        "{=lmmi_street_debt}Please, {?PLAYER.GENDER}madam{?}sir{\\?}! The moneylender's men have my neighbour cornered over a debt — they say they'll break his hands! Please!",
+                        "{=lmmi_street_debt_2}Help! The moneylender's thugs have my neighbour against a wall — they'll break his hands!",
+                        "{=lmmi_street_debt_3}{?PLAYER.GENDER}Madam{?}Sir{\\?}, please! Collectors have cornered a man over a debt. They're going to break his fingers!"), null, 1100);
             starter.AddPlayerLine("lmmi_street_debt_go", "lmmi_street_debt_resp", "lmmi_street_lead_on",
                 "{=lmmi_street_rescue_go}Show me.", null, () => Choose(LeadOn));
             starter.AddPlayerLine("lmmi_street_debt_no", "lmmi_street_debt_resp", "lmmi_street_debt_refused",
@@ -3872,7 +4151,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     Choose(sc => { sc.Outcome = "you refused"; LetItPlayOut(sc); });
                 });
             starter.AddDialogLine("lmmi_street_debt_refused", "lmmi_street_debt_refused", "close_window",
-                "{=lmmi_street_debt_refused}...Easy to say, with a full purse.", null, null);
+                "{=!}{LMMI_STREET_R28}",
+                    () => Flavor.Say("LMMI_STREET_R28",
+                        "{=lmmi_street_debt_refused}...Easy to say, with a full purse.",
+                        "{=lmmi_street_debt_refused_2}...Easy for you to say.",
+                        "{=lmmi_street_debt_refused_3}...Then they'll break his hands, and that's on you."), null);
 
             // The collectors.
             starter.AddDialogLine("lmmi_street_collect", "start", "lmmi_street_collect_resp",
@@ -3882,8 +4165,12 @@ namespace LessMenusMoreImmersion.Behaviors
                     if (!Talk(Kind.Debt, Step.Confronting)) return false;
                     var sc = _scene!;
                     var line = Foreign(sc)
-                        ? new TextObject("{=lmmi_street_collect_foreign}Walk on, {SLUR}. He owes {DEBT} denars, and he pays — one way or another.")
-                        : new TextObject("{=lmmi_street_collect_kin}Walk on, friend. He owes {DEBT} denars, and he pays — one way or another.");
+                        ? Flavor.Pick("{=lmmi_street_collect_foreign}Walk on, {SLUR}. He owes {DEBT} denars, and he pays — one way or another.",
+                            "{=lmmi_street_collect_foreign_2}Move on, {SLUR}. He owes {DEBT} denars, and he'll pay.",
+                            "{=lmmi_street_collect_foreign_3}Not your business, {SLUR}. {DEBT} denars — he pays one way or another.")
+                        : Flavor.Pick("{=lmmi_street_collect_kin}Walk on, friend. He owes {DEBT} denars, and he pays — one way or another.",
+                            "{=lmmi_street_collect_kin_2}Keep walking. He owes {DEBT} denars.",
+                            "{=lmmi_street_collect_kin_3}Not your concern, friend. {DEBT} denars, and he pays.");
                     SetWords(line);
                     line.SetTextVariable("DEBT", sc.Debt);
                     MBTextManager.SetTextVariable("LMMI_STREET_COLLECT", line);
@@ -3907,7 +4194,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     });
                 }, 100, (out TextObject why) => CanAfford(_scene?.Debt ?? 100, out why));
             starter.AddDialogLine("lmmi_street_collect_paid", "lmmi_street_collect_paid", "close_window",
-                "{=lmmi_street_collect_paid}...Paid in full. Your lucky day, old man.", null, null);
+                "{=!}{LMMI_STREET_R29}",
+                    () => Flavor.Say("LMMI_STREET_R29",
+                        "{=lmmi_street_collect_paid}...Paid in full. Your lucky day, old man.",
+                        "{=lmmi_street_collect_paid_2}...Debt's clear. You've a rich friend, old man.",
+                        "{=lmmi_street_collect_paid_3}...Well, well. Somebody likes you, old man."), null);
 
             starter.AddPlayerLine("lmmi_street_collect_talk", "lmmi_street_collect_resp", _talkDownCollectors.Entry,
                 "{=lmmi_street_collect_talk}[Talk them down] Think about this for a moment.", null,
@@ -3927,10 +4218,18 @@ namespace LessMenusMoreImmersion.Behaviors
                             NativePersuasion.Argument(DefaultSkills.Leadership, DefaultTraits.Valor,
                                 new TextObject("{=lmmi_street_collect_valor}Touch him and you'll answer to me."), listener, r, st, gang + (Clan.PlayerClan?.Tier ?? 0) / 3),
                         },
-                        new TextObject("{=lmmi_street_collect_opening}You've got until I lose my patience."),
-                        new TextObject("{=lmmi_street_collect_again}And?"),
-                        new TextObject("{=lmmi_street_collect_won}...A week. One week, and not a day more."),
-                        new TextObject("{=lmmi_street_collect_lost}Enough talk. Hold his arm."),
+                        Flavor.Pick("{=lmmi_street_collect_opening}You've got until I lose my patience.",
+                            "{=lmmi_street_collect_opening_2}Speak quick.",
+                            "{=lmmi_street_collect_opening_3}Say your piece."),
+                        Flavor.Pick("{=lmmi_street_collect_again}And?",
+                            "{=lmmi_street_collect_again_2}Anything else?",
+                            "{=lmmi_street_collect_again_3}Make it quick."),
+                        Flavor.Pick("{=lmmi_street_collect_won}...A week. One week, and not a day more.",
+                            "{=lmmi_street_collect_won_2}...Seven days. Then we come back.",
+                            "{=lmmi_street_collect_won_3}...Alright. One week."),
+                        Flavor.Pick("{=lmmi_street_collect_lost}Enough talk. Hold his arm.",
+                            "{=lmmi_street_collect_lost_2}No more talk. Grab his hand.",
+                            "{=lmmi_street_collect_lost_3}Enough. Do it."),
                         onWon: () => Choose(s2 =>
                         {
                             SteppedUp(s2, 3f, "talked down a moneylender's collectors");
@@ -3948,7 +4247,11 @@ namespace LessMenusMoreImmersion.Behaviors
             starter.AddPlayerLine("lmmi_street_collect_leave", "lmmi_street_collect_resp", "lmmi_street_collect_left",
                 "{=lmmi_street_collect_leave}...Carry on.", null, CollectorsLeft);
             starter.AddDialogLine("lmmi_street_collect_left", "lmmi_street_collect_left", "close_window",
-                "{=lmmi_street_collect_left}Wise.", null, null);
+                "{=!}{LMMI_STREET_COLLECT_LEFT}",
+                    () => Flavor.Say("LMMI_STREET_COLLECT_LEFT",
+                        "{=lmmi_street_collect_left}Wise.",
+                        "{=lmmi_street_collect_left_2}Smart.",
+                        "{=lmmi_street_collect_left_3}Good. Run along."), null);
 
             _talkDownCollectors.Register(starter);
             _talkDownCollectors.AddLeave(starter, "{=lmmi_street_collect_leave}...Carry on.", "lmmi_street_collect_left", CollectorsLeft);
@@ -3963,12 +4266,19 @@ namespace LessMenusMoreImmersion.Behaviors
         private void AddLostChildDialogs(CampaignGameStarter starter)
         {
             starter.AddDialogLine("lmmi_street_lost", "start", "lmmi_street_lost_resp",
-                "{=lmmi_street_lost}Please — have you seen my little one? I turned my back for a moment and he was gone! Please, help me look!",
-                () => Talk(Kind.LostChild, Step.Asking), null, 1100);
+                "{=!}{LMMI_STREET_LOST}",
+                () => Talk(Kind.LostChild, Step.Asking) && Flavor.Say("LMMI_STREET_LOST",
+                        "{=lmmi_street_lost}Please — have you seen my little one? I turned my back for a moment and he was gone! Please, help me look!",
+                        "{=lmmi_street_lost_2}Have you seen a little boy? Please! He was right beside me, and now he's gone!",
+                        "{=lmmi_street_lost_3}My son — I can't find my son! Please, help me look for him!"), null, 1100);
             starter.AddPlayerLine("lmmi_street_lost_go", "lmmi_street_lost_resp", "lmmi_street_lost_lead",
                 "{=lmmi_street_lost_go}I'll help you look.", null, () => Choose(LeadOn));
             starter.AddDialogLine("lmmi_street_lost_lead", "lmmi_street_lost_lead", "close_window",
-                "{=lmmi_street_lost_lead}He went this way, I think — come!", null, null);
+                "{=!}{LMMI_STREET_LOST_LEAD}",
+                    () => Flavor.Say("LMMI_STREET_LOST_LEAD",
+                        "{=lmmi_street_lost_lead}He went this way, I think — come!",
+                        "{=lmmi_street_lost_lead_2}This way — I think he went this way!",
+                        "{=lmmi_street_lost_lead_3}Come, please — I last saw him over here!"), null);
             starter.AddPlayerLine("lmmi_street_lost_no", "lmmi_street_lost_resp", "lmmi_street_lost_refused",
                 "{=lmmi_street_lost_no}He'll turn up.", null,
                 () =>
@@ -3977,7 +4287,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     Choose(sc => { sc.Outcome = "you refused"; LetItPlayOut(sc); });
                 });
             starter.AddDialogLine("lmmi_street_lost_refused", "lmmi_street_lost_refused", "close_window",
-                "{=lmmi_street_lost_refused}...Heaven forgive you.", null, null);
+                "{=!}{LMMI_STREET_LOST_NO}",
+                    () => Flavor.Say("LMMI_STREET_LOST_NO",
+                        "{=lmmi_street_lost_refused}...Heaven forgive you.",
+                        "{=lmmi_street_lost_refused_2}...How can you say that? He's just a child!",
+                        "{=lmmi_street_lost_refused_3}...Then I'll look alone. Gods help me."), null);
 
             // Found him: small, frightened, and crying.
             starter.AddDialogLine("lmmi_street_lost_child", "start", "lmmi_street_lost_child_resp",
@@ -3987,8 +4301,12 @@ namespace LessMenusMoreImmersion.Behaviors
                     if (!Talk(Kind.LostChild, Step.Comforting)) return false;
                     var sc = _scene!;
                     var line = Foreign(sc) && Resentment(sc) > 0f
-                        ? new TextObject("{=lmmi_street_lost_child_foreign}*sniff* M-mama says not to talk to {DEMONYM}s... but I can't find her... I want my mama...")
-                        : new TextObject("{=lmmi_street_lost_child_kin}*sniff* I c-can't find my mama... I was only looking at the horses, and then she was gone...");
+                        ? Flavor.Pick("{=lmmi_street_lost_child_foreign}*sniff* M-mama says not to talk to {DEMONYM}s... but I can't find her... I want my mama...",
+                                    "{=lmmi_street_lost_child_foreign_2}*sniff* Y-you talk funny... I want my mama...",
+                                    "{=lmmi_street_lost_child_foreign_3}*sniff* Are you a {DEMONYM}? Mama says... mama... I want my mama...")
+                        : Flavor.Pick("{=lmmi_street_lost_child_kin}*sniff* I c-can't find my mama... I was only looking at the horses, and then she was gone...",
+                                    "{=lmmi_street_lost_child_kin_2}*sniff* I... I can't find my mama anywhere...",
+                                    "{=lmmi_street_lost_child_kin_3}*sniff* I was following the cart and then... and then she was gone...");
                     SetWords(line);
                     MBTextManager.SetTextVariable("LMMI_STREET_CHILD", line);
                     return true;
@@ -4006,7 +4324,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     Go(sc, Step.Returning);
                 }));
             starter.AddDialogLine("lmmi_street_lost_child_ok", "lmmi_street_lost_child_ok", "close_window",
-                "{=lmmi_street_lost_child_ok}*sniff* ...Promise?", null, null);
+                "{=!}{LMMI_STREET_CHILD_OK}",
+                    () => Flavor.Say("LMMI_STREET_CHILD_OK",
+                        "{=lmmi_street_lost_child_ok}*sniff* ...Promise?",
+                        "{=lmmi_street_lost_child_ok_2}*sniff* ...Really?",
+                        "{=lmmi_street_lost_child_ok_3}*sniff* ...You'll take me to Mama?"), null);
             starter.AddPlayerLine("lmmi_street_lost_child_leave", "lmmi_street_lost_child_resp", "lmmi_street_lost_child_left",
                 "{=lmmi_street_lost_child_leave}(Leave him be.)", null,
                 () =>
@@ -4015,7 +4337,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     Choose(sc => { sc.Outcome = "you left him"; LetItPlayOut(sc); });
                 });
             starter.AddDialogLine("lmmi_street_lost_child_left", "lmmi_street_lost_child_left", "close_window",
-                "{=lmmi_street_lost_child_left}*sniff*...", null, null);
+                "{=!}{LMMI_STREET_CHILD_LEFT}",
+                    () => Flavor.Say("LMMI_STREET_CHILD_LEFT",
+                        "{=lmmi_street_lost_child_left}*sniff*...",
+                        "{=lmmi_street_lost_child_left_2}*sob*...",
+                        "{=lmmi_street_lost_child_left_3}...Mama?"), null);
         }
 
         /// <summary>The mother takes her little one home, and he trots along beside her.</summary>
@@ -4034,8 +4360,11 @@ namespace LessMenusMoreImmersion.Behaviors
         {
             // ---- The boundary stone ----
             starter.AddDialogLine("lmmi_village_dispute", "start", "lmmi_village_dispute_resp",
-                "{=lmmi_village_dispute}{?PLAYER.GENDER}My lady{?}Sir{\\?}, please — two of our neighbours are at each other's throats over a boundary stone, and the headman's no use. They'll listen to someone like you. Before blood's spilled!",
-                () => Talk(Kind.Dispute, Step.Asking), null, 1100);
+                "{=!}{LMMI_VILLAGE_DISPUTE}",
+                () => Talk(Kind.Dispute, Step.Asking) && Flavor.Say("LMMI_VILLAGE_DISPUTE",
+                        "{=lmmi_village_dispute}{?PLAYER.GENDER}My lady{?}Sir{\\?}, please — two of our neighbours are at each other's throats over a boundary stone, and the headman's no use. They'll listen to someone like you. Before blood's spilled!",
+                        "{=lmmi_village_dispute_2}{?PLAYER.GENDER}My lady{?}Sir{\\?}, please! Two of our neighbours are about to kill each other over a boundary stone. They'll listen to you!",
+                        "{=lmmi_village_dispute_3}Please, come quick — there's a fight brewing over a field boundary, and the headman's useless. Before somebody gets hurt!"), null, 1100);
             starter.AddPlayerLine("lmmi_village_dispute_go", "lmmi_village_dispute_resp", "lmmi_street_lead_on",
                 "{=lmmi_street_rescue_go}Show me.", null, () => Choose(LeadOn));
             starter.AddPlayerLine("lmmi_village_dispute_no", "lmmi_village_dispute_resp", "lmmi_village_dispute_refused",
@@ -4046,7 +4375,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     Choose(sc => { sc.Outcome = "you refused"; LetItPlayOut(sc); });
                 });
             starter.AddDialogLine("lmmi_village_dispute_refused", "lmmi_village_dispute_refused", "close_window",
-                "{=lmmi_village_dispute_refused}...Then they'll settle it with their fists.", null, null);
+                "{=!}{LMMI_VILLAGE_DISPUTE_NO}",
+                    () => Flavor.Say("LMMI_VILLAGE_DISPUTE_NO",
+                        "{=lmmi_village_dispute_refused}...Then they'll settle it with their fists.",
+                        "{=lmmi_village_dispute_refused_2}...Then there'll be blood before supper.",
+                        "{=lmmi_village_dispute_refused_3}...They'll go at each other with pitchforks, then."), null);
 
             starter.AddDialogLine("lmmi_village_dispute_claim", "start", "lmmi_village_dispute_claim_resp",
                 "{=lmmi_village_dispute_claim}{LMMI_DISPUTE}",
@@ -4055,8 +4388,12 @@ namespace LessMenusMoreImmersion.Behaviors
                     if (!Talk(Kind.Dispute, Step.Confronting)) return false;
                     var sc = _scene!;
                     var line = Foreign(sc) && Resentment(sc) > 0f
-                        ? new TextObject("{=lmmi_village_dispute_claim_foreign}Even a {DEMONYM} can see it — he moved the boundary stone ten paces into my barley in the night! Tell him!")
-                        : new TextObject("{=lmmi_village_dispute_claim_kin}He moved the boundary stone in the night — ten paces into my barley! You've eyes, {?PLAYER.GENDER}my lady{?}sir{\\?} — tell him!");
+                        ? Flavor.Pick("{=lmmi_village_dispute_claim_foreign}Even a {DEMONYM} can see it — he moved the boundary stone ten paces into my barley in the night! Tell him!",
+                                    "{=lmmi_village_dispute_claim_foreign_2}You're a stranger, but you're not blind — he moved that stone ten paces into my land!",
+                                    "{=lmmi_village_dispute_claim_foreign_3}Even a {DEMONYM} can see it! The stone's moved — tell him!")
+                        : Flavor.Pick("{=lmmi_village_dispute_claim_kin}He moved the boundary stone in the night — ten paces into my barley! You've eyes, {?PLAYER.GENDER}my lady{?}sir{\\?} — tell him!",
+                                    "{=lmmi_village_dispute_claim_kin_2}He shifted the stone last night — ten paces of my barley, gone! Tell him, {?PLAYER.GENDER}my lady{?}sir{\\?}!",
+                                    "{=lmmi_village_dispute_claim_kin_3}Look at it! That stone's moved, and he moved it! Tell him he's a thief!");
                     SetWords(line);
                     MBTextManager.SetTextVariable("LMMI_DISPUTE", line);
                     return true;
@@ -4068,11 +4405,17 @@ namespace LessMenusMoreImmersion.Behaviors
                 {
                     SteppedUp(sc, 2f, "settled a boundary dispute by the old law");
                     Headman(sc, 1);
-                    if (sc.Actors.Count > 1) Bark(sc.Actors[1], new TextObject("{=lmmi_village_dispute_sulk}...Fine. FINE. Back it goes."));
+                    if (sc.Actors.Count > 1) Bark(sc.Actors[1], Flavor.Pick("{=lmmi_village_dispute_sulk}...Fine. FINE. Back it goes.",
+                                    "{=lmmi_village_dispute_sulk_2}...Alright. Back it goes. For now.",
+                                    "{=lmmi_village_dispute_sulk_3}...Fine. Have your stone."));
                     Thank(sc, sc.Requester, "judged");
                 }));
             starter.AddDialogLine("lmmi_village_dispute_honor_resp", "lmmi_village_dispute_honor_resp", "close_window",
-                "{=lmmi_village_dispute_honor_resp}Ha! You hear that? Back it goes!", null, null);
+                "{=!}{LMMI_VILLAGE_HONOR}",
+                    () => Flavor.Say("LMMI_VILLAGE_HONOR",
+                        "{=lmmi_village_dispute_honor_resp}Ha! You hear that? Back it goes!",
+                        "{=lmmi_village_dispute_honor_resp_2}Ha! Justice! Back it goes!",
+                        "{=lmmi_village_dispute_honor_resp_3}You heard! The stone goes back where it stood!"), null);
 
             starter.AddPlayerLine("lmmi_village_dispute_split", "lmmi_village_dispute_claim_resp", "lmmi_village_dispute_split_resp",
                 "{=lmmi_village_dispute_split}[Charm] Split the strip between you, and shake on it — then you both still have a neighbour.", null,
@@ -4099,9 +4442,15 @@ namespace LessMenusMoreImmersion.Behaviors
                     });
                 });
             starter.AddDialogLine("lmmi_village_dispute_split_ok", "lmmi_village_dispute_split_resp", "close_window",
-                "{=lmmi_village_dispute_split_ok}...Half. Half, and he buys the first round. ...Alright. Alright.", () => _scene?.Mended == true, null);
+                "{=!}{LMMI_VILLAGE_SPLIT_OK}", () => _scene?.Mended == true && Flavor.Say("LMMI_VILLAGE_SPLIT_OK",
+                        "{=lmmi_village_dispute_split_ok}...Half. Half, and he buys the first round. ...Alright. Alright.",
+                        "{=lmmi_village_dispute_split_ok_2}...Fine. Half each. But I'm keeping the pear tree.",
+                        "{=lmmi_village_dispute_split_ok_3}...Alright. Half. And he can buy me a drink for my trouble."), null);
             starter.AddDialogLine("lmmi_village_dispute_split_no", "lmmi_village_dispute_split_resp", "close_window",
-                "{=lmmi_village_dispute_split_no}Split it? Split MY land with that thief? Never!", () => _scene?.Mended != true, null);
+                "{=!}{LMMI_VILLAGE_SPLIT_NO}", () => _scene?.Mended != true && Flavor.Say("LMMI_VILLAGE_SPLIT_NO",
+                        "{=lmmi_village_dispute_split_no}Split it? Split MY land with that thief? Never!",
+                        "{=lmmi_village_dispute_split_no_2}Half? HALF? It's all mine, every clod of it!",
+                        "{=lmmi_village_dispute_split_no_3}Never! I'd rather see it burn than share it with him!"), null);
 
             starter.AddPlayerLine("lmmi_village_dispute_calc", "lmmi_village_dispute_claim_resp", "lmmi_village_dispute_calc_resp",
                 "{=lmmi_village_dispute_calc}Whoever sows that strip this year gives the other a tenth of the crop. Everyone eats.", null,
@@ -4112,7 +4461,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     Thank(sc, sc.Requester, "judged");
                 }));
             starter.AddDialogLine("lmmi_village_dispute_calc_resp", "lmmi_village_dispute_calc_resp", "close_window",
-                "{=lmmi_village_dispute_calc_resp}...A tenth. Hm. I can live with a tenth.", null, null);
+                "{=!}{LMMI_VILLAGE_CALC}",
+                    () => Flavor.Say("LMMI_VILLAGE_CALC",
+                        "{=lmmi_village_dispute_calc_resp}...A tenth. Hm. I can live with a tenth.",
+                        "{=lmmi_village_dispute_calc_resp_2}...A tenth. Fair enough, I suppose.",
+                        "{=lmmi_village_dispute_calc_resp_3}...Hm. A tenth's better than a broken head."), null);
 
             starter.AddPlayerLine("lmmi_village_dispute_bribe", "lmmi_village_dispute_claim_resp", "lmmi_village_dispute_bribe_resp",
                 "{=lmmi_village_dispute_bribe}[Roguery] Make it worth my while, and I'll say whose stone it is.", null,
@@ -4121,12 +4474,18 @@ namespace LessMenusMoreImmersion.Behaviors
                     Hero.MainHero.ChangeHeroGold(40);
                     Hero.MainHero.AddSkillXp(DefaultSkills.Roguery, 30f);
                     TownStandingBehavior.Adjust(sc.Settlement, -2f, "sold a judgment");
-                    if (sc.Actors.Count > 1) Bark(sc.Actors[1], new TextObject("{=lmmi_village_dispute_bought}Bought and paid for! I knew it!"));
+                    if (sc.Actors.Count > 1) Bark(sc.Actors[1], Flavor.Pick("{=lmmi_village_dispute_bought}Bought and paid for! I knew it!",
+                                    "{=lmmi_village_dispute_bought_2}Bought! He bought you!",
+                                    "{=lmmi_village_dispute_bought_3}Bribed! I knew it!"));
                     sc.Outcome = "sold the judgment";
                     Finish(sc);
                 }));
             starter.AddDialogLine("lmmi_village_dispute_bribe_resp", "lmmi_village_dispute_bribe_resp", "close_window",
-                "{=lmmi_village_dispute_bribe_resp}...Here. Forty denars. Now say it.", null, null);
+                "{=!}{LMMI_VILLAGE_BRIBE}",
+                    () => Flavor.Say("LMMI_VILLAGE_BRIBE",
+                        "{=lmmi_village_dispute_bribe_resp}...Here. Forty denars. Now say it.",
+                        "{=lmmi_village_dispute_bribe_resp_2}...Forty denars. Now say it's my stone.",
+                        "{=lmmi_village_dispute_bribe_resp_3}...Here. Make it a good judgment."), null);
 
             starter.AddPlayerLine("lmmi_village_dispute_leave", "lmmi_village_dispute_claim_resp", "lmmi_village_dispute_left",
                 "{=lmmi_village_dispute_leave}Settle it yourselves.", null,
@@ -4136,7 +4495,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     Choose(sc => { sc.Outcome = "you walked away"; LetItPlayOut(sc); });
                 });
             starter.AddDialogLine("lmmi_village_dispute_left", "lmmi_village_dispute_left", "close_window",
-                "{=lmmi_village_dispute_left}Fine! Then we will!", null, null);
+                "{=!}{LMMI_VILLAGE_LEFT}",
+                    () => Flavor.Say("LMMI_VILLAGE_LEFT",
+                        "{=lmmi_village_dispute_left}Fine! Then we will!",
+                        "{=lmmi_village_dispute_left_2}Fine! We'll settle it ourselves!",
+                        "{=lmmi_village_dispute_left_3}Then don't blame us when it comes to blows!"), null);
 
             // ---- The harvest ----
             starter.AddDialogLine("lmmi_village_harvest", "start", "lmmi_village_harvest_resp",
@@ -4145,7 +4508,9 @@ namespace LessMenusMoreImmersion.Behaviors
                 {
                     if (!Talk(Kind.Harvest, Step.Asking)) return false;
                     var sc = _scene!;
-                    var line = new TextObject("{=lmmi_village_harvest_ask}Storm's coming over the hills and half the {CROP} is still in the field. We could use every pair of hands — even yours, {?PLAYER.GENDER}madam{?}sir{\\?}!");
+                    var line = Flavor.Pick("{=lmmi_village_harvest_ask}Storm's coming over the hills and half the {CROP} is still in the field. We could use every pair of hands — even yours, {?PLAYER.GENDER}madam{?}sir{\\?}!",
+                        "{=lmmi_village_harvest_ask_2}The sky's black over the hills and the {CROP} is still standing. Every hand helps — yours too, {?PLAYER.GENDER}madam{?}sir{\\?}!",
+                        "{=lmmi_village_harvest_ask_3}Rain's coming, and half the {CROP} is still in the field. Could you lend a hand?");
                     line.SetTextVariable("CROP", VillageCrop(sc.Settlement)?.Name ?? TextObject.GetEmpty());
                     MBTextManager.SetTextVariable("LMMI_HARVEST", line);
                     return true;
@@ -4153,29 +4518,48 @@ namespace LessMenusMoreImmersion.Behaviors
             starter.AddPlayerLine("lmmi_village_harvest_go", "lmmi_village_harvest_resp", "lmmi_village_harvest_lead",
                 "{=lmmi_village_harvest_go}I'll lend a hand.", null, () => Choose(LeadOn));
             starter.AddDialogLine("lmmi_village_harvest_lead", "lmmi_village_harvest_lead", "close_window",
-                "{=lmmi_village_harvest_lead}Bless you! The field's this way — quick, before it breaks!", null, null);
+                "{=!}{LMMI_VILLAGE_HARVEST_LEAD}",
+                    () => Flavor.Say("LMMI_VILLAGE_HARVEST_LEAD",
+                        "{=lmmi_village_harvest_lead}Bless you! The field's this way — quick, before it breaks!",
+                        "{=lmmi_village_harvest_lead_2}Thank you! This way — hurry, the sky's getting dark!",
+                        "{=lmmi_village_harvest_lead_3}Bless you! Quick, to the field before the rain!"), null);
             starter.AddPlayerLine("lmmi_village_harvest_men", "lmmi_village_harvest_resp", "lmmi_village_harvest_men_resp",
                 "{=lmmi_village_harvest_men}My men will help.", () => MobileParty.MainParty.MemberRoster.TotalHealthyCount >= 9,
                 () => Choose(sc => BeginFieldWork(sc, yourMen: true)));   // a few of them, in the field (StreetHarvest.cs)
             starter.AddDialogLine("lmmi_village_harvest_men_resp", "lmmi_village_harvest_men_resp", "close_window",
-                "{=lmmi_village_harvest_men_resp}Soldiers in the fields! Well, why not — bless you!", null, null);
+                "{=!}{LMMI_VILLAGE_HARVEST_MEN}",
+                    () => Flavor.Say("LMMI_VILLAGE_HARVEST_MEN",
+                        "{=lmmi_village_harvest_men_resp}Soldiers in the fields! Well, why not — bless you!",
+                        "{=lmmi_village_harvest_men_resp_2}Soldiers bringing in the harvest! I've seen it all now — thank you!",
+                        "{=lmmi_village_harvest_men_resp_3}Your men? In our fields? Bless you!"), null);
             starter.AddPlayerLine("lmmi_village_harvest_no", "lmmi_village_harvest_resp", "lmmi_village_harvest_refused",
                 "{=lmmi_village_harvest_no}Not today.", null,
                 () => Choose(sc => { sc.Outcome = "you had other work"; Finish(sc); }));
             starter.AddDialogLine("lmmi_village_harvest_refused", "lmmi_village_harvest_refused", "close_window",
-                "{=lmmi_village_harvest_refused}...Suit yourself.", null, null);
+                "{=!}{LMMI_VILLAGE_HARVEST_NO}",
+                    () => Flavor.Say("LMMI_VILLAGE_HARVEST_NO",
+                        "{=lmmi_village_harvest_refused}...Suit yourself.",
+                        "{=lmmi_village_harvest_refused_2}...We'll manage. Somehow.",
+                        "{=lmmi_village_harvest_refused_3}...Fine. We'll lose half of it, then."), null);
 
             // ---- The looters ----
             starter.AddDialogLine("lmmi_village_raiders", "start", "lmmi_village_raiders_resp",
-                "{=lmmi_village_raiders}Looters! At the edge of the village — they're driving off our sheep! Please, {?PLAYER.GENDER}madam{?}sir{\\?}, you've a blade!",
-                () => Talk(Kind.Raiders, Step.Asking), null, 1100);
+                "{=!}{LMMI_VILLAGE_RAIDERS}",
+                () => Talk(Kind.Raiders, Step.Asking) && Flavor.Say("LMMI_VILLAGE_RAIDERS",
+                        "{=lmmi_village_raiders}Looters! At the edge of the village — they're driving off our sheep! Please, {?PLAYER.GENDER}madam{?}sir{\\?}, you've a blade!",
+                        "{=lmmi_village_raiders_2}Help! Looters are taking our sheep — right there, at the edge of the fields! You've a sword, {?PLAYER.GENDER}madam{?}sir{\\?}!",
+                        "{=lmmi_village_raiders_3}Please! Bandits are stealing the flock! There's nobody here who can fight them!"), null, 1100);
             starter.AddPlayerLine("lmmi_village_raiders_go", "lmmi_village_raiders_resp", "lmmi_street_lead_on",
                 "{=lmmi_street_rescue_go}Show me.", null, () => Choose(LeadOn));
             starter.AddPlayerLine("lmmi_village_raiders_men", "lmmi_village_raiders_resp", "lmmi_village_raiders_men_resp",
                 "{=lmmi_village_raiders_men}My men will see to it.", () => HealthyRegulars() >= MenNeeded,
                 () => Choose(SendTheMen));   // a real fight, with real casualties (StreetLooters.cs)
             starter.AddDialogLine("lmmi_village_raiders_men_resp", "lmmi_village_raiders_men_resp", "close_window",
-                "{=lmmi_village_raiders_men_resp}Bless you — bless you all!", null, null);
+                "{=!}{LMMI_VILLAGE_RAIDERS_MEN}",
+                    () => Flavor.Say("LMMI_VILLAGE_RAIDERS_MEN",
+                        "{=lmmi_village_raiders_men_resp}Bless you — bless you all!",
+                        "{=lmmi_village_raiders_men_resp_2}Your soldiers! Thank you — hurry!",
+                        "{=lmmi_village_raiders_men_resp_3}Gods bless you and every one of your men!"), null);
             starter.AddPlayerLine("lmmi_village_raiders_no", "lmmi_village_raiders_resp", "lmmi_village_raiders_refused",
                 "{=lmmi_village_raiders_no}Not my sheep.", null,
                 () =>
@@ -4184,7 +4568,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     Choose(sc => { sc.Outcome = "you refused"; LetItPlayOut(sc); });
                 });
             starter.AddDialogLine("lmmi_village_raiders_refused", "lmmi_village_raiders_refused", "close_window",
-                "{=lmmi_village_raiders_refused}...Then we'll go hungry this winter.", null, null);
+                "{=!}{LMMI_VILLAGE_RAIDERS_NO}",
+                    () => Flavor.Say("LMMI_VILLAGE_RAIDERS_NO",
+                        "{=lmmi_village_raiders_refused}...Then we'll go hungry this winter.",
+                        "{=lmmi_village_raiders_refused_2}...Then we'll eat grass this winter.",
+                        "{=lmmi_village_raiders_refused_3}...Thanks for nothing."), null);
         }
 
         private void AddShakedownDialogs(CampaignGameStarter starter)
@@ -4202,7 +4590,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     Choose(sc => { sc.Outcome = "you refused"; LetItPlayOut(sc); });
                 });
             starter.AddDialogLine("lmmi_street_shakedown_refused", "lmmi_street_shakedown_refused", "close_window",
-                "{=lmmi_street_shakedown_refused}...No. Nobody does.", null, null);
+                "{=!}{LMMI_STREET_SHAKE_NO}",
+                    () => Flavor.Say("LMMI_STREET_SHAKE_NO",
+                        "{=lmmi_street_shakedown_refused}...No. Nobody does.",
+                        "{=lmmi_street_shakedown_refused_2}...Of course not. Nobody does.",
+                        "{=lmmi_street_shakedown_refused_3}...No. I understand. They'd ruin you too."), null);
 
             // The guard.
             starter.AddDialogLine("lmmi_street_shake", "start", "lmmi_street_shake_resp",
@@ -4211,8 +4603,12 @@ namespace LessMenusMoreImmersion.Behaviors
                 {
                     if (!Talk(Kind.Shakedown, Step.Confronting)) return false;
                     var line = Foreign(_scene!)
-                        ? new TextObject("{=lmmi_street_shake_foreign}Official business, {SLUR}. Move along, before I find something to fine you for.")
-                        : new TextObject("{=lmmi_street_shake_kin}Official business. Move along, friend.");
+                        ? Flavor.Pick("{=lmmi_street_shake_foreign}Official business, {SLUR}. Move along, before I find something to fine you for.",
+                                    "{=lmmi_street_shake_foreign_2}Watch business, {SLUR}. Walk on, before I fine you too.",
+                                    "{=lmmi_street_shake_foreign_3}Keep moving, {SLUR}. This doesn't concern you.")
+                        : Flavor.Pick("{=lmmi_street_shake_kin}Official business. Move along, friend.",
+                                    "{=lmmi_street_shake_kin_2}Watch business, friend. Keep walking.",
+                                    "{=lmmi_street_shake_kin_3}Nothing to see here. Move along.");
                     SetWords(line);
                     MBTextManager.SetTextVariable("LMMI_STREET_SHAKE", line);
                     MBTextManager.SetTextVariable("LMMI_STREET_SHAKE_FINE", ShakedownFine);
@@ -4232,7 +4628,11 @@ namespace LessMenusMoreImmersion.Behaviors
                     });
                 }, 100, (out TextObject why) => CanAfford(ShakedownFine, out why));
             starter.AddDialogLine("lmmi_street_shake_paid", "lmmi_street_shake_paid", "close_window",
-                "{=lmmi_street_shake_paid}...Hm. Seems his fine's been paid. Move along, the both of you.", null, null);
+                "{=!}{LMMI_STREET_SHAKE_PAID}",
+                    () => Flavor.Say("LMMI_STREET_SHAKE_PAID",
+                        "{=lmmi_street_shake_paid}...Hm. Seems his fine's been paid. Move along, the both of you.",
+                        "{=lmmi_street_shake_paid_2}...Fine's been paid. Off with you both.",
+                        "{=lmmi_street_shake_paid_3}...Hmph. Lucky him. Move along."), null);
 
             starter.AddPlayerLine("lmmi_street_shake_talk", "lmmi_street_shake_resp", _talkDownGuard.Entry,
                 "{=lmmi_street_shake_talk}[Talk him down] Is this how the watch keeps the peace?", null,
@@ -4251,10 +4651,18 @@ namespace LessMenusMoreImmersion.Behaviors
                             NativePersuasion.Argument(DefaultSkills.Charm, DefaultTraits.Mercy,
                                 new TextObject("{=lmmi_street_shake_mercy}He's got nothing. Look at him. Let him go."), listener, r, st),
                         },
-                        new TextObject("{=lmmi_street_shake_opening}Careful, now."),
-                        new TextObject("{=lmmi_street_shake_again}Anything else?"),
-                        new TextObject("{=lmmi_street_shake_won}...Tch. Get out of here, the both of you."),
-                        new TextObject("{=lmmi_street_shake_lost}Move along — or you're next."),
+                        Flavor.Pick("{=lmmi_street_shake_opening}Careful, now.",
+                                    "{=lmmi_street_shake_opening_2}Watch your mouth.",
+                                    "{=lmmi_street_shake_opening_3}Choose your words carefully."),
+                        Flavor.Pick("{=lmmi_street_shake_again}Anything else?",
+                                    "{=lmmi_street_shake_again_2}And?",
+                                    "{=lmmi_street_shake_again_3}Is that all?"),
+                        Flavor.Pick("{=lmmi_street_shake_won}...Tch. Get out of here, the both of you.",
+                                    "{=lmmi_street_shake_won_2}...Bah. Get lost, the pair of you.",
+                                    "{=lmmi_street_shake_won_3}...Fine. Go. Both of you."),
+                        Flavor.Pick("{=lmmi_street_shake_lost}Move along — or you're next.",
+                                    "{=lmmi_street_shake_lost_2}Walk away, or you'll be next.",
+                                    "{=lmmi_street_shake_lost_3}Keep talking and you'll share his fine."),
                         onWon: () => Choose(s2 =>
                         {
                             SteppedUp(s2, 3f, "shamed a crooked guard");
@@ -4272,12 +4680,20 @@ namespace LessMenusMoreImmersion.Behaviors
                 "{=lmmi_street_shake_fight}Hands off him.", null,
                 () => Choose(sc => StartFight(sc, 0.03f, won => OnGuardFightEnd(sc, won))));
             starter.AddDialogLine("lmmi_street_shake_fight_resp", "lmmi_street_shake_fight_resp", "close_window",
-                "{=lmmi_street_shake_fight_resp}You'll regret that.", null, null);
+                "{=!}{LMMI_STREET_SHAKE_FIGHT}",
+                    () => Flavor.Say("LMMI_STREET_SHAKE_FIGHT",
+                        "{=lmmi_street_shake_fight_resp}You'll regret that.",
+                        "{=lmmi_street_shake_fight_resp_2}You'll pay for that!",
+                        "{=lmmi_street_shake_fight_resp_3}Big mistake, friend."), null);
 
             starter.AddPlayerLine("lmmi_street_shake_leave", "lmmi_street_shake_resp", "lmmi_street_shake_left",
                 "{=lmmi_street_shake_leave}...Sorry. Carry on.", null, GuardLeft);
             starter.AddDialogLine("lmmi_street_shake_left", "lmmi_street_shake_left", "close_window",
-                "{=lmmi_street_shake_left}That's right.", null, null);
+                "{=!}{LMMI_STREET_SHAKE_LEFT}",
+                    () => Flavor.Say("LMMI_STREET_SHAKE_LEFT",
+                        "{=lmmi_street_shake_left}That's right.",
+                        "{=lmmi_street_shake_left_2}Good. Mind your own business.",
+                        "{=lmmi_street_shake_left_3}Smart. Keep walking."), null);
 
             _talkDownGuard.Register(starter);
             _talkDownGuard.AddLeave(starter, "{=lmmi_street_shake_leave}...Sorry. Carry on.", "lmmi_street_shake_left", GuardLeft);
@@ -4305,53 +4721,93 @@ namespace LessMenusMoreImmersion.Behaviors
                     {
                         case "rescued":
                             line = foreign
-                                ? new TextObject("{=lmmi_street_thanks_rescue_foreign}Thank you... I thought— A {DEMONYM}, of all people. You stood up for me when my own neighbours looked away. Everyone will hear of it, I swear.")
-                                : new TextObject("{=lmmi_street_thanks_rescue_kin}Thank you... thank you. One of our own, standing up for me when the rest just watched. Everyone will hear of it.");
+                                ? Flavor.Pick("{=lmmi_street_thanks_rescue_foreign}Thank you... I thought— A {DEMONYM}, of all people. You stood up for me when my own neighbours looked away. Everyone will hear of it, I swear.",
+                                    "{=lmmi_street_thanks_rescue_foreign_2}Thank you... you didn't have to. A {DEMONYM}, and you stepped in when no one else would. I'll tell everyone.",
+                                    "{=lmmi_street_thanks_rescue_foreign_3}I won't forget this. Nobody else helped — only you, a {DEMONYM}. Thank you.")
+                                : Flavor.Pick("{=lmmi_street_thanks_rescue_kin}Thank you... thank you. One of our own, standing up for me when the rest just watched. Everyone will hear of it.",
+                                    "{=lmmi_street_thanks_rescue_kin_2}Thank you — you saved me. I'll make sure everyone knows.",
+                                    "{=lmmi_street_thanks_rescue_kin_3}When everyone else looked away, you didn't. Thank you.");
                             break;
                         case "debt_freed":   // you fought them off, or talked them down: the debt's still his, his hands are safe
                             line = foreign
-                                ? new TextObject("{=lmmi_street_thanks_debt_freed_foreign}A {DEMONYM}, standing between me and the moneylender's men... I don't know what to say. Thank you. Everyone will hear of it.")
-                                : new TextObject("{=lmmi_street_thanks_debt_freed_kin}I thought that was it for my hands. Thank you — I mean it. Everyone will hear what you did.");
+                                ? Flavor.Pick("{=lmmi_street_thanks_debt_freed_foreign}A {DEMONYM}, standing between me and the moneylender's men... I don't know what to say. Thank you. Everyone will hear of it.",
+                                    "{=lmmi_street_thanks_debt_freed_foreign_2}A {DEMONYM} saved my hands. I won't forget it — and neither will anyone else.",
+                                    "{=lmmi_street_thanks_debt_freed_foreign_3}Thank you. I never thought a {DEMONYM} would stand up for someone like me.")
+                                : Flavor.Pick("{=lmmi_street_thanks_debt_freed_kin}I thought that was it for my hands. Thank you — I mean it. Everyone will hear what you did.",
+                                    "{=lmmi_street_thanks_debt_freed_kin_2}My hands — still whole. Thank you. I'll tell everyone.",
+                                    "{=lmmi_street_thanks_debt_freed_kin_3}Thank you. I was sure they'd break my fingers.");
                             break;
                         case "debt_paid":    // you paid it out of your own purse: now he owes you
                             line = foreign
-                                ? new TextObject("{=lmmi_street_thanks_debt_paid_foreign}A {DEMONYM}, paying a stranger's debt out of {?PLAYER.GENDER}her{?}his{\\?} own purse... Every coin of that is yours again the day I have it, I swear. And everyone will hear of it.")
-                                : new TextObject("{=lmmi_street_thanks_debt_paid_kin}You paid it — all of it, out of your own purse. I'll repay you when I can, every coin, I swear it. And I'll tell everyone what you did.");
+                                ? Flavor.Pick("{=lmmi_street_thanks_debt_paid_foreign}A {DEMONYM}, paying a stranger's debt out of {?PLAYER.GENDER}her{?}his{\\?} own purse... Every coin of that is yours again the day I have it, I swear. And everyone will hear of it.",
+                                    "{=lmmi_street_thanks_debt_paid_foreign_2}You paid my debt — a {DEMONYM}, paying for me! I'll pay you back, I swear.",
+                                    "{=lmmi_street_thanks_debt_paid_foreign_3}Out of your own purse... I'll repay every coin, and tell everyone what a {DEMONYM} did for me.")
+                                : Flavor.Pick("{=lmmi_street_thanks_debt_paid_kin}You paid it — all of it, out of your own purse. I'll repay you when I can, every coin, I swear it. And I'll tell everyone what you did.",
+                                    "{=lmmi_street_thanks_debt_paid_kin_2}You paid it all. I owe you everything — I'll pay you back, I swear it.",
+                                    "{=lmmi_street_thanks_debt_paid_kin_3}My debt, cleared! I'll repay you, every coin. Thank you.");
                             break;
                         case "child_found":
                             line = foreign
-                                ? new TextObject("{=lmmi_street_thanks_child_foreign}My baby— oh, thank you, thank you. And a {DEMONYM}... I'll never say a word against your people again, not one.")
-                                : new TextObject("{=lmmi_street_thanks_child_kin}My baby! Oh, thank you — I thought... thank you. Everyone will hear what you did.");
+                                ? Flavor.Pick("{=lmmi_street_thanks_child_foreign}My baby— oh, thank you, thank you. And a {DEMONYM}... I'll never say a word against your people again, not one.",
+                                    "{=lmmi_street_thanks_child_foreign_2}My boy! Thank you — oh, thank you! I'll never say another word against your kind.",
+                                    "{=lmmi_street_thanks_child_foreign_3}You found him! A {DEMONYM} found my baby! Thank you!")
+                                : Flavor.Pick("{=lmmi_street_thanks_child_kin}My baby! Oh, thank you — I thought... thank you. Everyone will hear what you did.",
+                                    "{=lmmi_street_thanks_child_kin_2}My boy! You found him! Thank you, thank you!",
+                                    "{=lmmi_street_thanks_child_kin_3}Oh, thank the gods — and you! Thank you!");
                             break;
                         case "judged":
                             line = foreign
-                                ? new TextObject("{=lmmi_street_thanks_judged_foreign}A {DEMONYM}, settling our quarrels, and fairly too. Who'd have thought. The whole village will hear of it.")
-                                : new TextObject("{=lmmi_street_thanks_judged_kin}Thank you. They'd have been at it with scythes by nightfall. The whole village will hear you were fair.");
+                                ? Flavor.Pick("{=lmmi_street_thanks_judged_foreign}A {DEMONYM}, settling our quarrels, and fairly too. Who'd have thought. The whole village will hear of it.",
+                                    "{=lmmi_street_thanks_judged_foreign_2}A fair judgment, and from a {DEMONYM}. The village will remember.",
+                                    "{=lmmi_street_thanks_judged_foreign_3}Who'd have thought a {DEMONYM} would judge us so fairly? Thank you.")
+                                : Flavor.Pick("{=lmmi_street_thanks_judged_kin}Thank you. They'd have been at it with scythes by nightfall. The whole village will hear you were fair.",
+                                    "{=lmmi_street_thanks_judged_kin_2}Thank you. You've saved a lot of broken heads today.",
+                                    "{=lmmi_street_thanks_judged_kin_3}Fairly judged. The whole village will say so.");
                             break;
                         case "raiders_men":
                             line = foreign
-                                ? new TextObject("{=lmmi_street_thanks_raiders_men_foreign}{DEMONYM} soldiers, running looters off our fields... Who'd have thought it. Bless them — and bless you for sending them.")
-                                : new TextObject("{=lmmi_street_thanks_raiders_men_kin}Your men ran them off! Bless them, every one — and bless you for sending them.");
+                                ? Flavor.Pick("{=lmmi_street_thanks_raiders_men_foreign}{DEMONYM} soldiers, running looters off our fields... Who'd have thought it. Bless them — and bless you for sending them.",
+                                    "{=lmmi_street_thanks_raiders_men_foreign_2}{DEMONYM} soldiers, fighting for our flock! Thank you — and thank them!",
+                                    "{=lmmi_street_thanks_raiders_men_foreign_3}Your men saved our sheep. Bless them, {DEMONYM} or not!")
+                                : Flavor.Pick("{=lmmi_street_thanks_raiders_men_kin}Your men ran them off! Bless them, every one — and bless you for sending them.",
+                                    "{=lmmi_street_thanks_raiders_men_kin_2}Your men chased them off! Thank them for us — every one!",
+                                    "{=lmmi_street_thanks_raiders_men_kin_3}The flock's safe, thanks to your soldiers. Bless them!");
                             break;
                         case "raiders":
                             line = foreign
-                                ? new TextObject("{=lmmi_street_thanks_raiders_foreign}A {DEMONYM}, bleeding for our sheep... I'll not hear a word against your people again. There's bread and ale at every door for you tonight.")
-                                : new TextObject("{=lmmi_street_thanks_raiders_kin}You ran them off! The whole flock — bless you. There's bread and ale at every door for you tonight.");
+                                ? Flavor.Pick("{=lmmi_street_thanks_raiders_foreign}A {DEMONYM}, bleeding for our sheep... I'll not hear a word against your people again. There's bread and ale at every door for you tonight.",
+                                    "{=lmmi_street_thanks_raiders_foreign_2}A {DEMONYM}, fighting for our sheep! There's a meal and a bed for you in any house here.",
+                                    "{=lmmi_street_thanks_raiders_foreign_3}You bled for us, {DEMONYM}. We won't forget it.")
+                                : Flavor.Pick("{=lmmi_street_thanks_raiders_kin}You ran them off! The whole flock — bless you. There's bread and ale at every door for you tonight.",
+                                    "{=lmmi_street_thanks_raiders_kin_2}The sheep are safe! Bless you — eat with us tonight!",
+                                    "{=lmmi_street_thanks_raiders_kin_3}You drove them off! The whole village owes you.");
                             break;
                         case "shakedown":
                             line = foreign
-                                ? new TextObject("{=lmmi_street_thanks_shakedown_foreign}A {DEMONYM} standing up to the watch for one of us... I don't know what to say. Thank you. People will hear.")
-                                : new TextObject("{=lmmi_street_thanks_shakedown_kin}Nobody stands up to them. Nobody. Thank you — the whole street will hear of it.");
+                                ? Flavor.Pick("{=lmmi_street_thanks_shakedown_foreign}A {DEMONYM} standing up to the watch for one of us... I don't know what to say. Thank you. People will hear.",
+                                    "{=lmmi_street_thanks_shakedown_foreign_2}A {DEMONYM}, facing down the watch for me... Thank you. I'll tell everyone.",
+                                    "{=lmmi_street_thanks_shakedown_foreign_3}Thank you. I never thought a {DEMONYM} would stand up for us against them.")
+                                : Flavor.Pick("{=lmmi_street_thanks_shakedown_kin}Nobody stands up to them. Nobody. Thank you — the whole street will hear of it.",
+                                    "{=lmmi_street_thanks_shakedown_kin_2}Somebody finally stood up to them! Thank you!",
+                                    "{=lmmi_street_thanks_shakedown_kin_3}Thank you. The street will cheer you tonight.");
                             break;
                         case "purse_back":
                             line = foreign
-                                ? new TextObject("{=lmmi_street_thanks_purse_foreign}My purse! Bless you — bless you! A {DEMONYM}... I'll tell everyone, I swear it.")
-                                : new TextObject("{=lmmi_street_thanks_purse_kin}My purse! Bless you! The rent's safe... I'll tell everyone what you did.");
+                                ? Flavor.Pick("{=lmmi_street_thanks_purse_foreign}My purse! Bless you — bless you! A {DEMONYM}... I'll tell everyone, I swear it.",
+                                    "{=lmmi_street_thanks_purse_foreign_2}My purse — bless you! And from a {DEMONYM}, too. I'll tell everyone.",
+                                    "{=lmmi_street_thanks_purse_foreign_3}You got it back! Thank you — I'll never speak ill of your people again.")
+                                : Flavor.Pick("{=lmmi_street_thanks_purse_kin}My purse! Bless you! The rent's safe... I'll tell everyone what you did.",
+                                    "{=lmmi_street_thanks_purse_kin_2}My purse! The rent's saved! Thank you!",
+                                    "{=lmmi_street_thanks_purse_kin_3}You caught him! Thank you — bless you!");
                             break;
                         default:
                             line = foreign
-                                ? new TextObject("{=lmmi_street_thanks_brawl_foreign}A {DEMONYM} breaking up our youngsters' fights... Didn't think I'd live to see it. The whole street saw — they'll talk, mark my words.")
-                                : new TextObject("{=lmmi_street_thanks_brawl_kin}Thank heavens someone stepped in. The whole street saw it — one of our own, doing what the watch wouldn't.");
+                                ? Flavor.Pick("{=lmmi_street_thanks_brawl_foreign}A {DEMONYM} breaking up our youngsters' fights... Didn't think I'd live to see it. The whole street saw — they'll talk, mark my words.",
+                                    "{=lmmi_street_thanks_brawl_foreign_2}A {DEMONYM}, stopping our lads from killing each other. People will talk about this.",
+                                    "{=lmmi_street_thanks_brawl_foreign_3}Thank you. I didn't think a {DEMONYM} would care what happens to our boys.")
+                                : Flavor.Pick("{=lmmi_street_thanks_brawl_kin}Thank heavens someone stepped in. The whole street saw it — one of our own, doing what the watch wouldn't.",
+                                    "{=lmmi_street_thanks_brawl_kin_2}Thank you — somebody had to stop them.",
+                                    "{=lmmi_street_thanks_brawl_kin_3}Thank you for stepping in. They'd have killed each other.");
                             break;
                     }
                     SetWords(line);
