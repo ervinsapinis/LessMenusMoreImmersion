@@ -21,18 +21,26 @@ namespace LessMenusMoreImmersion.Behaviors
 {
     /// <summary>
     /// The lord's hall holds court. A petitioner comes before the lord — seed grain taken with the tax, a son pressed into
-    /// the garrison, a poacher dragged in, a widow's field claimed — and the lord rules as their nature bids, unless you
-    /// speak up first (vanilla persuasion) or back the lord. In your own hall they come to you, and what you rule moves
-    /// the town's loyalty and security, your purse, and how the town speaks of you. And lords in the hall talk: wars,
-    /// prisoners, armies on the move — and you.
+    /// the garrison, a poacher dragged in, a widow's field claimed, a merchant's cart seized at the gate, a runaway
+    /// apprentice, a bride price unpaid, bandits on a village, a debtor, a smith after a charter, a mother whose son killed
+    /// a man, a guard who takes bribes — and the lord rules as their nature bids, unless you speak up first (vanilla
+    /// persuasion) or back the lord. In your own hall they come to you, and what you rule moves the town's loyalty,
+    /// security and prosperity, its notables, its villages, your purse, and how the town speaks of you. And lords in the
+    /// hall talk: wars, prisoners, armies on the move — and you. A feast wins: petitions wait until it's over.
+    /// (The petitions themselves: HallPetitions.cs.)
     /// </summary>
-    public class HallCourtBehavior : CampaignBehaviorBase
+    public partial class HallCourtBehavior : CampaignBehaviorBase
     {
-        private enum PetitionKind { SeedGrain, Pressed, Poacher, Widow, Quartered, Feud }
+        private enum PetitionKind
+        {
+            SeedGrain, Pressed, Poacher, Widow, Quartered, Feud,
+            CartSeized, Apprentice, BridePrice, Bandits, Debtor, Monopoly, Bloodshed, Bribes,
+        }
 
         private sealed class Petition
         {
             public PetitionKind Kind;
+            public int Variant;
             public Settlement Settlement = null!;
             public Agent Petitioner = null!;
             public Agent? Escort;
@@ -49,6 +57,8 @@ namespace LessMenusMoreImmersion.Behaviors
             public float PausedAt;
             public float TalkAt;
             public Hero? A, B;          // Feud: the two notables
+            public Hero? Notable;       // whoever in the town the case touches
+            public Village? Village;    // the village it comes from
             public bool Won;            // your intercession, or your split
         }
 
@@ -58,6 +68,7 @@ namespace LessMenusMoreImmersion.Behaviors
         [NonSerialized] private float _courtAt, _nextGossipAt;
         [NonSerialized] private bool _courtRolled;
         [NonSerialized] private Petition? _petition;
+        [NonSerialized] private PetitionKind? _lastKind;
         [NonSerialized] private readonly List<Action> _afterTalk = new List<Action>();
         [NonSerialized] private readonly NativePersuasion _intercede = new NativePersuasion("court");
 
@@ -177,11 +188,9 @@ namespace LessMenusMoreImmersion.Behaviors
                 judge = ((CharacterObject)judgeAgent.Character).HeroObject;
             }
 
-            var kinds = new List<PetitionKind> { PetitionKind.SeedGrain, PetitionKind.Pressed, PetitionKind.Poacher, PetitionKind.Widow };
-            if (yours) kinds.Add(PetitionKind.Quartered);
             var notables = settlement.Notables.Where(n => n.IsAlive).ToList();
-            if (yours && notables.Count >= 2) kinds.Add(PetitionKind.Feud);
-            var kind = kinds[MBRandom.RandomInt(kinds.Count)];
+            var kind = PickKind(settlement, yours, notables, _lastKind);
+            int variant = MBRandom.RandomInt(VariantsOf(kind));
 
             // In from the door (someone standing far off), toward the one who judges.
             var target = yours ? main : judgeAgent!;
@@ -191,22 +200,30 @@ namespace LessMenusMoreImmersion.Behaviors
                 .OrderByDescending(a => a.Position.Distance(target.Position)).FirstOrDefault();
             var at2 = from?.Position ?? target.Position + new Vec3(6f, 0f, 0f);
             var culture = settlement.Culture;
-            var who = culture == null ? null : settlement.IsTown ? (MBRandom.RandomInt(2) == 0 ? culture.Townsman : culture.Townswoman) : culture.Villager;
-            if (kind == PetitionKind.Widow && culture != null) who = settlement.IsTown ? culture.Townswoman : culture.VillageWoman ?? culture.Townswoman;
+            var who = PetitionerFor(kind, variant, settlement);
             if (who == null) return;
             var petitioner = SceneSpawner.Spawn(mission, who, at2, 0f, civilian: true);
             if (petitioner == null) return;
-            var p = new Petition { Kind = kind, Settlement = settlement, Petitioner = petitioner, Judge = judge, JudgeAgent = judgeAgent, PlayerJudges = yours, StartedAt = _time };
-            if (kind == PetitionKind.Poacher)
+            var villages = settlement.BoundVillages.Where(v => v?.Settlement != null).ToList();
+            var p = new Petition
             {
-                // Dragged in by the watch.
-                var guardType = settlement.Town?.GarrisonParty?.MemberRoster.GetTroopRoster().Where(e => e.Character != null && !e.Character.IsHero)
-                    .Select(e => e.Character).FirstOrDefault() ?? culture?.BasicTroop;
-                if (guardType != null)
-                {
-                    p.Escort = SceneSpawner.Spawn(mission, guardType, at2 + new Vec3(1f, 0f, 0f), 0f, civilian: false);
-                    if (p.Escort != null) StreetEventsBehavior.Direct(p.Escort)?.Follow(petitioner, 1.1f, run: false);
-                }
+                Kind = kind, Variant = variant, Settlement = settlement, Petitioner = petitioner,
+                Judge = judge, JudgeAgent = judgeAgent, PlayerJudges = yours, StartedAt = _time,
+                Village = villages.Count > 0 ? villages[MBRandom.RandomInt(villages.Count)] : null,
+            };
+            p.Notable = NotableFor(kind, settlement, p.Village);
+            // Dragged in by the watch; the accused guard (one of the garrison); the runaway boy.
+            CharacterObject? escortType = kind switch
+            {
+                PetitionKind.Poacher or PetitionKind.Bribes => settlement.Town?.GarrisonParty?.MemberRoster.GetTroopRoster().Where(e => e.Character != null && !e.Character.IsHero)
+                    .Select(e => e.Character).FirstOrDefault() ?? culture?.BasicTroop,
+                PetitionKind.Apprentice => culture?.TownsmanTeenager,
+                _ => null,
+            };
+            if (escortType != null)
+            {
+                p.Escort = SceneSpawner.Spawn(mission, escortType, at2 + new Vec3(1f, 0f, 0f), 0f, civilian: kind == PetitionKind.Apprentice);
+                if (p.Escort != null) StreetEventsBehavior.Direct(p.Escort)?.Follow(petitioner, 1.1f, run: false);
             }
             if (kind == PetitionKind.Feud)
             {
@@ -216,8 +233,9 @@ namespace LessMenusMoreImmersion.Behaviors
             }
             StreetEventsBehavior.Direct(petitioner)?.Follow(target, yours ? 2f : 2.2f, run: false);
             _petition = p;
+            _lastKind = kind;
             _readyAtHours[key] = CampaignTime.Now.ToHours + (yours ? 3 : 1) * CampaignTime.HoursInDay;
-            LmmiLog.Info($"Court: a petition ({kind}) in {settlement.Name} before {(yours ? "you" : judge?.Name.ToString())}.");
+            LmmiLog.Info($"Court: a petition ({kind} #{p.Variant + 1}) in {settlement.Name} before {(yours ? "you" : judge?.Name.ToString())}.");
         }
 
         private void PausePetition(Mission mission, Petition p)
@@ -279,23 +297,15 @@ namespace LessMenusMoreImmersion.Behaviors
                 p.Spoken = true;
                 p.RuleAt = _time + 25f;
                 StreetEventsBehavior.Direct(p.Petitioner)?.Hold(face: judge, loop: "act_bullied");
-                if (Near(p.Petitioner)) StreetEventsBehavior.Bark(p.Petitioner, PleaLine(p));
+                if (Near(p.Petitioner)) StreetEventsBehavior.Bark(p.Petitioner, PleaLine(p, p.Judge));
                 LmmiLog.Info($"Court: the petition is heard ({p.Kind}).");
             }
             if (p.Spoken && !p.Resolved && _time >= p.RuleAt && mission.Mode != MissionMode.Conversation
                 && Campaign.Current?.ConversationManager?.IsConversationInProgress != true)
-                Rule(p, LordWouldGrant(p.Judge!), interceded: false);
+                Rule(p, LordWouldGrant(p.Judge!, p.Kind), interceded: false);
         }
 
         private static bool Near(Agent a) => Agent.Main != null && a.Position.Distance(Agent.Main.Position) < 20f;
-
-        /// <summary>The merciful and generous grant it, the cruel throw it out; the rest could go either way.</summary>
-        private static bool LordWouldGrant(Hero lord)
-        {
-            if (lord.GetTraitLevel(DefaultTraits.Mercy) >= 1 || lord.GetTraitLevel(DefaultTraits.Generosity) >= 1) return true;
-            if (lord.GetTraitLevel(DefaultTraits.Mercy) <= -1) return false;
-            return MBRandom.RandomFloat < 0.5f;
-        }
 
         private void Rule(Petition p, bool granted, bool interceded)
         {
@@ -346,58 +356,26 @@ namespace LessMenusMoreImmersion.Behaviors
 
         private static TextObject Lord(Hero? h) => new TextObject(h != null && h.IsFemale ? "{=lmmi_court_my_lady}my lady" : "{=lmmi_court_my_lord}my lord");
 
-        private static TextObject PleaLine(Petition p)
-        {
-            var line = new TextObject(p.Kind switch
-            {
-                PetitionKind.SeedGrain => "{=lmmi_court_plea_grain}{LORD}, the tax collector took our seed grain along with the tax. Without it there's no crop next year — we'll starve before spring.",
-                PetitionKind.Pressed => "{=lmmi_court_plea_pressed}{LORD}, your men took my son for the garrison. He's all I have to work the land — please, send him home.",
-                PetitionKind.Poacher => "{=lmmi_court_plea_poacher}{LORD}, it was one deer — one! My children hadn't eaten in three days. Have mercy!",
-                PetitionKind.Widow => "{=lmmi_court_plea_widow}{LORD}, my husband's not a month in the ground and his brother's claimed our field. Where am I to go?",
-                _ => "{=lmmi_court_plea_generic}{LORD}, I beg you to hear me.",
-            });
-            line.SetTextVariable("LORD", Lord(p.Judge));
-            return line;
-        }
-
-        private static TextObject RulingLine(Petition p, bool granted)
-        {
-            if (granted)
-                return new TextObject(p.Kind switch
-                {
-                    PetitionKind.SeedGrain => "{=lmmi_court_grant_grain}Give them back their seed. A field that isn't sown pays no tax.",
-                    PetitionKind.Pressed => "{=lmmi_court_grant_pressed}Send the boy home. The garrison can spare one farmer's son.",
-                    PetitionKind.Poacher => "{=lmmi_court_grant_poacher}Let him go. A hungry man isn't a thief — this once.",
-                    PetitionKind.Widow => "{=lmmi_court_grant_widow}The field is hers while she lives. Tell the brother he'll answer to me.",
-                    _ => "{=lmmi_court_grant_generic}Granted.",
-                });
-            return new TextObject(p.Kind switch
-            {
-                PetitionKind.SeedGrain => "{=lmmi_court_deny_grain}The tax is the tax. If I spare you, I spare every village in the valley.",
-                PetitionKind.Pressed => "{=lmmi_court_deny_pressed}He serves. We're at war, and every man counts.",
-                PetitionKind.Poacher => "{=lmmi_court_deny_poacher}The law is the law. Take his hand.",
-                PetitionKind.Widow => "{=lmmi_court_deny_widow}The land passes to the brother. That's custom.",
-                _ => "{=lmmi_court_deny_generic}Refused.",
-            });
-        }
-
         // ---- Your own court: what you rule moves the town ----
 
-        private static void Move(Settlement s, float loyalty = 0f, float security = 0f, float standing = 0f, string why = "")
+        private static void Move(Settlement s, float loyalty = 0f, float security = 0f, float prosperity = 0f, float standing = 0f, string why = "")
         {
             var town = s.Town;
             if (town != null)
             {
                 if (loyalty != 0f) town.Loyalty = TaleWorlds.Library.MathF.Clamp(town.Loyalty + loyalty, 0f, 100f);
                 if (security != 0f) town.Security = TaleWorlds.Library.MathF.Clamp(town.Security + security, 0f, 100f);
+                if (prosperity != 0f) town.Prosperity = Math.Max(0f, town.Prosperity + prosperity);
             }
             if (standing != 0f) TownStandingBehavior.Adjust(s, standing, why);
             var parts = new List<string>();
             if (loyalty != 0f) parts.Add($"{new TextObject("{=lmmi_court_loyalty}Loyalty")} {(loyalty > 0 ? "+" : "")}{loyalty:0}");
             if (security != 0f) parts.Add($"{new TextObject("{=lmmi_court_security}Security")} {(security > 0 ? "+" : "")}{security:0}");
+            if (prosperity != 0f) parts.Add($"{new TextObject("{=lmmi_court_prosperity}Prosperity")} {(prosperity > 0 ? "+" : "")}{prosperity:0}");
             if (parts.Count > 0)
-                InformationManager.DisplayMessage(new InformationMessage($"{s.Name}: {string.Join(", ", parts)}", loyalty + security >= 0 ? Colors.Green : Colors.Red));
-            LmmiLog.Info($"Court: your ruling in {s.Name} — loyalty {loyalty:+0;-0;0}, security {security:+0;-0;0}, standing {standing:+0;-0;0} ({why}).");
+                InformationManager.DisplayMessage(new InformationMessage($"{s.Name}: {string.Join(", ", parts)}",
+                    loyalty + security + prosperity / 10f >= 0 ? Colors.Green : Colors.Red));
+            LmmiLog.Info($"Court: your ruling in {s.Name} — loyalty {loyalty:+0;-0;0}, security {security:+0;-0;0}, prosperity {prosperity:+0;-0;0}, standing {standing:+0;-0;0} ({why}).");
         }
 
         private void Judged(Action<Petition> effect)
@@ -523,15 +501,7 @@ namespace LessMenusMoreImmersion.Behaviors
                     if (p == null || lord == null) return;
                     var listener = lord.CharacterObject;
                     float st = TownStandingBehavior.Get(p.Settlement);
-                    _intercede.Start(new[]
-                        {
-                            NativePersuasion.Argument(DefaultSkills.Charm, DefaultTraits.Mercy,
-                                new TextObject("{=lmmi_court_arg_mercy}They've nothing left to give. Mercy costs you less than their despair will."), listener, 0f, st),
-                            NativePersuasion.Argument(DefaultSkills.Trade, DefaultTraits.Calculating,
-                                new TextObject("{=lmmi_court_arg_calc}A ruined farmer pays no taxes next year. This is the cheaper ruling."), listener, 0f, st),
-                            NativePersuasion.Argument(DefaultSkills.Leadership, DefaultTraits.Honor,
-                                new TextObject("{=lmmi_court_arg_honor}Your people are watching how you judge the least of them. So is your name."), listener, 0f, st),
-                        },
+                    _intercede.Start(InterceptArguments(p.Kind).Select(a => NativePersuasion.Argument(a.Skill, a.Trait, a.Text, listener, 0f, st)).ToArray(),
                         new TextObject("{=lmmi_court_opening}Go on. Briefly."),
                         new TextObject("{=lmmi_court_again}And?"),
                         new TextObject("{=lmmi_court_won}...Very well. You make a fair point."),
@@ -574,6 +544,24 @@ namespace LessMenusMoreImmersion.Behaviors
             _intercede.Register(starter);
         }
 
+        private bool Is(PetitionKind k) => _petition?.Kind == k && _petition.PlayerJudges;
+
+        /// <summary>One ruling you can give in your own hall: what you say, what they say, what it does.</summary>
+        private void AddRuling(CampaignGameStarter starter, string id, string text, PetitionKind kind, string reply, Action<Petition> effect,
+            int gold = 0, Func<bool>? when = null)
+        {
+            starter.AddPlayerLine(id, "lmmi_court_own_resp", id + "_resp", text, () => Is(kind) && (when == null || when()),
+                () => { if (gold > 0) Hero.MainHero.ChangeHeroGold(-gold); Judged(effect); }, 100,
+                gold <= 0 ? null : (ConversationSentence.OnClickableConditionDelegate)((out TextObject why) =>
+                {
+                    why = TextObject.GetEmpty();
+                    if (Hero.MainHero.Gold >= gold) return true;
+                    why = new TextObject("{=lmmi_cant_afford_alms}You don't have that much on you.");
+                    return false;
+                }));
+            starter.AddDialogLine(id + "_resp", id + "_resp", "close_window", reply, null, null);
+        }
+
         /// <summary>Your own court: petitioners come to you.</summary>
         private void AddOwnCourtDialogs(CampaignGameStarter starter)
         {
@@ -584,34 +572,14 @@ namespace LessMenusMoreImmersion.Behaviors
                     var p = _petition;
                     if (p == null || !p.PlayerJudges || p.Resolved || p.Paused || ConversationMission.OneToOneConversationAgent != p.Petitioner) return false;
                     if (!p.Talking) { p.Talking = true; p.TalkAt = _time; }
-                    TextObject line;
-                    if (p.Kind == PetitionKind.Quartered)
-                        line = new TextObject("{=lmmi_court_plea_quartered}{LORD}, your soldiers are quartered in my house. They've eaten my stores bare, and one of them won't keep his hands off my daughter.");
-                    else if (p.Kind == PetitionKind.Feud)
-                        line = new TextObject("{=lmmi_court_plea_feud}{LORD}, {A} and {B} are at each other's throats over a debt — the whole street's taking sides. Only you can settle it.")
-                            .SetTextVariable("A", p.A?.Name ?? TextObject.GetEmpty()).SetTextVariable("B", p.B?.Name ?? TextObject.GetEmpty());
-                    else line = PleaLine(new Petition { Kind = p.Kind, Judge = Hero.MainHero });
-                    line.SetTextVariable("LORD", Lord(Hero.MainHero));
-                    MBTextManager.SetTextVariable("LMMI_COURT_PLEA", line);
+                    MBTextManager.SetTextVariable("LMMI_COURT_PLEA", PleaLine(p, Hero.MainHero));
                     if (p.A != null) MBTextManager.SetTextVariable("LMMI_COURT_A", p.A.Name);
                     if (p.B != null) MBTextManager.SetTextVariable("LMMI_COURT_B", p.B.Name);
                     return true;
                 }, null, 1300);
 
-            bool Is(PetitionKind k) => _petition?.Kind == k && _petition.PlayerJudges;
-            void Option(string id, string text, PetitionKind kind, string reply, Action<Petition> effect, int gold = 0)
-            {
-                starter.AddPlayerLine(id, "lmmi_court_own_resp", id + "_resp", text, () => Is(kind),
-                    () => { if (gold > 0) Hero.MainHero.ChangeHeroGold(-gold); Judged(effect); }, 100,
-                    gold <= 0 ? null : (ConversationSentence.OnClickableConditionDelegate)((out TextObject why) =>
-                    {
-                        why = TextObject.GetEmpty();
-                        if (Hero.MainHero.Gold >= gold) return true;
-                        why = new TextObject("{=lmmi_cant_afford_alms}You don't have that much on you.");
-                        return false;
-                    }));
-                starter.AddDialogLine(id + "_resp", id + "_resp", "close_window", reply, null, null);
-            }
+            void Option(string id, string text, PetitionKind kind, string reply, Action<Petition> effect, int gold = 0) =>
+                AddRuling(starter, id, text, kind, reply, effect, gold);
 
             // Seed grain taken with the tax.
             Option("lmmi_court_grain_pay", "{=lmmi_court_grain_pay}Here — two hundred from my own purse. Buy seed. [200{GOLD_ICON}]", PetitionKind.SeedGrain,
@@ -690,6 +658,9 @@ namespace LessMenusMoreImmersion.Behaviors
                         : "{=lmmi_court_feud_split_no}Neither will give an inch. Now both of them resent you.").ToString(), ok ? Colors.Green : Colors.Red));
                     Move(p.Settlement, loyalty: ok ? 2f : 0f, why: ok ? "made two notables shake hands" : "failed to settle a feud");
                 });
+
+            // Carts, apprentices, bride prices, bandits, debtors, charters, blood, bribes.
+            AddMoreRulings(starter);
 
             starter.AddPlayerLine("lmmi_court_own_later", "lmmi_court_own_resp", "lmmi_court_own_later_resp",
                 "{=lmmi_court_own_later}Not now. Come back another day.", null,

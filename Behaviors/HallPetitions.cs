@@ -19,6 +19,7 @@ namespace LessMenusMoreImmersion.Behaviors
     /// picked at random, the same one heard as a bark before a lord or spoken to you in your own hall) and a grant and a
     /// refusal for a lord to give. In your own court each ruling moves something real: loyalty, security, prosperity,
     /// a notable's opinion of you, a village's militia or hearths, your purse, the garrison, how the town speaks of you.
+    /// Which case comes up is weighted by the place, the times and custom (<see cref="PickKind"/>).
     /// </summary>
     public partial class HallCourtBehavior
     {
@@ -52,11 +53,13 @@ namespace LessMenusMoreImmersion.Behaviors
             {
                 "{=lmmi_court_plea_quartered}{LORD}, your soldiers are quartered in my house. They've eaten my stores bare, and one of them won't keep his hands off my daughter.",
                 "{=lmmi_court_plea_quartered_2}{LORD}, six of your soldiers sleep in my workshop. My tools are broken, my stock is drunk, and they laugh when I ask to be paid.",
+                "{=lmmi_court_plea_quartered_3}{LORD}, the sergeant billets his men on our street and calls it our duty. They pay for nothing, and the night watch drinks with them.",
             },
             [PetitionKind.Feud] = new[]
             {
                 "{=lmmi_court_plea_feud}{LORD}, {A} and {B} are at each other's throats over a debt — the whole street's taking sides. Only you can settle it.",
                 "{=lmmi_court_plea_feud_2}{LORD}, {A} says {B} cheated on a cargo of wool, and {B} says the wool was wet. Their men have been brawling in the market for a week.",
+                "{=lmmi_court_plea_feud_3}{LORD}, {A} swears {B} moved the boundary stones by night. Now neither will sell to the other's kin, and half the market stands shut.",
             },
             [PetitionKind.CartSeized] = new[]
             {
@@ -138,6 +141,108 @@ namespace LessMenusMoreImmersion.Behaviors
 
         private static int VariantsOf(PetitionKind kind) => Pleas.TryGetValue(kind, out var v) ? v.Length : 1;
 
+        /// <summary>
+        /// Which case comes before the hall. A town brings its markets, guilds, debts and watch; a castle its villages and
+        /// woods. Hard times weigh in (a lawless street, a war, a lair nearby), so does custom, and in your own hall a case
+        /// whose notable isn't there to care comes up less. Pressed men come before a lord only in wartime (he says so).
+        /// Never the same kind twice running.
+        /// </summary>
+        private static PetitionKind PickKind(Settlement s, bool yours, List<Hero> notables, PetitionKind? last)
+        {
+            bool town = s.IsTown;
+            bool villages = s.BoundVillages.Any(v => v?.Settlement != null);
+            bool lawless = (s.Town?.Security ?? 50f) < 40f;
+            var faction = s.MapFaction;
+            bool atWar = faction != null && Kingdom.All.Any(k => !k.IsEliminated && !ReferenceEquals(k, faction) && FactionManager.IsAtWarAgainstFaction(k, faction));
+            var gate = s.GatePosition;
+            bool lairNear = villages && Settlement.All.Any(x => x.IsHideout && x.Hideout != null && x.Hideout.IsInfested && x.Position.Distance(gate) < 120f);
+            string culture = s.Culture?.StringId ?? string.Empty;
+
+            var weights = new List<(PetitionKind Kind, float Weight)>
+            {
+                (PetitionKind.SeedGrain, town ? 1f : 1.5f),
+                (PetitionKind.Pressed, !atWar && !yours ? 0f : (town ? 1f : 1.2f) * (atWar ? 1.4f : 0.6f)),
+                (PetitionKind.Poacher, town ? 0.8f : 1.5f),
+                (PetitionKind.Widow, 1f),
+                (PetitionKind.CartSeized, town ? 1.2f : 0.3f),
+                (PetitionKind.Apprentice, town ? 1f : 0f),
+                (PetitionKind.BridePrice, town ? 0.8f : 1.2f),
+                (PetitionKind.Bandits, !villages ? 0f : (town ? 0.8f : 1.5f) * (lairNear ? 1.6f : 0.8f) * (lawless ? 1.3f : 1f)),
+                (PetitionKind.Debtor, town ? 1f : 0.6f),
+                (PetitionKind.Monopoly, town ? 0.8f : 0f),
+                (PetitionKind.Bloodshed, (town ? 1f : 0.6f) * (lawless ? 1.3f : 1f)),
+                (PetitionKind.Bribes, (town ? 1f : 0.5f) * (lawless ? 1.5f : 1f)),
+            };
+            if (yours)
+            {
+                weights.Add((PetitionKind.Quartered, (town ? 1f : 0.6f) * (atWar ? 1.4f : 1f)));
+                if (notables.Count >= 2) weights.Add((PetitionKind.Feud, 1f));
+            }
+
+            float total = 0f;
+            for (int i = 0; i < weights.Count; i++)
+            {
+                var (kind, w) = weights[i];
+                w *= CultureWeight(culture, kind);
+                if (yours && NotableMissing(kind, notables)) w *= 0.5f;
+                if (last.HasValue && kind == last.Value) w = 0f;
+                weights[i] = (kind, w);
+                total += w;
+            }
+            if (total <= 0f) return last == PetitionKind.Widow ? PetitionKind.SeedGrain : PetitionKind.Widow;
+            float roll = MBRandom.RandomFloat * total;
+            foreach (var (kind, w) in weights)
+            {
+                if (roll < w) return kind;
+                roll -= w;
+            }
+            return weights.Last(x => x.Weight > 0f).Kind;
+        }
+
+        /// <summary>What reaches the hall follows custom: imperial guilds and debts, Aserai caravans and bride-gifts, Khuzait herds and raiders, Vlandian forest law and levies, Sturgian blood feuds, Battanian clan law and woods.</summary>
+        private static float CultureWeight(string culture, PetitionKind kind) => (culture, kind) switch
+        {
+            ("empire", PetitionKind.Monopoly) => 1.5f,
+            ("empire", PetitionKind.Debtor) => 1.4f,
+            ("empire", PetitionKind.Apprentice) => 1.4f,
+            ("empire", PetitionKind.Bribes) => 1.3f,
+            ("aserai", PetitionKind.CartSeized) => 1.6f,
+            ("aserai", PetitionKind.BridePrice) => 1.5f,
+            ("aserai", PetitionKind.Debtor) => 1.3f,
+            ("khuzait", PetitionKind.BridePrice) => 1.5f,
+            ("khuzait", PetitionKind.Bandits) => 1.4f,
+            ("khuzait", PetitionKind.Poacher) => 0.5f,
+            ("khuzait", PetitionKind.Monopoly) => 0.5f,
+            ("khuzait", PetitionKind.Apprentice) => 0.6f,
+            ("vlandia", PetitionKind.Poacher) => 1.6f,
+            ("vlandia", PetitionKind.Pressed) => 1.3f,
+            ("vlandia", PetitionKind.Widow) => 1.3f,
+            ("vlandia", PetitionKind.Apprentice) => 1.2f,
+            ("sturgia", PetitionKind.Bloodshed) => 1.5f,
+            ("sturgia", PetitionKind.Feud) => 1.4f,
+            ("sturgia", PetitionKind.Widow) => 1.2f,
+            ("sturgia", PetitionKind.Bandits) => 1.2f,
+            ("battania", PetitionKind.Poacher) => 1.4f,
+            ("battania", PetitionKind.Bloodshed) => 1.4f,
+            ("battania", PetitionKind.BridePrice) => 1.3f,
+            ("battania", PetitionKind.CartSeized) => 0.7f,
+            ("battania", PetitionKind.Monopoly) => 0.6f,
+            _ => 1f,
+        };
+
+        /// <summary>The case touches a kind of notable the town doesn't have (no merchant for a seized cart, no guild for a charter, no gang for a bought guard).</summary>
+        private static bool NotableMissing(PetitionKind kind, List<Hero> notables)
+        {
+            switch (kind)
+            {
+                case PetitionKind.CartSeized: return !notables.Any(h => h.IsMerchant);
+                case PetitionKind.Apprentice:
+                case PetitionKind.Monopoly: return !notables.Any(h => h.IsArtisan);
+                case PetitionKind.Bribes: return !notables.Any(h => h.IsGangLeader);
+                default: return false;
+            }
+        }
+
         private static TextObject PleaLine(Petition p, Hero? judge)
         {
             var text = Pleas.TryGetValue(p.Kind, out var v) ? v[Math.Min(p.Variant, v.Length - 1)] : "{=lmmi_court_plea_generic}{LORD}, I beg you to hear me.";
@@ -188,32 +293,43 @@ namespace LessMenusMoreImmersion.Behaviors
             return MBRandom.RandomFloat < 0.5f;
         }
 
-        /// <summary>The petitioner's people: a villager for the village's troubles, a townsman for the town's, a mother for her son.</summary>
-        private static CharacterObject? PetitionerFor(PetitionKind kind, Settlement s)
+        /// <summary>
+        /// Who has to be speaking for the plea to make sense: a widow, a mother, a poacher, a master, a smith — and a few
+        /// single pleas ("my husband's lame", "my wife fell sick", "her mother and me"). Null: either will do.
+        /// </summary>
+        private static bool? SpeakerIsFemale(PetitionKind kind, int variant)
         {
-            var c = s.Culture;
-            if (c == null) return null;
-            bool coin = MBRandom.RandomInt(2) == 0;
-            CharacterObject? woman = s.IsTown ? c.Townswoman : c.VillageWoman ?? c.Townswoman;
             switch (kind)
             {
                 case PetitionKind.Widow:
                 case PetitionKind.Bloodshed:
-                    return woman;
+                    return true;
                 case PetitionKind.Poacher:
-                    return c.Villager ?? c.Townsman;
-                case PetitionKind.SeedGrain:
+                case PetitionKind.Apprentice:
+                case PetitionKind.Monopoly:
+                    return false;
                 case PetitionKind.Pressed:
-                case PetitionKind.Bandits:
-                case PetitionKind.BridePrice:
-                    return coin ? c.Villager ?? c.Townsman : c.VillageWoman ?? c.Villager;
+                    return variant == 2 ? true : (bool?)null;
                 case PetitionKind.Debtor:
-                case PetitionKind.Bribes:
-                case PetitionKind.Quartered:
-                    return coin ? c.Townsman : c.Townswoman ?? c.Townsman;
+                    return variant == 0 ? false : (bool?)null;
+                case PetitionKind.BridePrice:
+                    return variant == 2 ? false : (bool?)null;
                 default:
-                    return c.Townsman ?? c.Villager;
+                    return null;
             }
+        }
+
+        /// <summary>The petitioner's people: villagers for the village's troubles (and in a castle, where there's no town), townsfolk for the town's.</summary>
+        private static CharacterObject? PetitionerFor(PetitionKind kind, int variant, Settlement s)
+        {
+            var c = s.Culture;
+            if (c == null) return null;
+            bool rural = !s.IsTown || kind == PetitionKind.SeedGrain || kind == PetitionKind.Pressed || kind == PetitionKind.Poacher
+                         || kind == PetitionKind.Bandits || kind == PetitionKind.BridePrice;
+            CharacterObject? man = rural ? c.Villager ?? c.Townsman : c.Townsman ?? c.Villager;
+            CharacterObject? woman = rural ? c.VillageWoman ?? c.Townswoman : c.Townswoman ?? c.VillageWoman;
+            bool female = SpeakerIsFemale(kind, variant) ?? MBRandom.RandomInt(2) == 0;
+            return female ? woman ?? man : man ?? woman;
         }
 
         /// <summary>Who in the town the case touches: the merchants for a seized cart, the guild for a charter or an apprentice, the gangs for a bought guard, a village's headman for its bandits.</summary>
@@ -245,7 +361,7 @@ namespace LessMenusMoreImmersion.Behaviors
             try
             {
                 var at = s.GatePosition;
-                var lair = Settlement.All.Where(x => x.IsHideout && x.Hideout.IsInfested && !x.Hideout.IsSpotted && x.Position.Distance(at) < 120f)
+                var lair = Settlement.All.Where(x => x.IsHideout && x.Hideout != null && x.Hideout.IsInfested && !x.Hideout.IsSpotted && x.Position.Distance(at) < 120f)
                     .OrderBy(x => x.Position.Distance(at)).FirstOrDefault();
                 if (lair == null) return;
                 lair.Hideout.IsSpotted = true;
@@ -289,7 +405,7 @@ namespace LessMenusMoreImmersion.Behaviors
             AddRuling(starter, "lmmi_court_bride_half", "{=lmmi_court_bride_half}What's paid is paid. Make your peace with your in-laws.", PetitionKind.BridePrice,
                 "{=lmmi_court_bride_half_resp}...Peace. With those thieves. As you say.",
                 p => Move(p.Settlement, standing: -1f, why: "let a bride price go half-paid"));
-            AddRuling(starter, "lmmi_court_bride_pay", "{=lmmi_court_bride_pay}I'll pay the difference myself — and I expect to be asked to the first christening. [150{GOLD_ICON}]", PetitionKind.BridePrice,
+            AddRuling(starter, "lmmi_court_bride_pay", "{=lmmi_court_bride_pay}I'll pay the difference myself — and I expect a cup at the first child's naming. [150{GOLD_ICON}]", PetitionKind.BridePrice,
                 "{=lmmi_court_bride_pay_resp}You — you'd do that? The whole village will drink your health!",
                 p => Move(p.Settlement, loyalty: 2f, standing: 3f, why: "paid a bride price out of their own purse"), 150);
 
@@ -309,7 +425,7 @@ namespace LessMenusMoreImmersion.Behaviors
                     var vs = p.Village?.Settlement;
                     if (vs != null)
                     {
-                        vs.Militia += 8f;
+                        vs.Militia += 8f;   // VERIFY: Settlement.Militia has a public setter in 1.4.8 (no other use in the repo)
                         InformationManager.DisplayMessage(new InformationMessage(new TextObject("{=lmmi_court_militia_up}{VILLAGE}: Militia +8").SetTextVariable("VILLAGE", vs.Name).ToString(), Colors.Green));
                     }
                     Relation(p.Notable, 1);
