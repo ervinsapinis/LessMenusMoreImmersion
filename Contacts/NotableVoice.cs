@@ -182,7 +182,13 @@ namespace LessMenusMoreImmersion.Contacts
             if (_insulted)
                 return Pick("{=lmmi_refuse_again_1}You have some nerve asking me for anything.",
                             "{=lmmi_refuse_again_2}I've told you what I think of you. No.",
-                            "{=lmmi_refuse_again_3}Favors? From me? Ha.").ToString();
+                            "{=lmmi_refuse_again_3}Favors? From me? Ha.",
+                            "{=lmmi_refuse_again_4}Ask again and see what happens.",
+                            "{=lmmi_refuse_again_5}The answer hasn't changed. It won't.",
+                            "{=lmmi_refuse_again_6}Are you deaf? No.",
+                            "{=lmmi_refuse_again_7}I'd sooner help a rat.",
+                            "{=lmmi_refuse_again_8}Get out of my sight.",
+                            "{=lmmi_refuse_again_9}Still here? Still no.").ToString();
             _insulted = true;
             return ContemptLine(hero, e, asGreeting: false);
         }
@@ -193,7 +199,11 @@ namespace LessMenusMoreImmersion.Contacts
             ForConversation(hero);
             if (_insulted)
                 return Pick("{=lmmi_dismiss_1}Find your own way.",
-                            "{=lmmi_dismiss_2}Ask someone who cares.").ToString();
+                            "{=lmmi_dismiss_2}Ask someone who cares.",
+                            "{=lmmi_dismiss_3}Find someone who gives a damn.",
+                            "{=lmmi_dismiss_4}Not my problem.",
+                            "{=lmmi_dismiss_5}Go and ask the watch. They're paid to be nice.",
+                            "{=lmmi_dismiss_6}Wander about. You'll trip over it eventually.").ToString();
             _insulted = true;
             return ContemptLine(hero, _evaluation!, asGreeting: true);
         }
@@ -206,19 +216,41 @@ namespace LessMenusMoreImmersion.Contacts
             if (asGreeting)
                 return e.Relation <= -10f
                     ? Pick("{=lmmi_greet_grudge_1}You. I remember what you did.",
-                           "{=lmmi_greet_grudge_2}You've got some nerve showing your face here.").ToString()
+                           "{=lmmi_greet_grudge_2}You've got some nerve showing your face here.",
+                           "{=lmmi_greet_grudge_3}Oh, it's you. I haven't forgotten.",
+                           "{=lmmi_greet_grudge_4}You've got a nerve, coming to me after last time.",
+                           "{=lmmi_greet_grudge_5}I'd hoped never to see you again.",
+                           "{=lmmi_greet_grudge_6}You. Say your piece and get out.").ToString()
                     : Pick("{=lmmi_greet_nobody_1}Who let you in here?",
                            "{=lmmi_greet_nobody_2}Whatever you're selling, I'm not buying.",
-                           "{=lmmi_greet_nobody_3}I don't have time for vagrants.").ToString();
+                           "{=lmmi_greet_nobody_3}I don't have time for vagrants.",
+                           "{=lmmi_greet_nobody_4}Who are you supposed to be?",
+                           "{=lmmi_greet_nobody_5}I don't talk to every vagrant who wanders in.",
+                           "{=lmmi_greet_nobody_6}If you're begging, try the market square.",
+                           "{=lmmi_greet_nobody_7}Nobody asked you in.",
+                           "{=lmmi_greet_nobody_8}I'm busy. Whatever it is, no.",
+                           "{=lmmi_greet_nobody_9}Do I look like I've time for nobodies?").ToString();
 
             if (e.Relation <= -10f)
                 return Pick("{=lmmi_favor_grudge_1}After what you've done? You've got some nerve.",
                             "{=lmmi_favor_grudge_2}I remember you. The answer is no.",
-                            "{=lmmi_favor_grudge_3}Favors are for friends. You are not one.").ToString();
+                            "{=lmmi_favor_grudge_3}Favors are for friends. You are not one.",
+                            "{=lmmi_favor_grudge_4}Help you? I'd rather help your enemies.",
+                            "{=lmmi_favor_grudge_5}I've a long memory, and you're in it. No.",
+                            "{=lmmi_favor_grudge_6}Not after what you did. Never.",
+                            "{=lmmi_favor_grudge_7}You burned that bridge yourself.",
+                            "{=lmmi_favor_grudge_8}Ask someone who doesn't know you.",
+                            "{=lmmi_favor_grudge_9}The only favor I'll do you is not calling the guards.").ToString();
 
             return Pick("{=lmmi_favor_nobody_1}Favors? I don't know you, and I don't do favors for nobodies.",
                         "{=lmmi_favor_nobody_2}Come back when your name means something around here.",
-                        "{=lmmi_favor_nobody_3}You've given me no reason to help you. Yet.").ToString();
+                        "{=lmmi_favor_nobody_3}You've given me no reason to help you. Yet.",
+                            "{=lmmi_favor_nobody_4}Who are you to ask me for anything?",
+                            "{=lmmi_favor_nobody_5}Make a name for yourself first. Then we'll talk.",
+                            "{=lmmi_favor_nobody_6}I don't do favors for strangers nobody's heard of.",
+                            "{=lmmi_favor_nobody_7}Do something for this town, and maybe it'll do something for you.",
+                            "{=lmmi_favor_nobody_8}Favors are earned. You've earned nothing.",
+                            "{=lmmi_favor_nobody_9}Nobody owes you anything here. Least of all me.").ToString();
         }
 
         private enum VoiceTone { Vanilla, Contempt, Wary, Sycophant, Friend }

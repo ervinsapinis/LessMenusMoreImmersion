@@ -701,8 +701,12 @@ namespace LessMenusMoreImmersion.Behaviors
         private void AddFeastDialogs(CampaignGameStarter starter)
         {
             starter.AddDialogLine("lmmi_arrive_feast", "start", "lmmi_arrive_feast_resp",
-                "{=lmmi_arrive_feast}{PLAYER.NAME}! How we've missed you. Come — we've prepared a small feast in your honor.",
-                () => IsArrival(ArrivalKind.Feast),
+                "{=!}{LMMI_ARR_FEAST}",
+                () => IsArrival(ArrivalKind.Feast) && Flavor.Say("LMMI_ARR_FEAST",
+                        "{=lmmi_arrive_feast}{PLAYER.NAME}! How we've missed you. Come — we've prepared a small feast in your honor.",
+                        "{=lmmi_arrive_feast_2}There you are, {PLAYER.NAME}! It's been too long. The table's laid — you'll eat with us tonight, and I won't hear otherwise.",
+                        "{=lmmi_arrive_feast_3}{PLAYER.NAME}, my friend! I heard you were in town and had the cooks start at once. Come and eat.",
+                        "{=lmmi_arrive_feast_4}Back at last! Sit with us tonight — there's roast fowl, good bread and better wine, all in your honor."),
                 () => SetCooldown(_arrival!.Host, ArrivalKind.Feast, FeastCooldownDays),
                 1100);
 
@@ -717,12 +721,20 @@ namespace LessMenusMoreImmersion.Behaviors
                     if (agent == null || !FeastBehavior.Begin(host, agent)) ApplyFeastEffects(host);
                 });
             starter.AddDialogLine("lmmi_arrive_feast_done", "lmmi_arrive_feast_done", "close_window",
-                "{=lmmi_arrive_feast_done}Eat, drink! Your people are welcome at our table too.", null, null);
+                "{=!}{LMMI_ARR_FEAST_DONE}",
+                    () => Flavor.Say("LMMI_ARR_FEAST_DONE",
+                        "{=lmmi_arrive_feast_done}Eat, drink! Your people are welcome at our table too.",
+                        "{=lmmi_arrive_feast_done_2}Splendid! Bring your people — there's enough for an army, near enough.",
+                        "{=lmmi_arrive_feast_done_3}Good! Come, come — before the stew goes cold."), null);
 
             starter.AddPlayerLine("lmmi_arrive_feast_decline", "lmmi_arrive_feast_resp", "lmmi_arrive_feast_declined",
                 "{=lmmi_arrive_feast_decline}Another time, my friend.", null, null);
             starter.AddDialogLine("lmmi_arrive_feast_declined", "lmmi_arrive_feast_declined", "close_window",
-                "{=lmmi_arrive_feast_declined}Of course. Our door is always open to you.", null, null);
+                "{=!}{LMMI_ARR_FEAST_NO}",
+                    () => Flavor.Say("LMMI_ARR_FEAST_NO",
+                        "{=lmmi_arrive_feast_declined}Of course. Our door is always open to you.",
+                        "{=lmmi_arrive_feast_declined_2}A pity. Next time, then — and I'll hold you to it.",
+                        "{=lmmi_arrive_feast_declined_3}Well, the wine will keep. So will I."), null);
         }
 
         /// <summary>What the feast does for you and your men (called when the evening ends).</summary>
@@ -766,12 +778,15 @@ namespace LessMenusMoreImmersion.Behaviors
         private void AddWarningDialogs(CampaignGameStarter starter)
         {
             starter.AddDialogLine("lmmi_arrive_warning", "start", "lmmi_arrive_warning_resp",
-                "{=lmmi_arrive_warning}A word, before you go about your business. Don't trust {SCHEMER}. That one smiles to your face and counts your coin behind your back.",
+                "{=!}{LMMI_ARR_WARNING}",
                 () =>
                 {
                     if (!IsArrival(ArrivalKind.Warning) || _arrival!.Schemer == null) return false;
                     MBTextManager.SetTextVariable("SCHEMER", _arrival.Schemer.Name);
-                    return true;
+                    return Flavor.Say("LMMI_ARR_WARNING",
+                        "{=lmmi_arrive_warning}A word, before you go about your business. Don't trust {SCHEMER}. That one smiles to your face and counts your coin behind your back.",
+                        "{=lmmi_arrive_warning_2}Listen, before you deal with anyone here: keep {SCHEMER} at arm's length. I've seen what happens to people who don't.",
+                        "{=lmmi_arrive_warning_3}Not a word of this from me, but {SCHEMER} isn't to be trusted. Watch your purse, and your back.");
                 },
                 () =>
                 {
@@ -787,15 +802,22 @@ namespace LessMenusMoreImmersion.Behaviors
         private void AddWarnedOffDialogs(CampaignGameStarter starter)
         {
             starter.AddDialogLine("lmmi_arrive_warnoff", "start", "lmmi_arrive_warnoff_resp",
-                "{=lmmi_arrive_warnoff}You. Finish your business and leave. People like you have a way of losing things around here.",
-                () => IsArrival(ArrivalKind.WarnedOff),
+                "{=!}{LMMI_ARR_WARNOFF}",
+                () => IsArrival(ArrivalKind.WarnedOff) && Flavor.Say("LMMI_ARR_WARNOFF",
+                        "{=lmmi_arrive_warnoff}You. Finish your business and leave. People like you have a way of losing things around here.",
+                        "{=lmmi_arrive_warnoff_2}You're not wanted here. Do what you came for, and be gone by nightfall.",
+                        "{=lmmi_arrive_warnoff_3}I know your sort. Finish your business quickly — accidents happen to strangers who linger."),
                 () => SetCooldown(_arrival!.Host, ArrivalKind.WarnedOff, WarnOffCooldownDays),
                 1100);
 
             starter.AddPlayerLine("lmmi_arrive_warnoff_threat", "lmmi_arrive_warnoff_resp", "lmmi_arrive_warnoff_advice",
                 "{=lmmi_arrive_warnoff_threat}Is that a threat?", null, null);
             starter.AddDialogLine("lmmi_arrive_warnoff_advice", "lmmi_arrive_warnoff_advice", "close_window",
-                "{=lmmi_arrive_warnoff_advice}Advice. Take it or don't.", null, null);
+                "{=!}{LMMI_ARR_ADVICE}",
+                    () => Flavor.Say("LMMI_ARR_ADVICE",
+                        "{=lmmi_arrive_warnoff_advice}Advice. Take it or don't.",
+                        "{=lmmi_arrive_warnoff_advice_2}Call it whatever you like. Just be gone soon.",
+                        "{=lmmi_arrive_warnoff_advice_3}A threat? No. A threat would be more specific."), null);
 
             starter.AddPlayerLine("lmmi_arrive_warnoff_defy", "lmmi_arrive_warnoff_resp", "lmmi_arrive_warnoff_shrug",
                 "{=lmmi_arrive_warnoff_defy}I'll go where I please.", null,
@@ -807,18 +829,25 @@ namespace LessMenusMoreImmersion.Behaviors
                     LmmiLog.Info($"Arrival: you defied {host.Name}'s warning in {host.CurrentSettlement.Name}.");
                 });
             starter.AddDialogLine("lmmi_arrive_warnoff_shrug", "lmmi_arrive_warnoff_shrug", "close_window",
-                "{=lmmi_arrive_warnoff_shrug}Suit yourself.", null, null);
+                "{=!}{LMMI_ARR_SHRUG}",
+                    () => Flavor.Say("LMMI_ARR_SHRUG",
+                        "{=lmmi_arrive_warnoff_shrug}Suit yourself.",
+                        "{=lmmi_arrive_warnoff_shrug_2}Your funeral.",
+                        "{=lmmi_arrive_warnoff_shrug_3}Then don't say no one told you."), null);
         }
 
         private void AddGratitudeDialogs(CampaignGameStarter starter)
         {
             starter.AddDialogLine("lmmi_arrive_thanks", "start", "lmmi_arrive_thanks_resp",
-                "{=lmmi_arrive_thanks}{PLAYER.NAME}! You kept your word — the whole street knows it. It isn't much, but take this for your trouble. {LMMI_GIFT}{GOLD_ICON}.",
+                "{=!}{LMMI_ARR_THANKS}",
                 () =>
                 {
                     if (!IsArrival(ArrivalKind.Gratitude)) return false;
                     MBTextManager.SetTextVariable("LMMI_GIFT", _arrival!.Gold);
-                    return true;
+                    return Flavor.Say("LMMI_ARR_THANKS",
+                        "{=lmmi_arrive_thanks}{PLAYER.NAME}! You kept your word — the whole street knows it. It isn't much, but take this for your trouble. {LMMI_GIFT}{GOLD_ICON}.",
+                        "{=lmmi_arrive_thanks_2}There you are! What you did for me — I haven't forgotten. Here: {LMMI_GIFT}{GOLD_ICON}. Don't argue.",
+                        "{=lmmi_arrive_thanks_3}{PLAYER.NAME}! I'd hoped you'd come back. You kept your word, and I keep mine: {LMMI_GIFT}{GOLD_ICON}, with my thanks.");
                 },
                 () => TownStandingBehavior.Thanked(_arrival!.Host),
                 1100);
@@ -827,7 +856,11 @@ namespace LessMenusMoreImmersion.Behaviors
                 "{=lmmi_arrive_thanks_take}Thank you.", null,
                 () => GiveGift(_arrival!.Host, _arrival.Gold, 1, "thanked you"));
             starter.AddDialogLine("lmmi_arrive_thanks_taken", "lmmi_arrive_thanks_taken", "close_window",
-                "{=lmmi_arrive_thanks_taken}No, thank you. Come by any time.", null, null);
+                "{=!}{LMMI_ARR_TAKEN}",
+                    () => Flavor.Say("LMMI_ARR_TAKEN",
+                        "{=lmmi_arrive_thanks_taken}No, thank you. Come by any time.",
+                        "{=lmmi_arrive_thanks_taken_2}It's the least I could do. Truly.",
+                        "{=lmmi_arrive_thanks_taken_3}Good. Now I can sleep at night."), null);
 
             starter.AddPlayerLine("lmmi_arrive_thanks_refuse", "lmmi_arrive_thanks_resp", "lmmi_arrive_thanks_refused",
                 "{=lmmi_arrive_thanks_refuse}Keep it. I was glad to help.", null,
@@ -837,33 +870,53 @@ namespace LessMenusMoreImmersion.Behaviors
                     LmmiLog.Info($"Arrival: you waved off {_arrival.Host.Name}'s thanks (relation +3).");
                 });
             starter.AddDialogLine("lmmi_arrive_thanks_refused", "lmmi_arrive_thanks_refused", "close_window",
-                "{=lmmi_arrive_thanks_refused}Then I owe you one. I won't forget it.", null, null);
+                "{=!}{LMMI_ARR_REFUSED}",
+                    () => Flavor.Say("LMMI_ARR_REFUSED",
+                        "{=lmmi_arrive_thanks_refused}Then I owe you one. I won't forget it.",
+                        "{=lmmi_arrive_thanks_refused_2}Then the next round's on me, whenever you're in town.",
+                        "{=lmmi_arrive_thanks_refused_3}You're a rare one. I'll not forget it."), null);
         }
 
         private void AddTownsfolkDialogs(CampaignGameStarter starter)
         {
             // ---- The beggar ----
             starter.AddDialogLine("lmmi_arrive_beggar", "start", "lmmi_arrive_beggar_resp",
-                "{=lmmi_arrive_beggar}Spare a coin, {?PLAYER.GENDER}my lady{?}my lord{\\?}? Just a coin. The winter took everything we had.",
-                () => IsTownsfolkArrival(ArrivalKind.Beggar), null, 1100);
+                "{=!}{LMMI_ARR_BEGGAR}",
+                () => IsTownsfolkArrival(ArrivalKind.Beggar) && Flavor.Say("LMMI_ARR_BEGGAR",
+                        "{=lmmi_arrive_beggar}Spare a coin, {?PLAYER.GENDER}my lady{?}my lord{\\?}? Just a coin. The winter took everything we had.",
+                        "{=lmmi_arrive_beggar_2}Alms, {?PLAYER.GENDER}my lady{?}my lord{\\?}? For pity's sake, a coin — my children haven't eaten since yesterday.",
+                        "{=lmmi_arrive_beggar_3}Please, {?PLAYER.GENDER}my lady{?}my lord{\\?}... a soldier's widow... a few coppers, anything.",
+                        "{=lmmi_arrive_beggar_4}A coin for an old soldier? I bled for this town once, and look at me now."), null, 1100);
 
             starter.AddPlayerLine("lmmi_arrive_beggar_coin", "lmmi_arrive_beggar_resp", "lmmi_arrive_beggar_thanks",
                 "{=lmmi_arrive_beggar_coin}Here. [20{GOLD_ICON}]", null, () => Alms(20, 1f),
                 100, (out TextObject why) => CanAfford(20, out why));
             starter.AddDialogLine("lmmi_arrive_beggar_thanks", "lmmi_arrive_beggar_thanks", "close_window",
-                "{=lmmi_arrive_beggar_thanks}Bless you. Bless you.", null, null);
+                "{=!}{LMMI_ARR_BEG_THANKS}",
+                    () => Flavor.Say("LMMI_ARR_BEG_THANKS",
+                        "{=lmmi_arrive_beggar_thanks}Bless you. Bless you.",
+                        "{=lmmi_arrive_beggar_thanks_2}The gods keep you, {?PLAYER.GENDER}my lady{?}my lord{\\?}.",
+                        "{=lmmi_arrive_beggar_thanks_3}Bread tonight. Thank you — thank you."), null);
 
             starter.AddPlayerLine("lmmi_arrive_beggar_purse", "lmmi_arrive_beggar_resp", "lmmi_arrive_beggar_moved",
                 "{=lmmi_arrive_beggar_purse}Take this, and eat well tonight. [100{GOLD_ICON}]", null, () => Alms(100, 2f),
                 100, (out TextObject why) => CanAfford(100, out why));
             starter.AddDialogLine("lmmi_arrive_beggar_moved", "lmmi_arrive_beggar_moved", "close_window",
-                "{=lmmi_arrive_beggar_moved}I... thank you. I'll tell everyone what you did. Everyone.", null, null);
+                "{=!}{LMMI_ARR_BEG_MOVED}",
+                    () => Flavor.Say("LMMI_ARR_BEG_MOVED",
+                        "{=lmmi_arrive_beggar_moved}I... thank you. I'll tell everyone what you did. Everyone.",
+                        "{=lmmi_arrive_beggar_moved_2}This... this is a month of bread. I don't know what to say.",
+                        "{=lmmi_arrive_beggar_moved_3}May every road you take run smooth. Bless you."), null);
 
             starter.AddPlayerLine("lmmi_arrive_beggar_shove", "lmmi_arrive_beggar_resp", "lmmi_arrive_beggar_shoved",
                 "{=lmmi_arrive_beggar_shove}Out of my way.", null,
                 () => TownStandingBehavior.Adjust(Settlement.CurrentSettlement, -1f, "shoved a beggar aside"));
             starter.AddDialogLine("lmmi_arrive_beggar_shoved", "lmmi_arrive_beggar_shoved", "close_window",
-                "{=lmmi_arrive_beggar_shoved}...Yes, {?PLAYER.GENDER}my lady{?}my lord{\\?}.", null, null);
+                "{=!}{LMMI_ARR_BEG_SHOVED}",
+                    () => Flavor.Say("LMMI_ARR_BEG_SHOVED",
+                        "{=lmmi_arrive_beggar_shoved}...Yes, {?PLAYER.GENDER}my lady{?}my lord{\\?}.",
+                        "{=lmmi_arrive_beggar_shoved_2}...Sorry, {?PLAYER.GENDER}my lady{?}my lord{\\?}. Sorry.",
+                        "{=lmmi_arrive_beggar_shoved_3}...As you say. Gods forgive you."), null);
 
             // ---- The heckler: common folk resent your kind too ----
             starter.AddDialogLine("lmmi_arrive_heckler", "start", "lmmi_arrive_heckler_resp",
@@ -886,7 +939,9 @@ namespace LessMenusMoreImmersion.Behaviors
                     float resentment = Math.Max(0f, CultureRelations.Multiplier(settlement?.Culture?.StringId, Hero.MainHero.Culture?.StringId)
                                                     * LmmiSettingsProvider.ForeignerPrejudicePercent / 100f);
                     float standing = TownStandingBehavior.Get(settlement);
-                    var slur = new TextObject("{=lmmi_arrive_heckler_refuses}Keep talking, {LMMI_HECKLE_SLUR}. Everyone's watching.");
+                    var slur = Flavor.Pick("{=lmmi_arrive_heckler_refuses}Keep talking, {LMMI_HECKLE_SLUR}. Everyone's watching.",
+                        "{=lmmi_arrive_heckler_refuses_2}Hah! Hear that? The {LMMI_HECKLE_SLUR} thinks talking will help.",
+                        "{=lmmi_arrive_heckler_refuses_3}Go home, {LMMI_HECKLE_SLUR}. Nobody here's listening.");
                     slur.SetTextVariable("LMMI_HECKLE_SLUR", CultureWords.Slur(Hero.MainHero.Culture));
                     _answerHeckler.Start(new[]
                         {
@@ -897,9 +952,12 @@ namespace LessMenusMoreImmersion.Behaviors
                             NativePersuasion.Argument(DefaultSkills.Charm, DefaultTraits.Mercy,
                                 new TextObject("{=lmmi_arrive_heckler_mercy}What my people did, I didn't. Judge me by what I do here."), listener, resentment, standing),
                         },
-                        new TextObject("{=lmmi_arrive_heckler_opening}Well? Got something to say?"),
-                        new TextObject("{=lmmi_arrive_heckler_again}Is that it?"),
-                        new TextObject("{=lmmi_arrive_heckler_won_over}...Huh. Alright. Maybe you're not like the rest of them."),
+                        Flavor.Pick("{=lmmi_arrive_heckler_opening}Well? Got something to say?", "{=lmmi_arrive_heckler_opening_2}Go on, then. Let's hear it.",
+                            "{=lmmi_arrive_heckler_opening_3}Well? Cat got your tongue, foreigner?"),
+                        Flavor.Pick("{=lmmi_arrive_heckler_again}Is that it?", "{=lmmi_arrive_heckler_again_2}And?", "{=lmmi_arrive_heckler_again_3}That all you've got?"),
+                        Flavor.Pick("{=lmmi_arrive_heckler_won_over}...Huh. Alright. Maybe you're not like the rest of them.",
+                            "{=lmmi_arrive_heckler_won_over_2}...Fine. You've more spine than I thought. The drink's on you, then.",
+                            "{=lmmi_arrive_heckler_won_over_3}Hm. Maybe I spoke too soon. Maybe."),
                         slur,
                         onWon: () => { TownStandingBehavior.Adjust(settlement, 2f, "won over a heckler"); StreetEventsBehavior.MarkGrateful(agent); },
                         onLost: () => TownStandingBehavior.Adjust(settlement, -1f, "a heckler laughed at you"));
@@ -923,20 +981,28 @@ namespace LessMenusMoreImmersion.Behaviors
                                 TownStandingBehavior.Adjust(settlement, -1f, "beat up a heckler");
                                 _readyAtHours["town:" + settlement.StringId + ":" + ArrivalKind.Heckler] =
                                     CampaignTime.Now.ToHours + 30f * CampaignTime.HoursInDay;
-                                InformationManager.DisplayMessage(new InformationMessage(new TextObject(
-                                    "{=lmmi_arrive_heckler_beaten}He stays down. The loudmouths of this town will think twice for a while.").ToString()));
+                                InformationManager.DisplayMessage(new InformationMessage(Flavor.Pick(
+                                    "{=lmmi_arrive_heckler_beaten}He stays down. The loudmouths of this town will think twice for a while.",
+                                    "{=lmmi_arrive_heckler_beaten_2}He doesn't get up. Somebody laughs — but not at you.",
+                                    "{=lmmi_arrive_heckler_beaten_3}He crawls off with a bloody nose. The street goes quiet as you pass.").ToString()));
                             }
                             else
                             {
                                 TownStandingBehavior.Adjust(settlement, -2f, "lost a fight to a heckler");
-                                InformationManager.DisplayMessage(new InformationMessage(new TextObject(
-                                    "{=lmmi_arrive_heckler_lost}He spits on the cobbles next to you as you get up. Half the street saw.").ToString()));
+                                InformationManager.DisplayMessage(new InformationMessage(Flavor.Pick(
+                                    "{=lmmi_arrive_heckler_lost}He spits on the cobbles next to you as you get up. Half the street saw.",
+                                    "{=lmmi_arrive_heckler_lost_2}You pick yourself up to laughter. The whole street saw that.",
+                                    "{=lmmi_arrive_heckler_lost_3}He stands over you, grinning. 'Go home,' he says, and walks off.").ToString()));
                             }
                         });
                     });
                 });
             starter.AddDialogLine("lmmi_arrive_heckler_fight", "lmmi_arrive_heckler_fight", "close_window",
-                "{=lmmi_arrive_heckler_fight}Gladly.", null, null);
+                "{=!}{LMMI_ARR_HECKLE_FIGHT}",
+                    () => Flavor.Say("LMMI_ARR_HECKLE_FIGHT",
+                        "{=lmmi_arrive_heckler_fight}Gladly.",
+                        "{=lmmi_arrive_heckler_fight_2}Happily. Come on, then!",
+                        "{=lmmi_arrive_heckler_fight_3}Ha! I was hoping you'd say that."), null);
 
             starter.AddPlayerLine("lmmi_arrive_heckler_ignore", "lmmi_arrive_heckler_resp", "close_window",
                 "{=lmmi_arrive_heckler_ignore}[Walk past without a word.]", null, null);
@@ -954,11 +1020,15 @@ namespace LessMenusMoreImmersion.Behaviors
                     TextObject why;
                     if (helped != null)
                     {
-                        why = new TextObject("{=lmmi_admire_helped}My cousin says you helped {HELPED}. Around here, that means something.");
+                        why = Flavor.Pick("{=lmmi_admire_helped}My cousin says you helped {HELPED}. Around here, that means something.",
+                            "{=lmmi_admire_helped_2}Everyone's saying you're the one who helped {HELPED}. It's an honor.",
+                            "{=lmmi_admire_helped_3}You helped {HELPED} when nobody else would. We don't forget that here.");
                         why.SetTextVariable("HELPED", helped.Name);
                     }
                     else
-                        why = new TextObject("{=lmmi_admire_roads}They say the roads are safer since you came through. Bless you for it.");
+                        why = Flavor.Pick("{=lmmi_admire_roads}They say the roads are safer since you came through. Bless you for it.",
+                            "{=lmmi_admire_roads_2}My brother drives a cart to market. He says he hasn't been robbed once since you came this way.",
+                            "{=lmmi_admire_roads_3}They sing about you in the taverns now. Well — some of them do.");
                     MBTextManager.SetTextVariable("LMMI_ADMIRE", why);
                     return true;
                 }, null, 1100);
@@ -966,7 +1036,11 @@ namespace LessMenusMoreImmersion.Behaviors
             starter.AddPlayerLine("lmmi_arrive_admirer_thanks", "lmmi_arrive_admirer_resp", "lmmi_arrive_admirer_bye",
                 "{=lmmi_arrive_admirer_thanks}Glad to help.", null, null);
             starter.AddDialogLine("lmmi_arrive_admirer_bye", "lmmi_arrive_admirer_bye", "close_window",
-                "{=lmmi_arrive_admirer_bye}Wait till I tell my wife I spoke to you!", null, null);
+                "{=!}{LMMI_ARR_ADMIRER_BYE}",
+                    () => Flavor.Say("LMMI_ARR_ADMIRER_BYE",
+                        "{=lmmi_arrive_admirer_bye}Wait till I tell my wife I spoke to you!",
+                        "{=lmmi_arrive_admirer_bye_2}I'll tell my children I met you! They'll never believe me.",
+                        "{=lmmi_arrive_admirer_bye_3}The gods keep you on the road!"), null);
         }
 
         private void AddLordDialogs(CampaignGameStarter starter)
@@ -979,13 +1053,22 @@ namespace LessMenusMoreImmersion.Behaviors
                     if (!IsArrival(ArrivalKind.LordSnub)) return false;
                     var lord = _arrival!.Host;
                     TextObject line = NotableDisposition.IsForeigner(lord)
-                        ? new TextObject(MBRandom.RandomFloat < 0.5f
-                            ? "{=lmmi_lord_snub_foreign_1}One hears the lords of {REALM} will receive anyone these days. Even your kind."
-                            : "{=lmmi_lord_snub_foreign_2}Keep your distance, foreigner. This hall is for the nobility of {REALM}.")
-                        : new TextObject(MBRandom.RandomFloat < 0.5f
-                            ? "{=lmmi_lord_snub_nobody_1}And who might you be? No, don't tell me. I'm sure it's of no consequence."
-                            : "{=lmmi_lord_snub_nobody_2}Another petitioner. The steward is over there. Do try not to track mud across the floor.");
+                        ? Flavor.Pick(
+                            "{=lmmi_lord_snub_foreign_1}One hears the lords of {REALM} will receive anyone these days. Even your kind.",
+                            "{=lmmi_lord_snub_foreign_2}Keep your distance, foreigner. This hall is for the nobility of {REALM}.",
+                            "{=lmmi_lord_snub_foreign_3}A {DEMONYM} in the hall. How very... broad-minded of our host.",
+                            "{=lmmi_lord_snub_foreign_4}Did someone leave the gate open? There's a {DEMONYM} in the hall.",
+                            "{=lmmi_lord_snub_foreign_5}The nobility of {REALM} doesn't mix with your sort. Kindly step aside.",
+                            "{=lmmi_lord_snub_foreign_6}Ah. One of those. Do keep your foreign customs to yourself while you're here.")
+                        : Flavor.Pick(
+                            "{=lmmi_lord_snub_nobody_1}And who might you be? No, don't tell me. I'm sure it's of no consequence.",
+                            "{=lmmi_lord_snub_nobody_2}Another petitioner. The steward is over there. Do try not to track mud across the floor.",
+                            "{=lmmi_lord_snub_nobody_3}Is it the cook's day to let in strays? Move along.",
+                            "{=lmmi_lord_snub_nobody_4}You've the look of a hedge-knight and the smell of a stable. Away, please.",
+                            "{=lmmi_lord_snub_nobody_5}I'm sure your name means something to somebody. Not to me.",
+                            "{=lmmi_lord_snub_nobody_6}Mind where you stand. These rugs came from the Empire.");
                     line.SetTextVariable("REALM", Settlement.CurrentSettlement?.MapFaction?.Name ?? TextObject.GetEmpty());
+                    line.SetTextVariable("DEMONYM", CultureWords.Demonym(Hero.MainHero.Culture));
                     MBTextManager.SetTextVariable("LMMI_SNUB", line);
                     return true;
                 }, null, 1100);
@@ -998,32 +1081,49 @@ namespace LessMenusMoreImmersion.Behaviors
                     LmmiLog.Info($"Arrival: you answered {_arrival.Host.Name}'s snub (-2).");
                 });
             starter.AddDialogLine("lmmi_arrive_lord_snub_sneer", "lmmi_arrive_lord_snub_sneer", "close_window",
-                "{=lmmi_arrive_lord_snub_sneer}Or what? Do go on. The whole hall is listening.", null, null);
+                "{=!}{LMMI_ARR_SNEER}",
+                    () => Flavor.Say("LMMI_ARR_SNEER",
+                        "{=lmmi_arrive_lord_snub_sneer}Or what? Do go on. The whole hall is listening.",
+                        "{=lmmi_arrive_lord_snub_sneer_2}Bold words, from someone nobody's heard of.",
+                        "{=lmmi_arrive_lord_snub_sneer_3}Ha! Did you hear that? It barks."), null);
 
             starter.AddPlayerLine("lmmi_arrive_lord_snub_bow", "lmmi_arrive_lord_snub_resp", "close_window",
                 "{=lmmi_arrive_lord_snub_bow}[Incline your head slightly and move on.]", null, null);
 
             // ---- The flatterer ----
             starter.AddDialogLine("lmmi_arrive_lord_flatter", "start", "lmmi_arrive_lord_flatter_resp",
-                "{=lmmi_arrive_lord_flatter}{PLAYER.NAME}! A pleasure, a true pleasure. You simply must come hunting with my family, when the wars allow.",
-                () => IsArrival(ArrivalKind.LordFlatter), null, 1100);
+                "{=!}{LMMI_ARR_FLATTER}",
+                () => IsArrival(ArrivalKind.LordFlatter) && Flavor.Say("LMMI_ARR_FLATTER",
+                        "{=lmmi_arrive_lord_flatter}{PLAYER.NAME}! A pleasure, a true pleasure. You simply must come hunting with my family, when the wars allow.",
+                        "{=lmmi_arrive_lord_flatter_2}{PLAYER.NAME}! What luck. My family talks of nothing but your victories — you must dine with us when you can.",
+                        "{=lmmi_arrive_lord_flatter_3}The famous {PLAYER.NAME}, in this very hall! You must let me introduce you to my cousins. All of them."), null, 1100);
             starter.AddPlayerLine("lmmi_arrive_lord_flatter_yes", "lmmi_arrive_lord_flatter_resp", "lmmi_arrive_lord_flatter_bye",
                 "{=lmmi_arrive_lord_flatter_yes}Perhaps I will.", null,
                 () => ChangeRelationAction.ApplyPlayerRelation(_arrival!.Host, 1, affectRelatives: false));
             starter.AddDialogLine("lmmi_arrive_lord_flatter_bye", "lmmi_arrive_lord_flatter_bye", "close_window",
-                "{=lmmi_arrive_lord_flatter_bye}Splendid! I shall hold you to it.", null, null);
+                "{=!}{LMMI_ARR_FLATTER_BYE}",
+                    () => Flavor.Say("LMMI_ARR_FLATTER_BYE",
+                        "{=lmmi_arrive_lord_flatter_bye}Splendid! I shall hold you to it.",
+                        "{=lmmi_arrive_lord_flatter_bye_2}Marvelous! I'll have the hounds ready.",
+                        "{=lmmi_arrive_lord_flatter_bye_3}Wonderful, wonderful. Do give my regards to your house."), null);
             starter.AddPlayerLine("lmmi_arrive_lord_flatter_cool", "lmmi_arrive_lord_flatter_resp", "close_window",
                 "{=lmmi_arrive_lord_flatter_cool}[Nod politely and say nothing.]", null, null);
 
             // ---- A genuine friend ----
             starter.AddDialogLine("lmmi_arrive_lord_respect", "start", "lmmi_arrive_lord_respect_resp",
-                "{=lmmi_arrive_lord_respect}{PLAYER.NAME}. Good. There are few faces in this hall I'm glad to see.",
-                () => IsArrival(ArrivalKind.LordRespect), null, 1100);
+                "{=!}{LMMI_ARR_RESPECT}",
+                () => IsArrival(ArrivalKind.LordRespect) && Flavor.Say("LMMI_ARR_RESPECT",
+                        "{=lmmi_arrive_lord_respect}{PLAYER.NAME}. Good. There are few faces in this hall I'm glad to see.",
+                        "{=lmmi_arrive_lord_respect_2}{PLAYER.NAME}. At last — someone worth talking to.",
+                        "{=lmmi_arrive_lord_respect_3}There you are. Come, stand with me a while; the rest of this hall can wait."), null, 1100);
             starter.AddPlayerLine("lmmi_arrive_lord_respect_same", "lmmi_arrive_lord_respect_resp", "lmmi_arrive_lord_respect_dine",
                 "{=lmmi_arrive_lord_respect_same}The feeling is mutual.", null, null);
             starter.AddDialogLine("lmmi_arrive_lord_respect_dine", "lmmi_arrive_lord_respect_dine", "lmmi_arrive_lord_dine_resp",
-                "{=lmmi_arrive_lord_respect_dine}Stay and dine with us tonight. The hall could use better company than it's been getting.",
-                () => !FeastBehavior.IsBusy, null);
+                "{=!}{LMMI_ARR_DINE}",
+                () => !FeastBehavior.IsBusy && Flavor.Say("LMMI_ARR_DINE",
+                        "{=lmmi_arrive_lord_respect_dine}Stay and dine with us tonight. The hall could use better company than it's been getting.",
+                        "{=lmmi_arrive_lord_respect_dine_2}You'll stay for dinner. No — I insist. I'll have them set another place.",
+                        "{=lmmi_arrive_lord_respect_dine_3}Eat with us tonight. I've had enough of flatterers for one week."), null);
             starter.AddPlayerLine("lmmi_arrive_lord_dine_yes", "lmmi_arrive_lord_dine_resp", "lmmi_arrive_lord_dine_done",
                 "{=lmmi_arrive_lord_dine_yes}I'd be glad to.", null,
                 () =>
@@ -1033,11 +1133,19 @@ namespace LessMenusMoreImmersion.Behaviors
                     if (host != null && agent != null) FeastBehavior.Begin(host, agent);
                 });
             starter.AddDialogLine("lmmi_arrive_lord_dine_done", "lmmi_arrive_lord_dine_done", "close_window",
-                "{=lmmi_arrive_lord_dine_done}Good. Sit by me.", null, null);
+                "{=!}{LMMI_ARR_DINE_DONE}",
+                    () => Flavor.Say("LMMI_ARR_DINE_DONE",
+                        "{=lmmi_arrive_lord_dine_done}Good. Sit by me.",
+                        "{=lmmi_arrive_lord_dine_done_2}Good! Sit by me, and we'll drink to old times.",
+                        "{=lmmi_arrive_lord_dine_done_3}Excellent. You'll have the seat beside mine."), null);
             starter.AddPlayerLine("lmmi_arrive_lord_dine_no", "lmmi_arrive_lord_dine_resp", "lmmi_arrive_lord_respect_bye",
                 "{=lmmi_arrive_lord_dine_no}Another night, perhaps.", null, null);
             starter.AddDialogLine("lmmi_arrive_lord_respect_bye", "lmmi_arrive_lord_respect_bye", "close_window",
-                "{=lmmi_arrive_lord_respect_bye}Find me later. We'll talk properly, away from all these ears.", null, null);
+                "{=!}{LMMI_ARR_RESPECT_BYE}",
+                    () => Flavor.Say("LMMI_ARR_RESPECT_BYE",
+                        "{=lmmi_arrive_lord_respect_bye}Find me later. We'll talk properly, away from all these ears.",
+                        "{=lmmi_arrive_lord_respect_bye_2}Another time, then. My door's open to you.",
+                        "{=lmmi_arrive_lord_respect_bye_3}A pity. Find me before you leave town — there's much to talk about."), null);
         }
 
         private static bool CanAfford(int gold, out TextObject why)
