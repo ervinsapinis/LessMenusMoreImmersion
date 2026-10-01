@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LessMenusMoreImmersion.Contacts;
 using LessMenusMoreImmersion.Logging;
 using SandBox;
 using SandBox.Missions.AgentBehaviors;
@@ -175,9 +176,13 @@ namespace LessMenusMoreImmersion.Behaviors
                 sc.Then = () =>
                 {
                     if (talker != null && talker.IsActive())
-                        Bark(talker, new TextObject(yourMen
-                            ? "{=lmmi_village_harvest_men_grumble}Signed on to fight, I did. Not to cut somebody's barley..."
-                            : "{=lmmi_village_harvest_work_tip}Keep the blade low and let it swing — that's it! We'll make a farmer of you yet."));
+                        Bark(talker, (yourMen
+                            ? Flavor.Pick("{=lmmi_village_harvest_men_grumble}Signed on to fight, I did. Not to cut somebody's barley...",
+                            "{=lmmi_village_harvest_men_grumble_2}Swinging a scythe for some farmer. This isn't soldiering.",
+                            "{=lmmi_village_harvest_men_grumble_3}My back's going to hate me tomorrow. Some captain.")
+                            : Flavor.Pick("{=lmmi_village_harvest_work_tip}Keep the blade low and let it swing — that's it! We'll make a farmer of you yet.",
+                            "{=lmmi_village_harvest_work_tip_2}Long, low swings — let the blade do the work! There you go!",
+                            "{=lmmi_village_harvest_work_tip_3}Not bad! You'll have calluses by tonight, mind.")));
                     sc.ThenAt = _sceneTime + Math.Max(1f, seconds - 3f);
                     sc.Then = () =>
                     {
@@ -395,7 +400,9 @@ namespace LessMenusMoreImmersion.Behaviors
             if (sc.Settlement.Village != null) sc.Settlement.Village.Hearth += 1f;
             MarkGrateful(sc.Requester);
             foreach (var a in sc.Actors) MarkGrateful(a);
-            var msg = new TextObject("{=lmmi_village_harvest_done}You work the fields until your back aches and the first drops fall. The {CROP} is in. They press {BAGS} sacks of it on you, and won't hear a refusal.");
+            var msg = Flavor.Pick("{=lmmi_village_harvest_done}You work the fields until your back aches and the first drops fall. The {CROP} is in. They press {BAGS} sacks of it on you, and won't hear a refusal.",
+                    "{=lmmi_village_harvest_done_2}The rain comes just as the last sheaf is in. They load you with {BAGS} sacks of {CROP} and won't take no for an answer.",
+                    "{=lmmi_village_harvest_done_3}Bent backs and sore hands, but the {CROP} is in before the storm. They give you {BAGS} sacks, with thanks.");
             msg.SetTextVariable("CROP", crop?.Name ?? TextObject.GetEmpty());
             msg.SetTextVariable("BAGS", bags);
             InformationManager.DisplayMessage(new InformationMessage(msg.ToString(), Colors.Green));

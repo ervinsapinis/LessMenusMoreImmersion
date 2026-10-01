@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LessMenusMoreImmersion.Contacts;
 using LessMenusMoreImmersion.Logging;
 using LessMenusMoreImmersion.Settings;
 using SandBox.Missions.MissionLogics;
@@ -144,7 +145,9 @@ namespace LessMenusMoreImmersion.Behaviors
                 ScreenFadeController.BeginFadeIn(0.8f);
                 _faded = false;
                 var lead = looters.FirstOrDefault(l => l.IsActive());
-                if (lead != null) Bark(lead, new TextObject("{=lmmi_village_raiders_men_standoff}Soldiers? ...Hold your ground, lads. They're only farm-boys in mail."));
+                if (lead != null) Bark(lead, Flavor.Pick("{=lmmi_village_raiders_men_standoff}Soldiers? ...Hold your ground, lads. They're only farm-boys in mail.",
+                        "{=lmmi_village_raiders_men_standoff_2}Soldiers... Steady, lads. Don't run yet.",
+                        "{=lmmi_village_raiders_men_standoff_3}Look sharp — they've brought soldiers! Hold!"));
                 sc.ThenAt = _sceneTime + 2.5f;
                 sc.Then = () => StartMenFight(sc, fight);
             };
@@ -171,7 +174,9 @@ namespace LessMenusMoreImmersion.Behaviors
             fight.Started = true;
             // Join in if you like: hurt, beaten down, never killed (HiredBeatDownPatch; Immortal would zero all damage).
             HiredBeatDownPatch.Guarded = main;
-            Bark(men[0], new TextObject("{=lmmi_village_raiders_men_go}You heard {?PLAYER.GENDER}her{?}him{\\?}, lads — run them off!"));
+            Bark(men[0], Flavor.Pick("{=lmmi_village_raiders_men_go}You heard {?PLAYER.GENDER}her{?}him{\\?}, lads — run them off!",
+                        "{=lmmi_village_raiders_men_go_2}At them, lads! Run them off!",
+                        "{=lmmi_village_raiders_men_go_3}Go! Drive them out of the fields!"));
             LmmiLog.Info($"Street: your {men.Count} men go at {looters.Count} looter(s).");
             try
             {
@@ -239,9 +244,13 @@ namespace LessMenusMoreImmersion.Behaviors
             // Your men walk back to the column.
             if (survivors.Count > 0)
             {
-                Bark(survivors[MBRandom.RandomInt(survivors.Count)], new TextObject(won
-                    ? "{=lmmi_village_raiders_men_back}They won't be back, captain. Not these ones."
-                    : "{=lmmi_village_raiders_men_beaten}...There were more of them than we reckoned, captain."));
+                Bark(survivors[MBRandom.RandomInt(survivors.Count)], (won
+                    ? Flavor.Pick("{=lmmi_village_raiders_men_back}They won't be back, captain. Not these ones.",
+                        "{=lmmi_village_raiders_men_back_2}That's the last we'll see of them, captain.",
+                        "{=lmmi_village_raiders_men_back_3}Sent them packing, captain. They won't be back.")
+                    : Flavor.Pick("{=lmmi_village_raiders_men_beaten}...There were more of them than we reckoned, captain.",
+                        "{=lmmi_village_raiders_men_beaten_2}...They were tougher than they looked, captain.",
+                        "{=lmmi_village_raiders_men_beaten_3}...Sorry, captain. They had too many.")));
                 var march = new MarchOff(survivors);
                 _aftermaths.Add(march);
                 march.StartedAt = _sceneTime;
@@ -257,12 +266,14 @@ namespace LessMenusMoreImmersion.Behaviors
                 if (MBRandom.RandomFloat < SheepLostOnWinChance)
                 {
                     if (village != null) village.Hearth = Math.Max(0f, village.Hearth - 1f);
-                    Say("{=lmmi_village_raiders_men_sheep}Your men run the looters off — but a couple of sheep went over the hill with them.");
+                    Say("{=lmmi_village_raiders_men_sheep}Your men run the looters off — but a couple of sheep went over the hill with them.",
+                    "{=lmmi_village_raiders_men_sheep_2}Your men chase off the looters — but a few sheep are lost in the scramble.",
+                    "{=lmmi_village_raiders_men_sheep_3}The looters flee, taking a sheep or two with them.");
                 }
                 else
                 {
                     if (village != null) village.Hearth += 1f;
-                    Say("{=lmmi_village_raiders_men_done}Your men run the looters out past the last field. The flock comes home.");
+                    Say("{=lmmi_village_raiders_men_done}Your men run the looters out past the last field. The flock comes home.", "{=lmmi_village_raiders_men_done_2}Your men drive the looters off. Every sheep comes home.", "{=lmmi_village_raiders_men_done_3}The looters scatter before your men. The flock is safe.");
                 }
                 Thank(sc, sc.Requester, "raiders_men");
                 return;
@@ -272,7 +283,9 @@ namespace LessMenusMoreImmersion.Behaviors
             foreach (var notable in sc.Settlement.Notables.Where(n => n.IsAlive).ToList())
                 ChangeRelationAction.ApplyPlayerRelation(notable, -3, affectRelatives: false, showQuickNotification: true);
             if (village != null) village.Hearth = Math.Max(0f, village.Hearth - 5f);
-            Say("{=lmmi_village_raiders_men_lost}The looters see your men off — and half the flock goes with them.");
+            Say("{=lmmi_village_raiders_men_lost}The looters see your men off — and half the flock goes with them.",
+                    "{=lmmi_village_raiders_men_lost_2}Your men are beaten back. The looters make off with half the flock.",
+                    "{=lmmi_village_raiders_men_lost_3}The looters drive your men off — and half the sheep with them.");
             var morale = new TextObject("{=lmmi_village_raiders_men_lost_morale}Beaten by looters. Your men won't hear the end of it. (Morale -{MORALE})");
             morale.SetTextVariable("MORALE", (int)MenLostMoraleCost);
             InformationManager.DisplayMessage(new InformationMessage(morale.ToString(), Colors.Red));
@@ -286,7 +299,7 @@ namespace LessMenusMoreImmersion.Behaviors
             foreach (var a in sc.Actors.Where(x => x.IsActive())) a.FadeOut(true, true);
             SteppedUp(sc, 3f, "sent your men after looters");
             Headman(sc, 1);
-            Say("{=lmmi_village_raiders_men_done}Your men run the looters out past the last field. The flock comes home.");
+            Say("{=lmmi_village_raiders_men_done}Your men run the looters out past the last field. The flock comes home.", "{=lmmi_village_raiders_men_done_2}Your men drive the looters off. Every sheep comes home.", "{=lmmi_village_raiders_men_done_3}The looters scatter before your men. The flock is safe.");
             MarkGrateful(sc.Requester);
             sc.Outcome = "your men saw to it";
             Finish(sc);

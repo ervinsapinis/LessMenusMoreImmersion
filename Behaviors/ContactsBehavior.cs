@@ -135,7 +135,11 @@ namespace LessMenusMoreImmersion.Behaviors
             starter.AddPlayerLine("lmmi_favor_nevermind", "lmmi_favor_list", "lmmi_favor_nevermind_resp",
                 "{=lmmi_favor_nevermind}Never mind.", null, null);
             starter.AddDialogLine("lmmi_favor_nevermind_resp", "lmmi_favor_nevermind_resp", "hero_main_options",
-                "{=lmmi_favor_nevermind_resp}As you wish.", null, null);
+                "{=!}{LMMI_FAVOR_NEVERMIND}",
+                    () => Flavor.Say("LMMI_FAVOR_NEVERMIND",
+                        "{=lmmi_favor_nevermind_resp}As you wish.",
+                        "{=lmmi_favor_nevermind_resp_2}Suit yourself.",
+                        "{=lmmi_favor_nevermind_resp_3}Another time, then."), null);
         }
 
         /// <summary>
@@ -225,7 +229,11 @@ namespace LessMenusMoreImmersion.Behaviors
                 (out TextObject explanation) => CanVouch(out explanation));
 
             starter.AddDialogLine("lmmi_vouch_who", "lmmi_vouch_who", "lmmi_vouch_pick",
-                "{=lmmi_vouch_who}With whom?", null, null);
+                "{=!}{LMMI_VOUCH_WHO}",
+                    () => Flavor.Say("LMMI_VOUCH_WHO",
+                        "{=lmmi_vouch_who}With whom?",
+                        "{=lmmi_vouch_who_2}Whom do you have in mind?",
+                        "{=lmmi_vouch_who_3}Who needs convincing?"), null);
 
             starter.AddRepeatablePlayerLine("lmmi_vouch_pick", "lmmi_vouch_pick", "lmmi_vouch_result",
                 "{=lmmi_vouch_pick}{VOUCH_TARGET.NAME} ({VOUCH_ROLE})", "{=lmmi_vouch_other}Someone else.", "lmmi_vouch_who",
@@ -300,7 +308,9 @@ namespace LessMenusMoreImmersion.Behaviors
             if (ties < 0)
             {
                 // Rivals: the town's feuds become readable, and asking costs nothing.
-                reply = new TextObject("{=lmmi_vouch_rivals}{TARGET}? My word would do you more harm than good. We don't get along.");
+                reply = Flavor.Pick("{=lmmi_vouch_rivals}{TARGET}? My word would do you more harm than good. We don't get along.",
+                        "{=lmmi_vouch_rivals_2}{TARGET}? We can't stand each other. My good word would sink you.",
+                        "{=lmmi_vouch_rivals_3}Not {TARGET}. A word from me would only make it worse.");
                 LmmiLog.Info($"Vouch refused: {voucher.Name} and {target.Name} are on bad terms ({ties}).");
             }
             else
@@ -313,7 +323,9 @@ namespace LessMenusMoreImmersion.Behaviors
                 float cooldownDays = VouchCooldownDays * LmmiSettingsProvider.FavorCooldownPercent / 100f;
                 _readyAtHours[voucher.StringId + "|vouch"] = CampaignTime.Now.ToHours + cooldownDays * CampaignTime.HoursInDay;
 
-                reply = new TextObject("{=lmmi_vouch_done}I'll have a word with {TARGET}. After that, they'll at least hear you out.");
+                reply = Flavor.Pick("{=lmmi_vouch_done}I'll have a word with {TARGET}. After that, they'll at least hear you out.",
+                        "{=lmmi_vouch_done_2}I'll speak to {TARGET}. They'll listen to you after that.",
+                        "{=lmmi_vouch_done_3}Leave {TARGET} to me. Expect a warmer welcome.");
                 LmmiLog.Info($"Vouch: {voucher.Name} vouched for the player with {target.Name} (ties {ties}, relation +{boost}, voucher -{VouchCost}).");
             }
 
@@ -416,7 +428,9 @@ namespace LessMenusMoreImmersion.Behaviors
             catch (Exception ex)
             {
                 LmmiLog.Error($"Favor '{favor.Id}' threw for {notable.Name}", ex);
-                outcome = new FavorOutcome(false, new TextObject("{=lmmi_favor_failed}Hm. Ask me another time."));
+                outcome = new FavorOutcome(false, Flavor.Pick("{=lmmi_favor_failed}Hm. Ask me another time.",
+                        "{=lmmi_favor_failed_2}Not today. Maybe another time.",
+                        "{=lmmi_favor_failed_3}It didn't come together. Try again later."));
             }
 
             MBTextManager.SetTextVariable("LMMI_FAVOR_REPLY", outcome.Reply);
@@ -484,16 +498,24 @@ namespace LessMenusMoreImmersion.Behaviors
                 return VoiceLines.Pick("open_wary_foreign", hero).ToString();
 
             if (evaluation.IsSycophant)
-                return new TextObject("{=lmmi_favor_open_sycophant}You honor me, {?PLAYER.GENDER}my lady{?}my lord{\\?}! Whatever you need, it's yours.").ToString();
+                return Flavor.Pick("{=lmmi_favor_open_sycophant}You honor me, {?PLAYER.GENDER}my lady{?}my lord{\\?}! Whatever you need, it's yours.",
+                        "{=lmmi_favor_open_sycophant_2}For you, {?PLAYER.GENDER}my lady{?}my lord{\\?}? Anything! Name it!",
+                        "{=lmmi_favor_open_sycophant_3}Command me, {?PLAYER.GENDER}my lady{?}my lord{\\?}. What would you have?").ToString();
 
             switch (evaluation.Level)
             {
                 case Disposition.Wary:
-                    return new TextObject("{=lmmi_favor_open_wary}Favors cost coin, stranger. What is it?").ToString();
+                    return Flavor.Pick("{=lmmi_favor_open_wary}Favors cost coin, stranger. What is it?",
+                        "{=lmmi_favor_open_wary_2}It'll cost you. What do you need?",
+                        "{=lmmi_favor_open_wary_3}Nothing's free. Go on — what is it?").ToString();
                 case Disposition.Trusted:
-                    return new TextObject("{=lmmi_favor_open_trusted}You've earned a few favors. What do you need?").ToString();
+                    return Flavor.Pick("{=lmmi_favor_open_trusted}You've earned a few favors. What do you need?",
+                        "{=lmmi_favor_open_trusted_2}For you? Of course. What is it?",
+                        "{=lmmi_favor_open_trusted_3}Ask. I owe you that much.").ToString();
                 default:
-                    return new TextObject("{=lmmi_favor_open_friendly}For you? Let's hear it.").ToString();
+                    return Flavor.Pick("{=lmmi_favor_open_friendly}For you? Let's hear it.",
+                        "{=lmmi_favor_open_friendly_2}Go on, ask.",
+                        "{=lmmi_favor_open_friendly_3}What can I do for you?").ToString();
             }
         }
 

@@ -96,7 +96,9 @@ namespace LessMenusMoreImmersion.Behaviors
             {
                 LmmiLog.Info($"Purse: a cutpurse of {boss.Name}'s tried you in {town.Name}, but your Roguery ({roguery}) caught it.");
                 InformationManager.DisplayMessage(new InformationMessage(
-                    new TextObject("{=lmmi_purse_caught}A hand slid toward your purse in the tavern district. You caught the wrist before it got there.").ToString()));
+                    Flavor.Pick("{=lmmi_purse_caught}A hand slid toward your purse in the tavern district. You caught the wrist before it got there.",
+                        "{=lmmi_purse_caught_2}Fingers brush your belt in the tavern crowd. You grab the wrist — the cutpurse wrenches free and vanishes.",
+                        "{=lmmi_purse_caught_3}You feel a tug at your purse. You turn just in time; the thief melts into the crowd.").ToString()));
                 SetCooldown("purse:" + town.StringId, PurseCooldownDays);
                 return;
             }
@@ -107,7 +109,9 @@ namespace LessMenusMoreImmersion.Behaviors
             GiveGoldAction.ApplyBetweenCharacters(Hero.MainHero, boss, stolen, disableNotification: true);
             SetCooldown("purse:" + town.StringId, PurseCooldownDays);
 
-            var msg = new TextObject("{=lmmi_purse_lifted}Your purse feels lighter. Somewhere in {TOWN}'s tavern district, someone had quick fingers: {GOLD}{GOLD_ICON} gone.");
+            var msg = Flavor.Pick("{=lmmi_purse_lifted}Your purse feels lighter. Somewhere in {TOWN}'s tavern district, someone had quick fingers: {GOLD}{GOLD_ICON} gone.",
+                    "{=lmmi_purse_lifted_2}Your purse is lighter. Someone in {TOWN}'s tavern district has nimble fingers.",
+                    "{=lmmi_purse_lifted_3}You reach for your purse and find it slit open. Somewhere in {TOWN}, a cutpurse is drinking well tonight.");
             msg.SetTextVariable("TOWN", town.Name);
             msg.SetTextVariable("GOLD", stolen);
             InformationManager.DisplayMessage(new InformationMessage(msg.ToString(), Colors.Red));
@@ -210,13 +214,19 @@ namespace LessMenusMoreImmersion.Behaviors
             switch (t.Why)
             {
                 case Reason.Debt:
-                    line = new TextObject("{=lmmi_thugs_threat_debt}{NAME} wants the coin you owe. All of it, with interest — and if you can't pay, we take it out of your hide.");
+                    line = Flavor.Pick("{=lmmi_thugs_threat_debt}{NAME} wants the coin you owe. All of it, with interest — and if you can't pay, we take it out of your hide.",
+                        "{=lmmi_thugs_threat_debt_2}{NAME} wants paying, with interest. Hand it over, or we take it out of your hide.",
+                        "{=lmmi_thugs_threat_debt_3}You owe {NAME}. We're here to collect — coin or blood, your choice.");
                     break;
                 case Reason.Defied:
-                    line = new TextObject("{=lmmi_thugs_threat_defied}{NAME} told you to finish your business and leave. You should have listened.");
+                    line = Flavor.Pick("{=lmmi_thugs_threat_defied}{NAME} told you to finish your business and leave. You should have listened.",
+                        "{=lmmi_thugs_threat_defied_2}{NAME} warned you to leave. You didn't listen. Now you'll learn.",
+                        "{=lmmi_thugs_threat_defied_3}You were told to clear off by {NAME}. You should have.");
                     break;
                 default:
-                    line = new TextObject("{=lmmi_thugs_threat_grudge}{NAME} sends regards. Hand over your purse, and maybe we let you walk.");
+                    line = Flavor.Pick("{=lmmi_thugs_threat_grudge}{NAME} sends regards. Hand over your purse, and maybe we let you walk.",
+                        "{=lmmi_thugs_threat_grudge_2}{NAME} hasn't forgotten you. Your purse, and maybe we leave you standing.",
+                        "{=lmmi_thugs_threat_grudge_3}Compliments of {NAME}. Empty your pockets.");
                     break;
             }
             line.SetTextVariable("NAME", sender?.Name ?? new TextObject("{=lmmi_thugs_someone}Someone you crossed"));

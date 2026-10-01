@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using LessMenusMoreImmersion.Contacts;
 using LessMenusMoreImmersion.Logging;
 using LessMenusMoreImmersion.Settings;
 using TaleWorlds.CampaignSystem;
@@ -169,13 +170,23 @@ namespace LessMenusMoreImmersion.Behaviors
                 if (settlement.OwnerClan == Clan.PlayerClan) return;   // your own: they know you
                 var band = Band(settlement);
                 if (band == StandingBand.Unknown) return;
-                var line = new TextObject(band switch
+                var line = (band switch
                 {
-                    StandingBand.Honored => "{=lmmi_standing_enter_honored}In {SETTLEMENT}, people stop to greet you by name. You're honored here.",
-                    StandingBand.Respected => "{=lmmi_standing_enter_respected}Your name is well spoken of in {SETTLEMENT}.",
-                    StandingBand.Known => "{=lmmi_standing_enter_known}In {SETTLEMENT}, a few faces turn your way — they've heard of you.",
-                    StandingBand.Disliked => "{=lmmi_standing_enter_disliked}Muttering follows you through the gates of {SETTLEMENT}.",
-                    _ => "{=lmmi_standing_enter_despised}In {SETTLEMENT}, doors close as you pass. They know what you've done here.",
+                    StandingBand.Honored => Flavor.Pick("{=lmmi_standing_enter_honored}In {SETTLEMENT}, people stop to greet you by name. You're honored here.",
+                        "{=lmmi_standing_enter_honored_2}In {SETTLEMENT}, children run to see you pass. You're honored here.",
+                        "{=lmmi_standing_enter_honored_3}{SETTLEMENT} greets you like one of its own. You're honored here."),
+                    StandingBand.Respected => Flavor.Pick("{=lmmi_standing_enter_respected}Your name is well spoken of in {SETTLEMENT}.",
+                        "{=lmmi_standing_enter_respected_2}People nod to you in {SETTLEMENT}. Your name carries weight here.",
+                        "{=lmmi_standing_enter_respected_3}In {SETTLEMENT} they speak well of you."),
+                    StandingBand.Known => Flavor.Pick("{=lmmi_standing_enter_known}In {SETTLEMENT}, a few faces turn your way — they've heard of you.",
+                        "{=lmmi_standing_enter_known_2}A few people in {SETTLEMENT} seem to know your face.",
+                        "{=lmmi_standing_enter_known_3}Your name's getting around in {SETTLEMENT}."),
+                    StandingBand.Disliked => Flavor.Pick("{=lmmi_standing_enter_disliked}Muttering follows you through the gates of {SETTLEMENT}.",
+                        "{=lmmi_standing_enter_disliked_2}Cold looks greet you in {SETTLEMENT}.",
+                        "{=lmmi_standing_enter_disliked_3}People mutter as you ride into {SETTLEMENT}."),
+                    _ => Flavor.Pick("{=lmmi_standing_enter_despised}In {SETTLEMENT}, doors close as you pass. They know what you've done here.",
+                        "{=lmmi_standing_enter_despised_2}{SETTLEMENT} hates you. Shutters bang closed as you pass.",
+                        "{=lmmi_standing_enter_despised_3}Spit lands near your boots as you enter {SETTLEMENT}. They haven't forgotten."),
                 });
                 line.SetTextVariable("SETTLEMENT", settlement.Name);
                 InformationManager.DisplayMessage(new InformationMessage(line.ToString(),
@@ -199,9 +210,13 @@ namespace LessMenusMoreImmersion.Behaviors
                     if (delta == 0) continue;
                     if (delta > 0 && lord.GetRelationWithPlayer() >= 30f) continue;
                     ChangeRelationAction.ApplyPlayerRelation(lord, delta, affectRelatives: false, showQuickNotification: false);
-                    var msg = new TaleWorlds.Localization.TextObject(delta > 0
-                        ? "{=lmmi_standing_lord_up}Word of how {SETTLEMENT} speaks of you has reached {LORD}."
-                        : "{=lmmi_standing_lord_down}{LORD} has heard what {SETTLEMENT} thinks of you.");
+                    var msg = (delta > 0
+                        ? Flavor.Pick("{=lmmi_standing_lord_up}Word of how {SETTLEMENT} speaks of you has reached {LORD}.",
+                        "{=lmmi_standing_lord_up_2}{LORD} has heard how {SETTLEMENT} speaks of you.",
+                        "{=lmmi_standing_lord_up_3}{SETTLEMENT}'s good opinion of you has reached {LORD}.")
+                        : Flavor.Pick("{=lmmi_standing_lord_down}{LORD} has heard what {SETTLEMENT} thinks of you.",
+                        "{=lmmi_standing_lord_down_2}{SETTLEMENT}'s grumbling about you has reached {LORD}.",
+                        "{=lmmi_standing_lord_down_3}{LORD} has heard the complaints from {SETTLEMENT}."));
                     msg.SetTextVariable("SETTLEMENT", settlement.Name);
                     msg.SetTextVariable("LORD", lord.Name);
                     InformationManager.DisplayMessage(new InformationMessage(msg.ToString(), delta > 0 ? Colors.Green : Colors.Red));
@@ -223,9 +238,13 @@ namespace LessMenusMoreImmersion.Behaviors
             if (after != before && settlement.OwnerClan != Clan.PlayerClan)
             {
                 // Crossing a line: they speak of you differently now.
-                var msg = new TaleWorlds.Localization.TextObject(after > before
-                    ? "{=lmmi_standing_band_up}Word gets around {SETTLEMENT}: you're {BAND} there now."
-                    : "{=lmmi_standing_band_down}Word gets around {SETTLEMENT}, and not kindly: you're {BAND} there now.");
+                var msg = (after > before
+                    ? Flavor.Pick("{=lmmi_standing_band_up}Word gets around {SETTLEMENT}: you're {BAND} there now.",
+                        "{=lmmi_standing_band_up_2}{SETTLEMENT} is talking about you: you're {BAND} there now.",
+                        "{=lmmi_standing_band_up_3}Your name's rising in {SETTLEMENT}. You're {BAND} there now.")
+                    : Flavor.Pick("{=lmmi_standing_band_down}Word gets around {SETTLEMENT}, and not kindly: you're {BAND} there now.",
+                        "{=lmmi_standing_band_down_2}{SETTLEMENT} has turned against you: you're {BAND} there now.",
+                        "{=lmmi_standing_band_down_3}Your name's sinking in {SETTLEMENT}. You're {BAND} there now."));
                 msg.SetTextVariable("SETTLEMENT", settlement.Name);
                 msg.SetTextVariable("BAND", BandName(after));
                 InformationManager.DisplayMessage(new InformationMessage(msg.ToString(), after > before ? Colors.Green : Colors.Red));

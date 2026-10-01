@@ -89,11 +89,15 @@ namespace LessMenusMoreImmersion.Behaviors
                         TextObject line;
                         if (NotableDisposition.IsForeigner(n))
                         {
-                            line = new TextObject("{=lmmi_issue_distrust_foreign}Help? From a {DEMONYM}? I don't trust your kind with my affairs. Why should I trust you?");
+                            line = Flavor.Pick("{=lmmi_issue_distrust_foreign}Help? From a {DEMONYM}? I don't trust your kind with my affairs. Why should I trust you?",
+                                "{=lmmi_issue_distrust_foreign_2}You, a {DEMONYM}, help me? I'd sooner trust a wolf with my sheep.",
+                                "{=lmmi_issue_distrust_foreign_3}My troubles are my own. I don't hand them to {DEMONYM} strangers.");
                             line.SetTextVariable("DEMONYM", CultureWords.Demonym(Hero.MainHero.Culture));
                         }
                         else
-                            line = new TextObject("{=lmmi_issue_distrust_nobody}Help? From some nobody off the road? I don't hand my troubles to strangers. Why should I trust you?");
+                            line = Flavor.Pick("{=lmmi_issue_distrust_nobody}Help? From some nobody off the road? I don't hand my troubles to strangers. Why should I trust you?",
+                                "{=lmmi_issue_distrust_nobody_2}Help? From a nobody? Come back when people know your name.",
+                                "{=lmmi_issue_distrust_nobody_3}I don't trust my problems to strangers off the road.");
                         MBTextManager.SetTextVariable("LMMI_DISTRUST", line);
                         return true;
                     },
@@ -135,10 +139,18 @@ namespace LessMenusMoreImmersion.Behaviors
 
             var id = n.StringId;
             _persuasion.Start(arguments,
-                new TextObject("{=lmmi_plea_opening}Go on, then. Convince me."),
-                new TextObject("{=lmmi_plea_again}...And?"),
-                new TextObject("{=lmmi_plea_won}...Fine. Maybe you're not like the rest of them. Here's what I need."),
-                new TextObject("{=lmmi_plea_lost}Words. Everyone has words. Get out of my sight."),
+                Flavor.Pick("{=lmmi_plea_opening}Go on, then. Convince me.",
+                    "{=lmmi_plea_opening_2}Convince me, then.",
+                    "{=lmmi_plea_opening_3}Talk. Make it good."),
+                Flavor.Pick("{=lmmi_plea_again}...And?",
+                    "{=lmmi_plea_again_2}...Go on.",
+                    "{=lmmi_plea_again_3}...Is that all?"),
+                Flavor.Pick("{=lmmi_plea_won}...Fine. Maybe you're not like the rest of them. Here's what I need.",
+                    "{=lmmi_plea_won_2}...Alright. You've convinced me. Here's the trouble.",
+                    "{=lmmi_plea_won_3}...Fine. Maybe I misjudged you. Listen, then."),
+                Flavor.Pick("{=lmmi_plea_lost}Words. Everyone has words. Get out of my sight.",
+                    "{=lmmi_plea_lost_2}Pretty words. I've heard them before. Leave.",
+                    "{=lmmi_plea_lost_3}No. I don't believe a word of it. Go."),
                 onWon: () => _persuadedUntil[id] = CampaignTime.Now.ToHours + PersuadedDays * CampaignTime.HoursInDay,
                 onLost: () => _retryAfter[id] = CampaignTime.Now.ToHours + RetryDays * CampaignTime.HoursInDay,
                 goal: 2f, difficulty: difficulty);

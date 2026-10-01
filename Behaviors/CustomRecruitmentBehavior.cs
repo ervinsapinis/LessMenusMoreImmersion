@@ -236,19 +236,31 @@ namespace LessMenusMoreImmersion.Behaviors
 
             // Arrangement offer
             starter.AddDialogLine("lmmi_arrange_offer_contempt", "notable_recruitment_arrangement_response", "notable_recruitment_arrangement_offer",
-                "{=lmmi_arrange_offer_contempt}Organize recruits — for you? ...Coin is coin. But the others will want paying, and more for the likes of you. {RECRUITMENT_COST}{GOLD_ICON}. Take it or leave it.",
-                () => CurrentDisposition() == Disposition.Contempt, SetArrangementCost, 110);
+                "{=!}{LMMI_ARRANGE_CONTEMPT}",
+                () => CurrentDisposition() == Disposition.Contempt && Flavor.Say("LMMI_ARRANGE_CONTEMPT",
+                        "{=lmmi_arrange_offer_contempt}Organize recruits — for you? ...Coin is coin. But the others will want paying, and more for the likes of you. {RECRUITMENT_COST}{GOLD_ICON}. Take it or leave it.",
+                        "{=lmmi_arrange_offer_contempt_2}Recruit for you? Your coin's no better than anyone's, but it spends. The others will want more, from your sort. {RECRUITMENT_COST}{GOLD_ICON}.",
+                        "{=lmmi_arrange_offer_contempt_3}...Fine. For coin, and a good deal of it. Your kind pays double. {RECRUITMENT_COST}{GOLD_ICON}."), SetArrangementCost, 110);
             starter.AddDialogLine("lmmi_arrange_offer_wary", "notable_recruitment_arrangement_response", "notable_recruitment_arrangement_offer",
-                "{=lmmi_arrange_offer_wary}It can be arranged. It won't be cheap — the others don't know you any better than I do. {RECRUITMENT_COST}{GOLD_ICON}.",
-                () => CurrentDisposition() == Disposition.Wary, SetArrangementCost, 110);
+                "{=!}{LMMI_ARRANGE_WARY}",
+                () => CurrentDisposition() == Disposition.Wary && Flavor.Say("LMMI_ARRANGE_WARY",
+                        "{=lmmi_arrange_offer_wary}It can be arranged. It won't be cheap — the others don't know you any better than I do. {RECRUITMENT_COST}{GOLD_ICON}.",
+                        "{=lmmi_arrange_offer_wary_2}I can arrange it, but it'll cost you. Nobody here knows you. {RECRUITMENT_COST}{GOLD_ICON}.",
+                        "{=lmmi_arrange_offer_wary_3}Possible. Expensive, though — trust costs money. {RECRUITMENT_COST}{GOLD_ICON}."), SetArrangementCost, 110);
 
             // Arrangement accepted
             starter.AddDialogLine("lmmi_arrange_done_contempt", "notable_recruitment_accepted", "close_window",
-                "{=lmmi_arrange_done_contempt}Fine. The volunteers will be there. Don't expect anyone to smile about it.",
-                () => CurrentDisposition() == Disposition.Contempt, null, 110);
+                "{=!}{LMMI_ARRANGE_DONE_C}",
+                () => CurrentDisposition() == Disposition.Contempt && Flavor.Say("LMMI_ARRANGE_DONE_C",
+                        "{=lmmi_arrange_done_contempt}Fine. The volunteers will be there. Don't expect anyone to smile about it.",
+                        "{=lmmi_arrange_done_contempt_2}Done. They'll come. Don't expect them to like it.",
+                        "{=lmmi_arrange_done_contempt_3}The lads will be ready. Grudgingly."), null, 110);
             starter.AddDialogLine("lmmi_arrange_done_wary", "notable_recruitment_accepted", "close_window",
-                "{=lmmi_arrange_done_wary}Done. Don't make me regret it.",
-                () => CurrentDisposition() == Disposition.Wary, null, 110);
+                "{=!}{LMMI_ARRANGE_DONE_W}",
+                () => CurrentDisposition() == Disposition.Wary && Flavor.Say("LMMI_ARRANGE_DONE_W",
+                        "{=lmmi_arrange_done_wary}Done. Don't make me regret it.",
+                        "{=lmmi_arrange_done_wary_2}Arranged. Pay well and we'll get along.",
+                        "{=lmmi_arrange_done_wary_3}It's done. Keep your end of things."), null, 110);
 
             // Bulk offer
             starter.AddDialogLine("lmmi_recruits_offer_contempt", "notable_recruits_response", "notable_recruits_offer",
@@ -266,14 +278,21 @@ namespace LessMenusMoreImmersion.Behaviors
                 () =>
                 {
                     if (CurrentDisposition() != Disposition.Contempt) return false;
-                    MBTextManager.SetTextVariable("LMMI_RECRUITS_SCORN", new TextObject(IsSameCulture()
-                        ? "{=lmmi_recruits_scorn_kin}Take them. Try not to get them all killed."
-                        : "{=lmmi_recruits_scorn_foreign}Take them and go. Fools, following a foreigner — but that's their business, not mine."));
+                    MBTextManager.SetTextVariable("LMMI_RECRUITS_SCORN", (IsSameCulture()
+                        ? Flavor.Pick("{=lmmi_recruits_scorn_kin}Take them. Try not to get them all killed.",
+                            "{=lmmi_recruits_scorn_kin_2}They're yours. Bring them back alive, if you can.",
+                            "{=lmmi_recruits_scorn_kin_3}Go on, take them. Feed them properly.")
+                        : Flavor.Pick("{=lmmi_recruits_scorn_foreign}Take them and go. Fools, following a foreigner — but that's their business, not mine.",
+                            "{=lmmi_recruits_scorn_foreign_2}Take them. Following a foreigner — their mothers will weep.",
+                            "{=lmmi_recruits_scorn_foreign_3}Off you go. Fools, all of them, to follow your sort.")));
                     return true;
                 }, null, 110);
             starter.AddDialogLine("lmmi_recruits_done_wary", "notable_recruits_accepted", "hero_main_options",
-                "{=lmmi_recruits_done_wary}They're yours. Pay them on time and they'll follow you well enough.",
-                () => CurrentDisposition() == Disposition.Wary, null, 110);
+                "{=!}{LMMI_RECRUITS_DONE_W}",
+                () => CurrentDisposition() == Disposition.Wary && Flavor.Say("LMMI_RECRUITS_DONE_W",
+                        "{=lmmi_recruits_done_wary}They're yours. Pay them on time and they'll follow you well enough.",
+                        "{=lmmi_recruits_done_wary_2}Yours now. Treat them fairly.",
+                        "{=lmmi_recruits_done_wary_3}They'll serve. Pay them and they'll stay."), null, 110);
         }
 
         private static float DispositionCostFactor(Hero notable)
