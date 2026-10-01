@@ -265,24 +265,47 @@ namespace LessMenusMoreImmersion.Behaviors
             {
                 "{=lmmi_camp_line_hungry_1}Is there anything in that pot but water?",
                 "{=lmmi_camp_line_hungry_2}My belt's on the last notch. The last one.",
+                "{=lmmi_camp_line_hungry_3}I'd eat my own boots if they weren't already holes.",
+                "{=lmmi_camp_line_hungry_4}Two days of nothing but thin gruel. My stomach's eating itself.",
+                "{=lmmi_camp_line_hungry_5}If the quartermaster says 'tomorrow' once more, I'll cook him.",
+                "{=lmmi_camp_line_hungry_6}Somebody snare a rabbit. A rat. Anything.",
             });
             if (morale < 40f) pool.AddRange(new[]
             {
                 "{=lmmi_camp_line_low_1}Another day's march to nowhere.",
                 "{=lmmi_camp_line_low_2}I didn't sign on to die in a ditch for nothing.",
                 "{=lmmi_camp_line_low_3}If we don't see a fight or a town soon, I'll desert myself.",
+                "{=lmmi_camp_line_low_4}Pay's late, the food's bad, and the captain's got that look again.",
+                "{=lmmi_camp_line_low_5}Feels like we've been walking in circles for a week.",
+                "{=lmmi_camp_line_low_6}My brother's farm needs hands. Maybe I should go and be some.",
+                "{=lmmi_camp_line_low_7}Nobody sings any more. Have you noticed?",
+                "{=lmmi_camp_line_low_8}What are we even fighting for? Anyone?",
+                "{=lmmi_camp_line_low_9}I've stopped counting the days. It doesn't help.",
             });
             else if (morale > 70f) pool.AddRange(new[]
             {
                 "{=lmmi_camp_line_high_1}Did you see them run? I'll be telling that one to my grandchildren.",
                 "{=lmmi_camp_line_high_2}Best company I've marched with, and I've marched with a few.",
                 "{=lmmi_camp_line_high_3}Pass the skin — a toast to the captain!",
+                "{=lmmi_camp_line_high_4}Whatever the captain's paying, I'd do it for half. Don't tell the captain.",
+                "{=lmmi_camp_line_high_5}We could take a castle, the way we're going.",
+                "{=lmmi_camp_line_high_6}Never had boots this good. Took them off a dead man, mind.",
+                "{=lmmi_camp_line_high_7}Fill your cup! Fortune's smiling on this lot.",
+                "{=lmmi_camp_line_high_8}They'll write songs about this company. Bad songs, but still.",
+                "{=lmmi_camp_line_high_9}I've stopped worrying. The captain knows what we're about.",
             });
             var last = LastBattle;
             if (last != null && last.DaysAgo <= 3f)
                 pool.AddRange(last.Outcome > 0
-                    ? new[] { "{=lmmi_camp_line_won_1}Three of them, I swear. Three! Well — two and a half." }
-                    : new[] { "{=lmmi_camp_line_lost_1}We'll pay them back. Next time.", "{=lmmi_camp_line_lost_2}Leave his bedroll where it is. Just — leave it." });
+                    ? new[] { "{=lmmi_camp_line_won_1}Three of them, I swear. Three! Well — two and a half.",
+                        "{=lmmi_camp_line_won_2}Did you see their faces when we came over the hill? Priceless.",
+                        "{=lmmi_camp_line_won_3}My shield arm's still shaking. Good fight, though. Good fight.",
+                        "{=lmmi_camp_line_won_4}Here's to the ones who ran — and the ones who didn't get the chance." }
+                    : new[] { "{=lmmi_camp_line_lost_1}We'll pay them back. Next time.", "{=lmmi_camp_line_lost_2}Leave his bedroll where it is. Just — leave it.",
+                        "{=lmmi_camp_line_lost_3}We should've held the line. I know we should've held the line.",
+                        "{=lmmi_camp_line_lost_4}Nobody's hungry tonight. Funny, that.",
+                        "{=lmmi_camp_line_lost_5}Next time I'm not running. Next time they run.",
+                        "{=lmmi_camp_line_lost_6}Drink to the lads we left behind. Go on — drink." });
             pool.AddRange(new[]
             {
                 "{=lmmi_camp_line_1}Who's got first watch? Not me. Not again.",
@@ -291,6 +314,18 @@ namespace LessMenusMoreImmersion.Behaviors
                 "{=lmmi_camp_line_4}Sing the one about the miller's daughter. No — the other one.",
                 "{=lmmi_camp_line_5}Keep the fire low. No sense telling the whole valley we're here.",
                 "{=lmmi_camp_line_6}Three dice, a sword, and a friend. What more does a man need?",
+                "{=lmmi_camp_line_7}Who took my whetstone? I know one of you took my whetstone.",
+                "{=lmmi_camp_line_8}Shift your feet, you're in my light.",
+                "{=lmmi_camp_line_9}That sergeant snores like a siege engine.",
+                "{=lmmi_camp_line_10}Pass the salt. Don't tell me we've no salt.",
+                "{=lmmi_camp_line_11}Ever been to the coast? Neither have I. One day.",
+                "{=lmmi_camp_line_12}My knee says it'll rain. My knee's never wrong.",
+                "{=lmmi_camp_line_13}Smell that? Somebody's cooking something that used to be a horse.",
+                "{=lmmi_camp_line_14}Tell the one about the miller's wife and the tax collector!",
+                "{=lmmi_camp_line_15}If we march at dawn again, I'll eat my helmet.",
+                "{=lmmi_camp_line_16}Hear that? Wolves. Or the cook.",
+                "{=lmmi_camp_line_17}Keep the dice where I can see them, Rolf.",
+                "{=lmmi_camp_line_18}Stars are out. Means it'll be cold. Means nothing, really.",
             });
             return new TextObject(pool[MBRandom.RandomInt(pool.Count)]);
         }
@@ -394,11 +429,16 @@ namespace LessMenusMoreImmersion.Behaviors
                 {
                     if (!TalkingToMan()) return false;
                     float morale = MobileParty.MainParty.Morale;
-                    var line = new TextObject(morale >= 70f
-                        ? "{=lmmi_camp_man_high}Captain! Fine night for it. Pull up a log."
+                    var line = morale >= 70f
+                        ? Flavor.Pick("{=lmmi_camp_man_high}Captain! Fine night for it. Pull up a log.",
+                            "{=lmmi_camp_man_high_2}Captain! Come and sit — there's a spot by the fire.",
+                            "{=lmmi_camp_man_high_3}Evening, captain! The lads are in fine spirits tonight.")
                         : morale >= 40f
-                            ? "{=lmmi_camp_man_mid}Captain."
-                            : "{=lmmi_camp_man_low}...Captain. The lads are grumbling, if you want it straight.");
+                            ? Flavor.Pick("{=lmmi_camp_man_mid}Captain.", "{=lmmi_camp_man_mid_2}Captain. Quiet night.",
+                                "{=lmmi_camp_man_mid_3}Evening, captain. Something you need?")
+                            : Flavor.Pick("{=lmmi_camp_man_low}...Captain. The lads are grumbling, if you want it straight.",
+                                "{=lmmi_camp_man_low_2}Captain. ...Don't expect smiles tonight.",
+                                "{=lmmi_camp_man_low_3}What now, captain? ...Sorry. Long day.");
                     MBTextManager.SetTextVariable("LMMI_CAMP_GREET", line);
                     MBTextManager.SetTextVariable("LMMI_CAMP_CASK_USE", PlanCask().Describe());
                     return true;
@@ -429,10 +469,16 @@ namespace LessMenusMoreImmersion.Behaviors
                     return false;
                 });
             starter.AddDialogLine("lmmi_camp_drink_again", "lmmi_camp_drink_resp", "lmmi_camp_man_resp",
-                "{=lmmi_camp_cask_again}Another cask, captain? One a night. Any more and nobody stands watch.",
-                () => _caskOpened, null, 200);
+                "{=!}{LMMI_CAMP_CASK_AGAIN}",
+                () => _caskOpened && Flavor.Say("LMMI_CAMP_CASK_AGAIN",
+                        "{=lmmi_camp_cask_again}Another cask, captain? One a night. Any more and nobody stands watch.",
+                        "{=lmmi_camp_cask_again_2}Another? The first one's barely touched the ground, captain. Tomorrow.",
+                        "{=lmmi_camp_cask_again_3}One's plenty, captain. Somebody has to be able to see the sentries."), null, 200);
             starter.AddDialogLine("lmmi_camp_drink_resp", "lmmi_camp_drink_resp", "close_window",
-                "{=lmmi_camp_cask_resp}Lads! The captain's opened a cask! To the captain!", null,
+                "{=!}{LMMI_CAMP_CASK_RESP}",
+                () => Flavor.Say("LMMI_CAMP_CASK_RESP", "{=lmmi_camp_cask_resp}Lads! The captain's opened a cask! To the captain!",
+                    "{=lmmi_camp_cask_resp_2}You hear that? Drinks on the captain! Cups out, lads!",
+                    "{=lmmi_camp_cask_resp_3}Now that's a captain! Somebody fetch the cups before it changes its mind!"),
                 () =>
                 {
                     var plan = PlanCask();
@@ -449,11 +495,17 @@ namespace LessMenusMoreImmersion.Behaviors
                     _afterTalk.Add(() =>
                     {
                         CampMissionLogic.Current?.Cheer();
-                        InformationManager.DisplayMessage(new InformationMessage(new TextObject(recent == null
-                            ? "{=lmmi_camp_drink_plain}The wine goes round. It's a good night."
+                        InformationManager.DisplayMessage(new InformationMessage((recent == null
+                            ? Flavor.Pick("{=lmmi_camp_drink_plain}The wine goes round. It's a good night.",
+                                "{=lmmi_camp_drink_plain_2}Cups go round the fires. For a while nobody complains about anything.",
+                                "{=lmmi_camp_drink_plain_3}The cask empties fast. Someone starts a song; most of them know the words.")
                             : recent.Outcome > 0
-                                ? "{=lmmi_camp_drink_won}The wine goes round, and the battle gets bigger with every cup."
-                                : "{=lmmi_camp_drink_lost}The wine goes round. Someone starts a song for the ones who didn't come back, and the whole camp joins in.").ToString()));
+                                ? Flavor.Pick("{=lmmi_camp_drink_won}The wine goes round, and the battle gets bigger with every cup.",
+                                    "{=lmmi_camp_drink_won_2}They drink to the victory. By the third cup, every man of them killed ten.",
+                                    "{=lmmi_camp_drink_won_3}The fight's retold at every fire, louder each time.")
+                                : Flavor.Pick("{=lmmi_camp_drink_lost}The wine goes round. Someone starts a song for the ones who didn't come back, and the whole camp joins in.",
+                                    "{=lmmi_camp_drink_lost_2}They drink quietly, one cup poured out on the ground for each empty bedroll.",
+                                    "{=lmmi_camp_drink_lost_3}Nobody talks about the fight. They just drink, and that's enough.")).ToString()));
                         InformationManager.DisplayMessage(new InformationMessage(poured.ToString()));
                     });
                     LmmiLog.Info($"Camp: a cask for the men ({plan.WineUse} wine, {plan.BeerUse} beer of {plan.Need} wanted): morale +{gain}.");
@@ -469,10 +521,16 @@ namespace LessMenusMoreImmersion.Behaviors
                 "{=lmmi_camp_spar}Fancy a bout? Fists only.", null, null, 100,
                 (out TextObject why) => !Busy(out why));
             starter.AddDialogLine("lmmi_camp_spar_enough", "lmmi_camp_spar_resp", "lmmi_camp_man_resp",
-                "{=lmmi_camp_spar_enough}Come on, captain, calm down — who'll strike camp at this rate?",
-                () => _bouts >= MaxBouts, null, 200);
+                "{=!}{LMMI_CAMP_SPAR_ENOUGH}",
+                () => _bouts >= MaxBouts && Flavor.Say("LMMI_CAMP_SPAR_ENOUGH",
+                        "{=lmmi_camp_spar_enough}Come on, captain, calm down — who'll strike camp at this rate?",
+                        "{=lmmi_camp_spar_enough_2}Three's plenty, captain. Leave some teeth in the company.",
+                        "{=lmmi_camp_spar_enough_3}No more tonight, captain — the surgeon's run out of patience."), null, 200);
             starter.AddDialogLine("lmmi_camp_spar_resp", "lmmi_camp_spar_resp", "close_window",
-                "{=lmmi_camp_spar_resp}With you, captain? ...Alright. Don't hold it against me.", null,
+                "{=!}{LMMI_CAMP_SPAR_RESP}",
+                () => Flavor.Say("LMMI_CAMP_SPAR_RESP", "{=lmmi_camp_spar_resp}With you, captain? ...Alright. Don't hold it against me.",
+                    "{=lmmi_camp_spar_resp_2}Ha! You're on, captain. No ducking behind your rank.",
+                    "{=lmmi_camp_spar_resp_3}Clear a space, lads! The captain wants a beating!"),
                 () =>
                 {
                     _bouts++;
@@ -491,10 +549,16 @@ namespace LessMenusMoreImmersion.Behaviors
                     return false;
                 });
             starter.AddDialogLine("lmmi_camp_drill_again", "lmmi_camp_drill_resp", "lmmi_camp_man_resp",
-                "{=lmmi_camp_drill_again}Again, captain? We've only just stopped aching. One drill a camp — let the lads eat.",
-                () => _drilled, null, 200);
+                "{=!}{LMMI_CAMP_DRILL_AGAIN}",
+                () => _drilled && Flavor.Say("LMMI_CAMP_DRILL_AGAIN",
+                        "{=lmmi_camp_drill_again}Again, captain? We've only just stopped aching. One drill a camp — let the lads eat.",
+                        "{=lmmi_camp_drill_again_2}Not again, captain. They're dead on their feet as it is.",
+                        "{=lmmi_camp_drill_again_3}Captain, if we drill once more there'll be nobody left to march."), null, 200);
             starter.AddDialogLine("lmmi_camp_drill_resp", "lmmi_camp_drill_resp", "close_window",
-                "{=lmmi_camp_drill_resp}...Yes, captain. On your feet, you heard!", null,
+                "{=!}{LMMI_CAMP_DRILL_RESP}",
+                () => Flavor.Say("LMMI_CAMP_DRILL_RESP", "{=lmmi_camp_drill_resp}...Yes, captain. On your feet, you heard!",
+                    "{=lmmi_camp_drill_resp_2}Drill! Up, the lot of you — the captain wants to see you sweat!",
+                    "{=lmmi_camp_drill_resp_3}...Right, captain. You heard! Leave the pot — it'll keep!"),
                 () =>
                 {
                     var party = MobileParty.MainParty;
@@ -515,9 +579,13 @@ namespace LessMenusMoreImmersion.Behaviors
                     Hero.MainHero.AddSkillXp(DefaultSkills.Leadership, 40f);
                     Cooldown("drill", 24f);
                     _drilled = true;
-                    var msg = new TextObject(fought
-                        ? "{=lmmi_camp_drilled}You drill them until the light goes — {MEN} men, sharper for it, and cursing your name. They've bled enough this week."
-                        : "{=lmmi_camp_drilled_idle}You drill them until the light goes — {MEN} men, sharper for it, and glad of something to do.");
+                    var msg = fought
+                        ? Flavor.Pick("{=lmmi_camp_drilled}You drill them until the light goes — {MEN} men, sharper for it, and cursing your name. They've bled enough this week.",
+                            "{=lmmi_camp_drilled_2}{MEN} men drill until they can barely lift a shield. They do it — but they've bled enough this week, and they let you know it.",
+                            "{=lmmi_camp_drilled_3}You put {MEN} tired men through their paces. They're sharper for it. They're also muttering.")
+                        : Flavor.Pick("{=lmmi_camp_drilled_idle}You drill them until the light goes — {MEN} men, sharper for it, and glad of something to do.",
+                            "{=lmmi_camp_drilled_idle_2}{MEN} men drill until dusk. After a quiet week, they're glad to sweat.",
+                            "{=lmmi_camp_drilled_idle_3}The drill shakes the idleness out of {MEN} men. Somebody even smiles.");
                     msg.SetTextVariable("MEN", men);
                     var sergeant = ConversationMission.OneToOneConversationAgent;
                     _afterTalk.Add(() =>
@@ -559,10 +627,16 @@ namespace LessMenusMoreImmersion.Behaviors
                     return false;
                 });
             starter.AddDialogLine("lmmi_camp_story_again", "lmmi_camp_story_resp", "lmmi_camp_man_resp",
-                "{=lmmi_camp_story_again}Another one, captain? We've heard enough for one night. Save it for the road.",
-                () => _storyTold, null, 200);
+                "{=!}{LMMI_CAMP_STORY_AGAIN}",
+                () => _storyTold && Flavor.Say("LMMI_CAMP_STORY_AGAIN",
+                        "{=lmmi_camp_story_again}Another one, captain? We've heard enough for one night. Save it for the road.",
+                        "{=lmmi_camp_story_again_2}No more stories tonight, captain. Some of us want to sleep.",
+                        "{=lmmi_camp_story_again_3}We've heard that one, captain. Twice. Tomorrow, eh?"), null, 200);
             starter.AddDialogLine("lmmi_camp_story_resp", "lmmi_camp_story_resp", "close_window",
-                "{=lmmi_camp_story_resp}Oi! Quiet, you lot — the captain's telling one!", null,
+                "{=!}{LMMI_CAMP_STORY_RESP}",
+                () => Flavor.Say("LMMI_CAMP_STORY_RESP", "{=lmmi_camp_story_resp}Oi! Quiet, you lot — the captain's telling one!",
+                    "{=lmmi_camp_story_resp_2}A story! Gather round, gather round — and somebody kick Torvin awake.",
+                    "{=lmmi_camp_story_resp_3}Shut it, the lot of you! Captain's got a tale!"),
                 () =>
                 {
                     var listener = ConversationMission.OneToOneConversationAgent;
@@ -586,9 +660,13 @@ namespace LessMenusMoreImmersion.Behaviors
                 () =>
                 {
                     if (!_storyReady || _storyListener == null || ConversationMission.OneToOneConversationAgent != _storyListener) return false;
-                    MBTextManager.SetTextVariable("LMMI_CAMP_STORY_OPEN", new TextObject(MBRandom.RandomInt(2) == 0
-                        ? "{=lmmi_camp_story_open_1}Right, they're all ears, captain. Go on — and don't skip the good part."
-                        : "{=lmmi_camp_story_open_2}Settle down, lads, settle down. ...Go on, captain."));
+                    MBTextManager.SetTextVariable("LMMI_CAMP_STORY_OPEN", Flavor.Pick(
+                        "{=lmmi_camp_story_open_1}Right, they're all ears, captain. Go on — and don't skip the good part.",
+                        "{=lmmi_camp_story_open_2}Settle down, lads, settle down. ...Go on, captain.",
+                        "{=lmmi_camp_story_open_3}Everyone's here, captain. Make it a good one.",
+                        "{=lmmi_camp_story_open_4}Quiet at the back! ...All yours, captain.",
+                        "{=lmmi_camp_story_open_5}Fire's built up, cups are full. Let's hear it, captain.",
+                        "{=lmmi_camp_story_open_6}They're waiting, captain. Don't make it a short one."));
                     return true;
                 },
                 () => _storyReady = false, 1300);
@@ -618,9 +696,13 @@ namespace LessMenusMoreImmersion.Behaviors
         private void StartStory(bool recent)
         {
             var listener = (_storyListener ?? ConversationMission.OneToOneConversationAgent)?.Character as CharacterObject;
-            var opening = new TextObject(recent
-                ? "{=lmmi_camp_story_opening_recent}That one? We were there, captain. Go on then — tell it right."
-                : "{=lmmi_camp_story_opening_old}An old one, eh? Go on, captain. From the start.");
+            var opening = recent
+                ? Flavor.Pick("{=lmmi_camp_story_opening_recent}That one? We were there, captain. Go on then — tell it right.",
+                    "{=lmmi_camp_story_opening_recent_2}Ha! That fight! Half of us still have the bruises. Go on.",
+                    "{=lmmi_camp_story_opening_recent_3}We remember it, captain. Let's see if you remember it right.")
+                : Flavor.Pick("{=lmmi_camp_story_opening_old}An old one, eh? Go on, captain. From the start.",
+                    "{=lmmi_camp_story_opening_old_2}Before our time, was it? Go on, then. Make it a good one.",
+                    "{=lmmi_camp_story_opening_old_3}An old campaign! Was it as bad as the old-timers say?");
             _story.Start(new[]
                 {
                     NativePersuasion.Argument(DefaultSkills.Leadership, DefaultTraits.Valor,
@@ -631,9 +713,14 @@ namespace LessMenusMoreImmersion.Behaviors
                         new TextObject("{=lmmi_camp_story_arg_trick}The trick that won it. Here's the ford, here's the treeline — and here's where they never thought to look."), listener),
                 },
                 opening,
-                new TextObject("{=lmmi_camp_story_again}And then?"),
-                new TextObject("{=lmmi_camp_story_won}Ha! That's how it was — that's exactly how it was! To the captain!"),
-                new TextObject("{=lmmi_camp_story_lost}...Hrm. Sorry, captain — long day. Was that the end?"),
+                Flavor.Pick("{=lmmi_camp_story_and_then}And then?", "{=lmmi_camp_story_and_then_2}Go on, go on!",
+                    "{=lmmi_camp_story_and_then_3}And? What happened next?"),
+                Flavor.Pick("{=lmmi_camp_story_won}Ha! That's how it was — that's exactly how it was! To the captain!",
+                    "{=lmmi_camp_story_won_2}Ha! I'd forgotten that part! To the captain!",
+                    "{=lmmi_camp_story_won_3}That's a story worth bleeding for! Again, captain, again!"),
+                Flavor.Pick("{=lmmi_camp_story_lost}...Hrm. Sorry, captain — long day. Was that the end?",
+                    "{=lmmi_camp_story_lost_2}...Right. Very good, captain. Very... long.",
+                    "{=lmmi_camp_story_lost_3}Is that it? I thought there'd be more fighting in it."),
                 onWon: () => _afterTalk.Add(() => StoryTold(true)),
                 onLost: () => _afterTalk.Add(() => StoryTold(false)),
                 goal: 2f, difficulty: PersuasionDifficulty.Medium);
@@ -645,9 +732,13 @@ namespace LessMenusMoreImmersion.Behaviors
             Hero.MainHero.AddSkillXp(DefaultSkills.Leadership, won ? 50f : 15f);
             if (won) MobileParty.MainParty.RecentEventsMorale += 3f;
             CampMissionLogic.Current?.StoryReaction(won);
-            InformationManager.DisplayMessage(new InformationMessage(new TextObject(won
-                ? "{=lmmi_camp_story_good}By the end they're on their feet, roaring. They'll tell it better than you did."
-                : "{=lmmi_camp_story_bad}Somewhere around the second ambush, someone starts snoring.").ToString(), won ? Colors.Green : Colors.White));
+            InformationManager.DisplayMessage(new InformationMessage((won
+                ? Flavor.Pick("{=lmmi_camp_story_good}By the end they're on their feet, roaring. They'll tell it better than you did.",
+                    "{=lmmi_camp_story_good_2}They hang on every word. By morning it'll be all over the column.",
+                    "{=lmmi_camp_story_good_3}When you finish there's a moment of silence — then the whole camp cheers.")
+                : Flavor.Pick("{=lmmi_camp_story_bad}Somewhere around the second ambush, someone starts snoring.",
+                    "{=lmmi_camp_story_bad_2}By the end, half of them have drifted back to their own fires.",
+                    "{=lmmi_camp_story_bad_3}Polite nods. Someone coughs. The fire crackles.")).ToString(), won ? Colors.Green : Colors.White));
             LmmiLog.Info($"Camp: the war story {(won ? "landed" : "fell flat")} (Leadership {leadership}).");
             ForgetStory();
         }
@@ -666,9 +757,13 @@ namespace LessMenusMoreImmersion.Behaviors
                         Hero.MainHero.AddSkillXp(DefaultSkills.Athletics, won ? 50f : 20f);
                         if (character != null) MobileParty.MainParty.MemberRoster.AddXpToTroop(character, 30);
                         MobileParty.MainParty.RecentEventsMorale += 1f;
-                        InformationManager.DisplayMessage(new InformationMessage(new TextObject(won
-                            ? "{=lmmi_camp_spar_won}He stays down, laughing. The men will be talking about that for days."
-                            : "{=lmmi_camp_spar_lost}You're on your back, looking at the stars. The camp roars.").ToString()));
+                        InformationManager.DisplayMessage(new InformationMessage((won
+                            ? Flavor.Pick("{=lmmi_camp_spar_won}He stays down, laughing. The men will be talking about that for days.",
+                                "{=lmmi_camp_spar_won_2}He taps the ground and grins up at you. The fires cheer.",
+                                "{=lmmi_camp_spar_won_3}Down he goes. Someone's already collecting on a wager.")
+                            : Flavor.Pick("{=lmmi_camp_spar_lost}You're on your back, looking at the stars. The camp roars.",
+                                "{=lmmi_camp_spar_lost_2}You land in the dirt. Somebody shouts 'Again!' — and laughs.",
+                                "{=lmmi_camp_spar_lost_3}He helps you up, apologizing. The others are not so polite.")).ToString()));
                         LmmiLog.Info($"Camp: a bout with {character?.Name} — {(won ? "won" : "lost")}.");
                         if (foe.IsActive()) camp.Resettle(foe);
                     }

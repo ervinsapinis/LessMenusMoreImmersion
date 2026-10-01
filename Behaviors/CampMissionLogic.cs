@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LessMenusMoreImmersion.Contacts;
 using LessMenusMoreImmersion.Logging;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.AgentOrigins;
@@ -488,9 +489,13 @@ namespace LessMenusMoreImmersion.Behaviors
             _gatherBy = 7f;
             _onGathered = onReady;
             if (others.Count > 0)
-                Cue(1.5f, () => StreetEventsBehavior.Bark(others[MBRandom.RandomInt(others.Count)].Agent, new TextObject(MBRandom.RandomInt(2) == 0
-                    ? "{=lmmi_camp_gather_bark_1}A story! Shove over, you."
-                    : "{=lmmi_camp_gather_bark_2}This one's good, I've heard it. Twice.")));
+                Cue(1.5f, () => StreetEventsBehavior.Bark(others[MBRandom.RandomInt(others.Count)].Agent, Flavor.Pick(
+                    "{=lmmi_camp_gather_bark_1}A story! Shove over, you.",
+                    "{=lmmi_camp_gather_bark_2}This one's good, I've heard it. Twice.",
+                    "{=lmmi_camp_gather_bark_3}Bring your cup, it's a long one.",
+                    "{=lmmi_camp_gather_bark_4}Move your feet, I can't see the captain.",
+                    "{=lmmi_camp_gather_bark_5}Is this the one with the bear? Tell me it's the one with the bear.",
+                    "{=lmmi_camp_gather_bark_6}Quiet! Quiet, the captain's starting.")));
             LmmiLog.Info($"Camp: {_cast.Count} gather round for a story.");
             return true;
         }
@@ -518,6 +523,14 @@ namespace LessMenusMoreImmersion.Behaviors
                     "{=lmmi_camp_story_bored_2}Was there a point to that, captain?",
                     "{=lmmi_camp_story_bored_3}I was there. That's not how it went.",
                     "{=lmmi_camp_story_bored_4}Wake me when we get to the part with the loot.",
+                    "{=lmmi_camp_story_bored_5}My grandmother tells it better.",
+                    "{=lmmi_camp_story_bored_6}So... who won?",
+                    "{=lmmi_camp_story_bored_7}*snores*",
+                    "{=lmmi_camp_story_bored_8}That's the third time the captain's mentioned the ford.",
+                    "{=lmmi_camp_story_bored_9}Is it over? Can I go back to my fire?",
+                    "{=lmmi_camp_story_bored_10}I've heard better stories from the mule.",
+                    "{=lmmi_camp_story_bored_11}The captain's better with a sword than a tale.",
+                    "{=lmmi_camp_story_bored_12}Right. Lovely. Who's got the dice?",
                 }.OrderBy(_ => MBRandom.RandomFloat).Take(Math.Min(2, cast.Count)).ToList();
                 for (int i = 0; i < lines.Count; i++)
                 {
@@ -592,7 +605,8 @@ namespace LessMenusMoreImmersion.Behaviors
             _drillStep = 0;
             _drillNextAt = 9f;
             _drillOutcome = outcome;
-            Shout("{=lmmi_camp_drill_bark_fallin}Fall in! {ROWS} ranks — move, move, move!", ("ROWS", rows));
+            Shout(Flavor.Pick("{=lmmi_camp_drill_bark_fallin}Fall in! {ROWS} ranks — move, move, move!", "{=lmmi_camp_drill_bark_fallin_2}{ROWS} ranks! Shoulder to shoulder, you maggots — move!",
+                "{=lmmi_camp_drill_bark_fallin_3}On your feet! Fall in, {ROWS} deep! Last man in digs the latrine!"), ("ROWS", rows));
             LmmiLog.Info($"Camp: drill — {placed} men in {rows} rank(s) of {perRow}.");
             return true;
         }
@@ -746,9 +760,10 @@ namespace LessMenusMoreImmersion.Behaviors
             }
         }
 
-        private void Shout(string text, params (string Key, int Value)[] vars)
+        private void Shout(string text, params (string Key, int Value)[] vars) => Shout(new TextObject(text), vars);
+
+        private void Shout(TextObject line, params (string Key, int Value)[] vars)
         {
-            var line = new TextObject(text);
             foreach (var (key, value) in vars) line.SetTextVariable(key, value);
             var who = _sergeant?.Agent;
             if (who == null || !who.IsActive()) who = _cast.FirstOrDefault(s => s.Agent.IsActive())?.Agent;
@@ -761,36 +776,36 @@ namespace LessMenusMoreImmersion.Behaviors
             switch (_drillStep++)
             {
                 case 0:
-                    Shout("{=lmmi_camp_drill_bark_arms}Arms!");
+                    Shout(Flavor.Pick("{=lmmi_camp_drill_bark_arms}Arms!", "{=lmmi_camp_drill_bark_arms_2}Take up arms!", "{=lmmi_camp_drill_bark_arms_3}Weapons — ready!"));
                     foreach (var s in _cast) Wield(s);
                     _drillNextAt = _sceneTime + 3.2f;
                     break;
                 case 1:
-                    Shout("{=lmmi_camp_drill_bark_thrust}Forward — strike!");
+                    Shout(Flavor.Pick("{=lmmi_camp_drill_bark_thrust}Forward — strike!", "{=lmmi_camp_drill_bark_thrust_2}Step and strike!", "{=lmmi_camp_drill_bark_thrust_3}At them — strike!"));
                     Motion(false, SkinVoiceManager.VoiceType.Yell);
                     _drillNextAt = _sceneTime + 3f;
                     break;
                 case 2:
-                    Shout("{=lmmi_camp_drill_bark_again}Recover! Again — like you mean it!");
+                    Shout(Flavor.Pick("{=lmmi_camp_drill_bark_again}Recover! Again — like you mean it!", "{=lmmi_camp_drill_bark_again_2}Back! Again! My grandmother hits harder!", "{=lmmi_camp_drill_bark_again_3}Recover! That was a tickle — again!"));
                     Motion(true, SkinVoiceManager.VoiceType.Grunt);
                     _drillNextAt = _sceneTime + 3f;
                     break;
                 case 3:
-                    Shout("{=lmmi_camp_drill_bark_strike}Strike!");
+                    Shout(Flavor.Pick("{=lmmi_camp_drill_bark_strike}Strike!", "{=lmmi_camp_drill_bark_strike_2}Now — strike!", "{=lmmi_camp_drill_bark_strike_3}Strike, and put your back in it!"));
                     Motion(false, SkinVoiceManager.VoiceType.Yell);
                     _drillNextAt = _sceneTime + 3f;
                     break;
                 case 4:
-                    Shout("{=lmmi_camp_drill_bark_hold}Hold the line! Nobody moves until I say!");
+                    Shout(Flavor.Pick("{=lmmi_camp_drill_bark_hold}Hold the line! Nobody moves until I say!", "{=lmmi_camp_drill_bark_hold_2}Hold! Hold, damn you! A wall, not a fence!", "{=lmmi_camp_drill_bark_hold_3}Steady! The first man to flinch stands watch all night!"));
                     _drillNextAt = _sceneTime + 3f;
                     break;
                 case 5:
-                    Shout("{=lmmi_camp_drill_bark_cry}Now let the whole valley hear you!");
+                    Shout(Flavor.Pick("{=lmmi_camp_drill_bark_cry}Now let the whole valley hear you!", "{=lmmi_camp_drill_bark_cry_2}Now shout! Make them hear you in the next town!", "{=lmmi_camp_drill_bark_cry_3}Let them hear you! Louder!"));
                     Cheer(_cast);
                     _drillNextAt = _sceneTime + 4.5f;
                     break;
                 case 6:
-                    Shout("{=lmmi_camp_drill_bark_dismissed}Dismissed! Back to your fires.");
+                    Shout(Flavor.Pick("{=lmmi_camp_drill_bark_dismissed}Dismissed! Back to your fires.", "{=lmmi_camp_drill_bark_dismissed_2}Enough! Dismissed — and well done, the lot of you.", "{=lmmi_camp_drill_bark_dismissed_3}Dismissed! Go and eat before the cook gives it to the dogs."));
                     foreach (var s in _cast) Sheathe(s);
                     _drillNextAt = _sceneTime + 1.6f;
                     break;

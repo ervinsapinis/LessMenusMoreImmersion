@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LessMenusMoreImmersion.Contacts;
 using LessMenusMoreImmersion.Logging;
 using SandBox;
 using SandBox.Missions.MissionLogics;
@@ -440,22 +441,38 @@ namespace LessMenusMoreImmersion.Behaviors
         private void AddStaffDialogs(CampaignGameStarter starter)
         {
             starter.AddDialogLine("lmmi_feast_maid", "start", "lmmi_feast_maid_resp",
-                "{=lmmi_feast_maid}More wine, {?PLAYER.GENDER}my lady{?}my lord{\\?}?", TalkingToMaid, null, 1300);
+                "{=!}{LMMI_FEAST_MAID}", () => TalkingToMaid() && Flavor.Say("LMMI_FEAST_MAID",
+                        "{=lmmi_feast_maid}More wine, {?PLAYER.GENDER}my lady{?}my lord{\\?}?",
+                        "{=lmmi_feast_maid_2}Another cup, {?PLAYER.GENDER}my lady{?}my lord{\\?}? There's plenty.",
+                        "{=lmmi_feast_maid_3}Thirsty? The wine's good tonight — the master opened the old barrel.",
+                        "{=lmmi_feast_maid_4}Can I fill that for you?"), null, 1300);
 
             starter.AddPlayerLine("lmmi_feast_maid_fill", "lmmi_feast_maid_resp", "lmmi_feast_maid_fill_resp",
                 "{=lmmi_feast_maid_fill}Fill it to the brim.", null, null);
             starter.AddDialogLine("lmmi_feast_maid_fill_resp", "lmmi_feast_maid_fill_resp", "close_window",
-                "{=lmmi_feast_maid_fill_resp}There you are. Mind the floor — it starts to tilt after the third cup.", null, null);
+                "{=!}{LMMI_FEAST_MAID_FILL}",
+                    () => Flavor.Say("LMMI_FEAST_MAID_FILL",
+                        "{=lmmi_feast_maid_fill_resp}There you are. Mind the floor — it starts to tilt after the third cup.",
+                        "{=lmmi_feast_maid_fill_resp_2}Right to the brim! Careful how you carry it.",
+                        "{=lmmi_feast_maid_fill_resp_3}There. Don't tell the cook I gave you the good stuff."), null);
 
             starter.AddPlayerLine("lmmi_feast_maid_herself", "lmmi_feast_maid_resp", "lmmi_feast_maid_herself_resp",
                 "{=lmmi_feast_maid_herself}Pour one for yourself, too.", null, null);
             starter.AddDialogLine("lmmi_feast_maid_herself_resp", "lmmi_feast_maid_herself_resp", "close_window",
-                "{=lmmi_feast_maid_herself_resp}Ha! Not while the master's watching. ...Maybe later.", null, null);
+                "{=!}{LMMI_FEAST_MAID_HERSELF}",
+                    () => Flavor.Say("LMMI_FEAST_MAID_HERSELF",
+                        "{=lmmi_feast_maid_herself_resp}Ha! Not while the master's watching. ...Maybe later.",
+                        "{=lmmi_feast_maid_herself_resp_2}Oh, I couldn't! ...Well. One sip.",
+                        "{=lmmi_feast_maid_herself_resp_3}If I drank with every guest, I'd be under the table by now."), null);
 
             starter.AddPlayerLine("lmmi_feast_maid_water", "lmmi_feast_maid_resp", "lmmi_feast_maid_water_resp",
                 "{=lmmi_feast_maid_water}Just water for me, if you have it.", null, null);
             starter.AddDialogLine("lmmi_feast_maid_water_resp", "lmmi_feast_maid_water_resp", "close_window",
-                "{=lmmi_feast_maid_water_resp}Water? At a feast? ...I'll see what I can find.", null, null);
+                "{=!}{LMMI_FEAST_MAID_WATER}",
+                    () => Flavor.Say("LMMI_FEAST_MAID_WATER",
+                        "{=lmmi_feast_maid_water_resp}Water? At a feast? ...I'll see what I can find.",
+                        "{=lmmi_feast_maid_water_resp_2}Water... I think there's some in the kitchen. Somewhere.",
+                        "{=lmmi_feast_maid_water_resp_3}Water! You'll be the only sober one here. Very wise."), null);
 
             starter.AddPlayerLine("lmmi_feast_maid_no", "lmmi_feast_maid_resp", "close_window",
                 "{=lmmi_feast_maid_no}Not just now, thank you.", null, null);

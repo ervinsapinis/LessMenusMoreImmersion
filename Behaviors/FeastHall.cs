@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LessMenusMoreImmersion.Contacts;
 using LessMenusMoreImmersion.Logging;
 using SandBox;
 using SandBox.Missions.MissionLogics;
@@ -402,8 +403,10 @@ namespace LessMenusMoreImmersion.Behaviors
         private void EndInHall(Feast f)
         {
             ApplyEffects(f);
-            InformationManager.DisplayMessage(new InformationMessage(new TextObject(
-                "{=lmmi_feast_hall_goes_on}The hall feasts on around you; nobody is in a hurry to leave the table.").ToString()));
+            InformationManager.DisplayMessage(new InformationMessage(Flavor.Pick(
+                "{=lmmi_feast_hall_goes_on}The hall feasts on around you; nobody is in a hurry to leave the table.",
+                "{=lmmi_feast_hall_goes_on_2}The hall carries on around you — cups raised, voices loud, nobody leaving.",
+                "{=lmmi_feast_hall_goes_on_3}You've had your fill, but the hall hasn't. The feast goes on.").ToString()));
             Go(f, Phase.Lingering);
             LmmiLog.Info($"Feast: the hall feast with {f.Host.Name} goes on without you.");
         }

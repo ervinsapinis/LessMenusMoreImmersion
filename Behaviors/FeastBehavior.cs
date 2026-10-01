@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using LessMenusMoreImmersion.Contacts;
 using LessMenusMoreImmersion.Logging;
 using SandBox;
 using SandBox.Missions.AgentBehaviors;
@@ -205,7 +206,9 @@ namespace LessMenusMoreImmersion.Behaviors
                             Cleanup(f);
                             ApplyEffects(f);
                             InformationManager.DisplayMessage(new InformationMessage(
-                                new TextObject("{=lmmi_feast_indoors}There's no room in the square, so the feast is held indoors.").ToString()));
+                                Flavor.Pick("{=lmmi_feast_indoors}There's no room in the square, so the feast is held indoors.",
+                                    "{=lmmi_feast_indoors_2}The square's too crowded for a table; the feast moves indoors.",
+                                    "{=lmmi_feast_indoors_3}There's nowhere to lay a table out here, so the feast is held inside.").ToString()));
                             ScreenFadeController.BeginFadeIn(FadeIn);
                             _feast = null;
                             return;
@@ -581,11 +584,17 @@ namespace LessMenusMoreImmersion.Behaviors
                 float hour = (scene.TimeOfDay + HoursPass) % 24f;
                 scene.TimeOfDay = hour;
                 LmmiLog.Info($"Feast: the scene's clock moves on to {hour:0.0}h.");
-                return new TextObject(hour >= 20f || hour < 5f
-                    ? "{=lmmi_feast_night}The feast runs late into the night. Nobody leaves hungry."
+                return hour >= 20f || hour < 5f
+                    ? Flavor.Pick("{=lmmi_feast_night}The feast runs late into the night. Nobody leaves hungry.",
+                        "{=lmmi_feast_night_2}The last of the wine goes round long after dark. Somebody is still singing.",
+                        "{=lmmi_feast_night_3}Midnight finds the table bare and the guests asleep on the benches.")
                     : hour >= 17f
-                        ? "{=lmmi_feast_evening}The feast runs on into the evening. Nobody leaves hungry."
-                        : "{=lmmi_feast_afternoon}The feast runs long into the afternoon. Nobody leaves hungry.");
+                        ? Flavor.Pick("{=lmmi_feast_evening}The feast runs on into the evening. Nobody leaves hungry.",
+                            "{=lmmi_feast_evening_2}The sun goes down on empty plates and full bellies.",
+                            "{=lmmi_feast_evening_3}By evening the bread's gone, the wine's going, and someone has started a song.")
+                        : Flavor.Pick("{=lmmi_feast_afternoon}The feast runs long into the afternoon. Nobody leaves hungry.",
+                            "{=lmmi_feast_afternoon_2}The afternoon slips away over food and talk.",
+                            "{=lmmi_feast_afternoon_3}Hours pass over plates and cups. Nobody notices.");
             }
             catch (Exception ex)
             {
@@ -601,7 +610,9 @@ namespace LessMenusMoreImmersion.Behaviors
             TaleWorlds.CampaignSystem.Actions.ChangeRelationAction.ApplyPlayerRelation(f.Host, walkedOff ? -2 : -1, affectRelatives: false);
             if (walkedOff)
             {
-                var msg = new TextObject("{=lmmi_feast_walked_off}You walked out of {NAME}'s feast without a word. That won't be forgotten soon.");
+                var msg = Flavor.Pick("{=lmmi_feast_walked_off}You walked out of {NAME}'s feast without a word. That won't be forgotten soon.",
+                    "{=lmmi_feast_walked_off_2}{NAME} watches you walk out of the feast without a goodbye. People noticed.",
+                    "{=lmmi_feast_walked_off_3}Leaving {NAME}'s table without a word — the whole street saw it.");
                 msg.SetTextVariable("NAME", f.Host.Name);
                 InformationManager.DisplayMessage(new InformationMessage(msg.ToString(), Colors.Red));
             }
@@ -947,7 +958,10 @@ namespace LessMenusMoreImmersion.Behaviors
             if (!f.Toasted)
             {
                 f.Toasted = true;
-                var toast = new TextObject("{=lmmi_feast_toast}To {PLAYER.NAME}! May your road be short, your purse heavy, and your cup never empty!");
+                var toast = Flavor.Pick("{=lmmi_feast_toast}To {PLAYER.NAME}! May your road be short, your purse heavy, and your cup never empty!",
+                    "{=lmmi_feast_toast_2}Friends! Raise your cups to {PLAYER.NAME} — the finest company this table has seen in a year!",
+                    "{=lmmi_feast_toast_3}To {PLAYER.NAME}, home from the road! May the next one be kinder!",
+                    "{=lmmi_feast_toast_4}A toast! To {PLAYER.NAME}, and to all who ride with {?PLAYER.GENDER}her{?}him{\\?}!");
                 Bark(f.HostAgent, toast);
                 return;
             }
@@ -963,6 +977,16 @@ namespace LessMenusMoreImmersion.Behaviors
                     "{=lmmi_feast_yours_3}Pass the bread, friend. No — the whole loaf.",
                     "{=lmmi_feast_yours_4}I could get used to this.",
                     "{=lmmi_feast_yours_5}Don't tell the others we ate this well.",
+                    "{=lmmi_feast_yours_6}Is there more of that ham, or did the sergeant eat it all?",
+                    "{=lmmi_feast_yours_7}Mind the captain's cup — keep it full!",
+                    "{=lmmi_feast_yours_8}Real chairs. I'd forgotten what they feel like.",
+                    "{=lmmi_feast_yours_9}A man could sleep a week after a meal like this.",
+                    "{=lmmi_feast_yours_10}Somebody save me a heel of bread for the road.",
+                    "{=lmmi_feast_yours_11}No marching tomorrow, eh, captain? Eh?",
+                    "{=lmmi_feast_yours_12}This wine's better than anything we've had in a month.",
+                    "{=lmmi_feast_yours_13}If I die tomorrow, I die full.",
+                    "{=lmmi_feast_yours_14}Here's to whoever's paying for all this!",
+                    "{=lmmi_feast_yours_15}Careful — the captain's watching how much you drink.",
                 }
                 : new[]
                 {
@@ -971,6 +995,16 @@ namespace LessMenusMoreImmersion.Behaviors
                     "{=lmmi_feast_theirs_3}Try the ham — my own smokehouse.",
                     "{=lmmi_feast_theirs_4}So, is it true what they say about you?",
                     "{=lmmi_feast_theirs_5}A good harvest, good company. What more is there?",
+                    "{=lmmi_feast_theirs_6}Have some more — you're all skin and bone, the lot of you!",
+                    "{=lmmi_feast_theirs_7}Our guests! Fill those cups!",
+                    "{=lmmi_feast_theirs_8}This town knows how to treat its friends.",
+                    "{=lmmi_feast_theirs_9}My grandmother's recipe, that stew. Don't ask what's in it.",
+                    "{=lmmi_feast_theirs_10}Sing, someone! It's too quiet.",
+                    "{=lmmi_feast_theirs_11}To good harvests and short wars!",
+                    "{=lmmi_feast_theirs_12}More bread down this end!",
+                    "{=lmmi_feast_theirs_13}Tell us about the fighting! Was it as bad as they say?",
+                    "{=lmmi_feast_theirs_14}You'll stay the night, surely? Nobody rides out after a feast like this.",
+                    "{=lmmi_feast_theirs_15}Mind the wine — it's stronger than it looks.",
                 };
             Bark(who, new TextObject(lines[MBRandom.RandomInt(lines.Length)]));
         }
@@ -981,12 +1015,26 @@ namespace LessMenusMoreImmersion.Behaviors
             "{=lmmi_feast_comp_2}A roof, a fire, and nobody trying to kill us. I'd almost forgotten.",
             "{=lmmi_feast_comp_3}Don't look now, but {HOST} has been eyeing that ham like it owes them money.",
             "{=lmmi_feast_comp_4}To you, captain. May the road be kinder tomorrow.",
+            "{=lmmi_feast_comp_5}{HOST} keeps a good table. Stay in their favor, captain — it's worth more than gold.",
+            "{=lmmi_feast_comp_6}I've eaten worse at a king's table. Well — at a king's kitchen door.",
+            "{=lmmi_feast_comp_7}Enjoy it while it lasts. Tomorrow it's hard biscuit again.",
+            "{=lmmi_feast_comp_8}Look at the lads. First time in a month I've seen them smile.",
+            "{=lmmi_feast_comp_9}You know, I could settle somewhere like {SETTLEMENT}. For a week. Maybe two.",
+            "{=lmmi_feast_comp_10}Don't drink too much, captain. Somebody has to find the road tomorrow.",
+            "{=lmmi_feast_comp_11}A toast — to whoever's paying, and to you for knowing them.",
+            "{=lmmi_feast_comp_12}This is what we fight for, isn't it? Nights like this.",
         };
         private static readonly string[] NotableLines =
         {
             "{=lmmi_feast_notable_1}{HOST} knows how to keep a table. Mark it — that one's a friend worth having.",
             "{=lmmi_feast_notable_2}Good company, good food. {SETTLEMENT} hasn't seen a night like this in a while.",
             "{=lmmi_feast_notable_3}Business can wait until tomorrow. Tonight, we drink.",
+            "{=lmmi_feast_notable_4}You've done well to make a friend of {HOST}. Not many manage it.",
+            "{=lmmi_feast_notable_5}Eat! We'll talk business when the plates are empty.",
+            "{=lmmi_feast_notable_6}{SETTLEMENT} looks after its friends. Remember that, out on the road.",
+            "{=lmmi_feast_notable_7}If you need anything while you're in town, come to me. Tonight we're all friends.",
+            "{=lmmi_feast_notable_8}I haven't seen {HOST} this cheerful since the last harvest fair.",
+            "{=lmmi_feast_notable_9}A good name is worth a dozen good swords. Yours is growing in {SETTLEMENT}.",
         };
         private static readonly string[] SoldierLines =
         {
@@ -994,6 +1042,14 @@ namespace LessMenusMoreImmersion.Behaviors
             "{=lmmi_feast_soldier_2}If the lads back at camp could see us now...",
             "{=lmmi_feast_soldier_3}To the captain!",
             "{=lmmi_feast_soldier_4}I'll march twice as far tomorrow on this, I swear it.",
+            "{=lmmi_feast_soldier_5}Captain! Best night we've had since the last town.",
+            "{=lmmi_feast_soldier_6}My mother cooked like this. Before the war took the farm.",
+            "{=lmmi_feast_soldier_7}Try the ham, captain. I've had four slices. Don't tell the sergeant.",
+            "{=lmmi_feast_soldier_8}I'd follow you anywhere, captain. Especially to another one of these.",
+            "{=lmmi_feast_soldier_9}Is it true we've a few days' rest? Please say it's true.",
+            "{=lmmi_feast_soldier_10}To the captain, and to full bellies!",
+            "{=lmmi_feast_soldier_11}They're friendlier here than the last place. Nobody's thrown anything yet.",
+            "{=lmmi_feast_soldier_12}I'll be sick tomorrow, captain, but it'll be worth it.",
         };
         private static readonly string[] LocalLines =
         {
@@ -1002,6 +1058,16 @@ namespace LessMenusMoreImmersion.Behaviors
             "{=lmmi_feast_local_3}Best stew in {SETTLEMENT}, I swear it. My cousin made it.",
             "{=lmmi_feast_local_4}Another round for our guest!",
             "{=lmmi_feast_local_5}They say you've seen half of Calradia. Is it true what they say about the north?",
+            "{=lmmi_feast_local_6}Welcome to {SETTLEMENT}! Have you tried the cheese?",
+            "{=lmmi_feast_local_7}My little one wants to know if you've ever killed a dragon. I said probably.",
+            "{=lmmi_feast_local_8}We don't see many great folk at our table. Eat, eat!",
+            "{=lmmi_feast_local_9}Is it true you've been to the capital? What's it like?",
+            "{=lmmi_feast_local_10}Here's to your health — and to our host's purse, for paying for all this!",
+            "{=lmmi_feast_local_11}Watch the wine, {?PLAYER.GENDER}my lady{?}my lord{\\?}. It sneaks up on you.",
+            "{=lmmi_feast_local_12}Will you stay long in {SETTLEMENT}? We'd be glad of it.",
+            "{=lmmi_feast_local_13}My brother says he saw you fight once. He hasn't stopped talking about it.",
+            "{=lmmi_feast_local_14}Tell us a story from the road! Something with blood in it.",
+            "{=lmmi_feast_local_15}A toast — to the guest who makes {SETTLEMENT} proud!",
         };
 
         private static void Bark(Agent? who, TextObject text)
@@ -1075,8 +1141,12 @@ namespace LessMenusMoreImmersion.Behaviors
             try
             {
                 starter.AddDialogLine("lmmi_feast_host", "start", "lmmi_feast_host_resp",
-                    "{=lmmi_feast_host}Eat, drink! Tonight you're among friends.",
-                    AtTable, null, 1100);
+                    "{=!}{LMMI_FEAST_HOST}",
+                    () => AtTable() && Flavor.Say("LMMI_FEAST_HOST",
+                        "{=lmmi_feast_host}Eat, drink! Tonight you're among friends.",
+                        "{=lmmi_feast_host_2}There you are! Sit, sit — the best cuts are coming your way.",
+                        "{=lmmi_feast_host_3}My friend! Is everything to your liking? Say the word and it's yours.",
+                        "{=lmmi_feast_host_4}Enjoying yourself? Good! That's what tonight is for."), null, 1100);
 
                 starter.AddPlayerLine("lmmi_feast_toast_host", "lmmi_feast_host_resp", "lmmi_feast_toast_host_resp",
                     "{=lmmi_feast_toast_host}A toast — to our host!",
@@ -1088,10 +1158,15 @@ namespace LessMenusMoreImmersion.Behaviors
                         f.ToastedHost = true;
                         TaleWorlds.CampaignSystem.Actions.ChangeRelationAction.ApplyPlayerRelation(f.Host, 1, affectRelatives: false);
                         Bark(f.Theirs.FirstOrDefault(a => a != f.HostAgent && a.IsActive()),
-                            new TextObject("{=lmmi_feast_toast_cheer}To our host!"));
+                            Flavor.Pick("{=lmmi_feast_toast_cheer}To our host!", "{=lmmi_feast_toast_cheer_2}Hear, hear! To our host!",
+                                "{=lmmi_feast_toast_cheer_3}To the host — long may the cellar last!"));
                     });
                 starter.AddDialogLine("lmmi_feast_toast_host_resp", "lmmi_feast_toast_host_resp", "close_window",
-                    "{=lmmi_feast_toast_host_resp}Ha! To all of us, then — and to many more nights like this one.", null, null);
+                    "{=!}{LMMI_FEAST_TOAST_RESP}",
+                    () => Flavor.Say("LMMI_FEAST_TOAST_RESP",
+                        "{=lmmi_feast_toast_host_resp}Ha! To all of us, then — and to many more nights like this one.",
+                        "{=lmmi_feast_toast_host_resp_2}To you, my friend! Now drink — that cup's half empty.",
+                        "{=lmmi_feast_toast_host_resp_3}Ha! You'll make me blush. To all of us!"), null);
 
                 starter.AddPlayerLine("lmmi_feast_leave", "lmmi_feast_host_resp", "lmmi_feast_leave_resp",
                     "{=lmmi_feast_leave}It's been a fine evening. I should be going — thank you for this.", null,
@@ -1103,10 +1178,17 @@ namespace LessMenusMoreImmersion.Behaviors
                         f.EndRequested = true;
                     });
                 starter.AddDialogLine("lmmi_feast_leave_resp_early", "lmmi_feast_leave_resp", "close_window",
-                    "{=lmmi_feast_leave_resp_early}Already? We've barely poured the wine. ...Well. I suppose someone like you has somewhere more important to be.",
-                    () => _feast?.LeftEarly == true, null);
+                    "{=!}{LMMI_FEAST_LEAVE_EARLY}",
+                    () => _feast?.LeftEarly == true && Flavor.Say("LMMI_FEAST_LEAVE_EARLY",
+                        "{=lmmi_feast_leave_resp_early}Already? We've barely poured the wine. ...Well. I suppose someone like you has somewhere more important to be.",
+                        "{=lmmi_feast_leave_resp_early_2}So soon? The meat's only just come out. ...Well, if you must.",
+                        "{=lmmi_feast_leave_resp_early_3}Leaving? Before the singing? ...As you like. I'm sure you're very busy."), null);
                 starter.AddDialogLine("lmmi_feast_leave_resp", "lmmi_feast_leave_resp", "close_window",
-                    "{=lmmi_feast_leave_resp}Safe roads, my friend. Don't be a stranger.", null, null);
+                    "{=!}{LMMI_FEAST_LEAVE}",
+                    () => Flavor.Say("LMMI_FEAST_LEAVE",
+                        "{=lmmi_feast_leave_resp}Safe roads, my friend. Don't be a stranger.",
+                        "{=lmmi_feast_leave_resp_2}Go well, my friend. My door's always open to you.",
+                        "{=lmmi_feast_leave_resp_3}Thank you for coming. Don't leave it so long next time."), null);
 
                 // Everyone else at the table: a word and a cup, no errands.
                 starter.AddDialogLine("lmmi_feast_guest", "start", "lmmi_feast_guest_resp",
