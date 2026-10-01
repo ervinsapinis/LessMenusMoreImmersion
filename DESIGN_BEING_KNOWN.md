@@ -494,6 +494,97 @@ makes a single-trait argument "very easy".
 | The toughs (a setup) | 1 | Valor/Leadership, Calculating/Roguery, Generosity/Charm | Medium |
 | A plea for your life (hired swords) | 2 | Calculating/Trade, Honor/Leadership, Mercy/Charm, Valor/Roguery | Hard; Very Hard ≤ −80 |
 
+## Round 11 (2026-10-01): the playtest round
+
+Built from the 2026-09-30 playtest list (`BACKLOG.md` A–F; tests in `TESTING.md` §1). Player-facing: `FEATURES.md`.
+
+- **Streets** (`StreetEventsBehavior*`, `StreetLooters`, `StreetHarvest`): lost child 60–110 m off (fallback 45), mother
+  guides to ~36 m, crying only < 25 m, no contour. Toughs `Chase` at ×1.08 run speed, catch at 2.2 m. **Looters, "my
+  men"** (`StreetLooters`): ≥ 5 healthy regulars; 4–6 spawned (`4 + (≥20 ? 1) + (≥40 ? 1)`) with a `PartyAgentOrigin` of
+  the main party, so vanilla's `BattleAgentLogic` books knocked-out as wounded and killed as dead; two lines, then a
+  `MissionFightHandler` fight. Win: standing +3, headman +1, hearth +1 (35%: −1, sheep lost). Lose: morale −5, every notable
+  −3, hearth −5. `CalmAfterLooters` calms the whole village and returns the requester. **Harvest** (`StreetHarvest`): the
+  player borrows the villager action set (farm loops + tool props), controls set aside; 9 s of work, then
+  `AdvanceClock` +4 h (re-lit); men: 4 spawned, 7 s, +3 h, morale −4, ≥ 9 healthy. Rewards: 2 (+2 at 20 healthy) crop,
+  Athletics 50, standing +3, headman +2, hearth +1. Debt thanks split paid / fought.
+- **Cells** (`JailSentencePatch`, `StreetEventsBehavior.PrepareSentence`): the captivity check's one
+  `FactionManager.IsAtWarAgainstFaction` call is rerouted to `AtWarOrHeld`, so only the "not at war → released" branch is
+  blocked; escape and ransom run and end the sentence. `ShameBeforeOwners`: −2 with every adult of the owning clan (−5 if
+  guards were killed). **Headsman** at `GuardKillsForHeadsman` (default 2): days ×2; noble (`clan.Tier ≥ 3` or a kingdom
+  vassal, not mercenary) → blood price 500/man + `NobleKin` −10; else `ExecutionPossible` (setting on, not your town) →
+  owner Mercy < 0: headsman; Mercy 0: headsman with a one-time blood-money offer 2000/man (pays → double time); Mercy > 0 or
+  relation ≥ 30: commuted (flogged to 15% HP, banished: standing pushed to −26). Setting off: commuted (own town: just ×2). The
+  sentence warning line shows only when `ExecutionPossible`.
+- **Hired swords** (`HiredSwordsBehavior`, `HiredBeatDownPatch`): `OutbidPrice` = 2 × fee + purse × min(0.8, (0.25 +
+  0.025 × tier) × (1 + 1.5 × clamp((−rel − 25)/75))); `WontSell`: rel ≤ −70 & Mercy ≤ −1 (personal), or a Hold job by a
+  Calculating lord at war (ransom). Bought off → `WalkAwayPoint` 60–100 m, fade out of view. Knocked out by anything =
+  a loss (`KnockedOut`). Road band `IgnoreByOtherPartiesTill`; no contract while you're in an army. Plea lines carry
+  `[if:]/[ib:]` emotion tags. `HiredBeatDownPatch` trims blows in `Agent.HandleBlow`, applied late (`ApplyLate`, first
+  mission) — never by `PatchAll` (see Technical notes).
+- **Prices** (`StandingPricePatch`): **replaces Round 9's `GetTradePenalty` postfix.** Postfix on the *live*
+  `Campaign.Models.TradeItemPriceFactorModel`'s `GetPrice` (patched once models are final, from `TavernLifeBehavior`'s session
+  launch; parameters by position for other mods' overrides). Edge: Honored 12%, Respected 8%, Known 4%, Disliked −8%,
+  Despised −15%, main party at a settlement only. Positive edges are capped so buy ≥ 1.04 × sell (re-entrant `GetPrice`
+  for the other side, `[ThreadStatic] _busy`). `TownStandingBehavior.PriceFactor` (×0.8…×1.25) is now unused.
+- **Taverns**: `CrowdDensityPatch` scales open streets only. **Tavern keeper** (`TavernKeeper.cs`, partial
+  `TavernLifeBehavior`; vanilla `tavernkeeper_talk` states): Despised → refused unless 100; free cup at Known+ (daily);
+  round = max(20, 40 + prosperity/25, ×1.5 at Disliked−), weekly, standing +1 (+0.5); rumors base 50/60/30/25 × (1 +
+  prosperity/10000) × markup (Honored 0, Respected 0.5, Known 0.75, stranger 1, Disliked/Despised 2), free again the same
+  day; enemies/notables refused at Disliked−; room (15 + prosperity/250) × markup, daily, heals 20/35/50% by band.
+- **Castles** (`CastleLifeBehavior`, `CastleYardBouts`, `CastleCastellan`, `CastleStaging`): the ring is staged on arrival
+  9–28 m in, radius 3.6, fighters at tiers ≈ 2/4/5 (garrison, else `HiredSwordsBehavior.TroopsOf`). Fists or wooden kit by
+  the fighter's best class. `OnAgentHealthChanged` guard stops the fall at 15% (you) / 12% (him). Odds 1.3 + 0.2·tier +
+  0.15·index; stakes 0/100/300. XP: win 40+20i / 30+20i, loss 20+10i / 10+10i, champion 150/150; standing +0.5 a win, +2 champion
+  (`champ:` 7 days, no wagers); loss → `run:` until tomorrow. Castellan: `Trusts` = own / same realm / lord ≥ 10 / Known+;
+  lair marked unless (¬Trusts ∧ Resents), via `OnHideoutSpotted`; double watch min(600, 150 + 2·garrison), security +10,
+  weekly; stores ≤ 40 food at 12, weekly. Vignettes cast from `CastleStaging.FreeSoldiers`, extras via `SpawnHidden`
+  (out of sight), leavers fade out of view (`Leavers`).
+- **Hall court** (`HallCourtBehavior`, `HallPetitions`): C6 — while `FeastBehavior.IsBusy` a pending petition is paused
+  (`Paused`, timers shifted on resume); dialogs and gossip wait. **C5 (branch `cloud/c5-docs`)**: 8 new kinds
+  (`CartSeized, Apprentice, BridePrice, Bandits, Debtor, Monopoly, Bloodshed, Bribes`), 2–3 plea variants for all 14
+  (`Variant`), a village (`BoundVillages`) and a touched notable (`NotableFor`) per petition, escorts for the accused guard
+  (a garrison troop) and the apprentice (`TownsmanTeenager`). `PickKind` weights: town vs castle, bound villages, security
+  < 40, at war (Pressed before a lord only at war), infested lair within 120, culture table, own hall ×0.5 if the touched
+  notable type is missing; never `_lastKind`. `SpeakerIsFemale` keeps gendered pleas with a matching petitioner.
+  `LordWouldGrant(lord, kind)` by kind (Honor for wrongs, Valor/Honor for bandits, Calculating for charters, Mercy against
+  apprentices' masters). `InterceptArguments(kind)` picks the three persuasion arguments. Own-court levers add
+  `Move(prosperity:)`, `Village.Hearth`, `Settlement.Militia`, garrison +1 troop, `MarkNearestLair`.
+- **Camp** (`CampBehavior`, `CampMapBar`, `CampReport`, `CampFoodMorale`, `CampMissionLogic`): a `MapNavigationHandler`
+  element (no prefab patch) + brush layers copied from Party/Inventory; once per campaign day (`_lastCampDay`, Test mode
+  skips); per camp: cask, story, drill once, bouts ≤ 3 (not bypassed by Test mode); story/drill also 24 h cooldowns.
+  Cask: 1 wine/beer per 25 men; +2 / +3 (won ≤ 3 days) / +5 (lost); ⌈½⌉ at morale > 70; −1 if taste of home at cap; × poured /
+  wanted, min 1. Story: `NativePersuasion("camp_story")`, goal 2, Medium; won +3 morale, Leadership 50 (lost 15). Drill:
+  (20 + Leadership/5) xp per fit man, Leadership 40, morale ±2 by a fight in 7 days. **Taste of home**: Harmony postfix on
+  `DefaultPartyMoraleModel.GetEffectivePartyMorale` (own tooltip line); peoples ≥ 15% holding a favourite: +1 / +1.5 (30%)
+  / +2 (50%), cap +5; a 40%+ people with none: −1; cached on roster versions.
+- **Feasts** (`FeastBehavior`, `FeastHall`, `FeastStaff`): square — player chair beside the host; guards held off the table
+  area; one prop per seat matching the loop (ham ↔ eating, mug ↔ drinking); `LeaveEarly` −1 (goodbye < 40 s) / −2 (walked
+  off or left the scene); effects once (`Applied`). Hall — `HallGuests` (lords within 6 map units, relation ≥ 0, not at war,
+  not in a battle/siege/other army; spouse, clan, tier; notables relation > −10 by Power; ≤ 6 companions, 2:1; best troops
+  at the foot) to 20 seats; `FitTables`: 2 m grid within 25 m on the host's level and navmesh, 12 headings, `RectClear`
+  (waist and head raycasts, seated agents), `Reachable` path check; layouts n×8 → 1×6 → 1×4, else the hall's own chairs.
+  150 s (early < 70 s), then `Phase.Lingering` until the mission ends. Staff: tavern wench with pitcher (always), musicians
+  3 in a hall / 2 at Power ≥ 100, dancers 2 / 1 at ≥ 200; band 6–7.5 m from every seat with sight of the tables;
+  `SettlementMusicData` by culture and `lords_hall`/`tavern`, 8 s between tunes.
+- **Arrivals** (`ArrivalScenesBehavior`, `ArrivalSycophants`): tribute at tier ≥ 4, 84 days per notable, 21 days anywhere,
+  35% roll (fail → 7 days); gift in kind or 25…30·tier+40 (≤ gold/10); proud refusal −4, else −1, Charm ≥ 75 graceful +1.
+  Obligation due 4–8 days later, grace 20 days (then −4, tribute cooldown ×2). Asks weighted: charter 3, invest 2.5/1.5,
+  son 3/1.5, good word 1.5, rival 1.5. Saved as `O;…` / `I;…` strings. "Meet them": `OnPlayerStartTalkFromMenu` +
+  `CreateAndOpenMissionController(location, …, host)`.
+
+Open questions:
+
+- Court own-court prosperity deltas (5–30) are small next to `Town.Prosperity` (thousands) and the charter's +150; tune
+  once seen in play.
+- `Settlement.Militia` setter is unverified (`// VERIFY` in `HallPetitions.cs`).
+- `Rule()`'s petitioner barks are generic ("Bless you, my lord" — even to a lady; "Then heaven help us" for a guildmaster
+  refused a charter): per-kind reactions?
+- The C5 draft also moved petitioners to `CastleStaging.HiddenSpot` entries and `Leavers` exits; not ported (wiring only).
+  Worth doing separately: petitioners still walk in from a far agent's position and fade 14 s after leaving.
+- `_lastKind` is per session (not saved): after a load the same kind can come up twice running.
+- The MCM hint for "Guards killed for the headsman" still describes the old rule (tier 3 only, death for everyone else).
+- Feast mingling (B9): design in `DESIGN_FEAST_MINGLING.md`.
+
 ## Round 10 (built 2026-09-30): lords and the region
 
 - **Word travels** (`TownStandingBehavior.Add`): |amount| ≥ 1 → +amount/4 to ≤ 4 towns/castles of the settlement's culture
