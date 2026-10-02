@@ -31,8 +31,8 @@ namespace LessMenusMoreImmersion.Settings
         public const bool DefaultEnableArrivalScenes = true;
         public const bool DefaultEnableStreetEvents = true;
         public const int DefaultCrowdDensityPercent = 200;
-        public const int DefaultStreetAmbushPercent = 15;
-        public const int DefaultStreetEventChancePercent = 50;
+        public const int DefaultStreetAmbushPercent = 30;
+        public const int DefaultStreetEventChancePercent = 70;
         public const bool DefaultEnableHiredSwords = true;
         public const bool DefaultAllowPlayerExecution = true;
         public const int DefaultGuardKillsForHeadsman = 2;
@@ -61,6 +61,8 @@ namespace LessMenusMoreImmersion.Settings
             _values["FullAccessClanTier"] = DefaultFullAccessClanTier;
             _values["KingdomAccessClanTier"] = DefaultKingdomAccessClanTier;
             _values["VerboseLogging"] = DefaultVerboseLogging;
+            _values["ShowDebugOptions"] = false;
+            _values["ShowTestingOptions"] = false;
             _values["EnableNotableDisposition"] = DefaultEnableNotableDisposition;
             _values["ForeignerPrejudicePercent"] = DefaultForeignerPrejudicePercent;
             _values["FavorCooldownPercent"] = DefaultFavorCooldownPercent;
@@ -468,6 +470,15 @@ namespace LessMenusMoreImmersion.Settings
             {
                 group.SetGroupOrder(3);
 
+                // Collapsed unless ticked: players don't need these.
+                group.AddToggle(
+                    "ShowDebugOptions",
+                    "Debug",
+                    new MCM.Common.ProxyRef<bool>(
+                        () => Get<bool>("ShowDebugOptions"),
+                        v => Set("ShowDebugOptions", v)),
+                    b => b.SetHintText("Logging and tuning aids. Not needed for normal play."));
+
                 group.AddBool(
                     "VerboseLogging",
                     "Verbose logging",
@@ -492,6 +503,15 @@ namespace LessMenusMoreImmersion.Settings
             {
                 group.SetGroupOrder(4);
                 var order = 0;
+
+                // Collapsed unless ticked: cheats and staged events for testing — spoilers for players.
+                group.AddToggle(
+                    "ShowTestingOptions",
+                    "Testing (cheats)",
+                    new MCM.Common.ProxyRef<bool>(
+                        () => Get<bool>("ShowTestingOptions"),
+                        v => Set("ShowTestingOptions", v)),
+                    b => b.SetHintText("Test mode, staged events and cheats. Spoils the surprises; leave closed for normal play."));
 
                 group.AddBool(
                     "TestMode",

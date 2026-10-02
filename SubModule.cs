@@ -27,10 +27,8 @@ namespace LessMenusMoreImmersion
 
             try
             {
-                Harmony.DEBUG = true;
                 _harmony = new Harmony("LessMenusMoreImmersion");
 
-                InformationManager.DisplayMessage(new InformationMessage("[LMMI] Applying Harmony patches..."));
                 LmmiLog.Info("Applying Harmony patches...");
 
                 _harmony.PatchAll(Assembly.GetExecutingAssembly());
@@ -40,13 +38,11 @@ namespace LessMenusMoreImmersion
                 int patchCount = 0;
                 foreach (var m in patchedMethods) patchCount++;
 
-                InformationManager.DisplayMessage(new InformationMessage($"[LMMI] Harmony {ver} — {patchCount} methods patched"));
                 LmmiLog.Info($"Harmony {ver} initialized — {patchCount} methods patched.");
 
                 foreach (var m in _harmony.GetPatchedMethods())
                 {
                     LmmiLog.Info($"  Patched: {m.DeclaringType?.FullName}.{m.Name}");
-                    InformationManager.DisplayMessage(new InformationMessage($"[LMMI] Patched: {m.DeclaringType?.Name}.{m.Name}"));
                 }
             }
             catch (Exception ex)

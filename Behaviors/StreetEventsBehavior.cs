@@ -573,6 +573,8 @@ namespace LessMenusMoreImmersion.Behaviors
             if (_softTouch.TryGetValue(settlement.StringId, out var soft)) chance += 0.03f * Math.Min(5, soft);
             int tier = Clan.PlayerClan?.Tier ?? 0;
             if (tier > 3) chance -= 0.05f * (tier - 3);
+            // Known faces are bad marks: the town would talk. Despised ones are fair game.
+            chance += (TownStandingBehavior.Band(settlement) - StandingBand.Unknown) * -0.05f;
             if (_setupAtHours.TryGetValue(settlement.StringId, out var at) && CampaignTime.Now.ToHours - at < SetupQuietDays * CampaignTime.HoursInDay)
                 chance *= 0.3f;
             if (LmmiSettingsProvider.TestMode) chance = Math.Max(chance, 0.5f);
