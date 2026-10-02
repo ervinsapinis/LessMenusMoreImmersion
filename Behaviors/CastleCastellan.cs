@@ -146,7 +146,7 @@ namespace LessMenusMoreImmersion.Behaviors
                 : "{=lmmi_castle_prisoners_empty}Otherwise the cells are empty.").SetTextVariable("N", common);
             if (heroes.Count == 0)
                 return (common > 0
-                    ? "{=lmmi_castle_prisoners_none_common}No one worth a ransom. Just {N} common prisoners eating our bread."
+                    ? new TextObject("{=lmmi_castle_prisoners_none_common}No one worth a ransom. Just {N} common prisoners eating our bread.")
                     : Flavor.Pick("{=lmmi_castle_prisoners_none}No one. The cells are empty — the rats are bored.",
                         "{=lmmi_castle_prisoners_none_2}Empty cells. Not so much as a cattle thief.",
                         "{=lmmi_castle_prisoners_none_3}Nobody down there. The jailer's taken up whittling.")).SetTextVariable("N", common);
