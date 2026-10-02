@@ -72,6 +72,7 @@ namespace LessMenusMoreImmersion.Behaviors
         [NonSerialized] private Vec3 _masterPost;
         [NonSerialized] private Bout? _bout;
         [NonSerialized] private bool _pendingWooden;
+        [NonSerialized] private bool _masterGreeted;
 
         private void ResetYard()
         {
@@ -171,6 +172,7 @@ namespace LessMenusMoreImmersion.Behaviors
                 _ring.Add(new RingFighter { Agent = man, Troop = troops[i], Post = post, Facing = facing });
                 StreetEventsBehavior.Direct(man)?.Hold(loop: RingLoops[i % RingLoops.Length]);
             }
+            RestoreProgress(castle);
             LmmiLog.Info($"Castle: the practice ring ({bestScore}/4 sides open), {_ring.Count} fighters.");
         }
 
@@ -179,8 +181,46 @@ namespace LessMenusMoreImmersion.Behaviors
         private static float OddsFor(CharacterObject troop, int index) =>
             (float)Math.Round(1.3f + 0.2f * troop.Tier + 0.15f * index, 1);
 
-        private bool WagersRefused => _castle != null && !Ready("champ:" + _castle.StringId);
+        private bool WagersRefused => _castle != null && (!Ready("champ:" + _castle.StringId) || ChampionElsewhere() != null);
         private bool LostToday => _castle != null && !Ready("run:" + _castle.StringId);
+
+        /// <summary>
+        /// Another castle of the same kingdom where you were made champion of the yard within the week — word has
+        /// spread, and the master here won't take your coin either. (Derived from the saved per-castle lockouts.)
+        /// </summary>
+        private Settlement? ChampionElsewhere()
+        {
+            try
+            {
+                var castle = _castle;
+                var faction = castle?.MapFaction;
+                if (castle == null || faction == null || !faction.IsKingdomFaction || Ready("champ:" + castle.StringId) == false) return null;
+                foreach (var s in Settlement.All)
+                    if (s != castle && s.IsCastle && s.MapFaction == faction && !Ready("champ:" + s.StringId)) return s;
+            }
+            catch (Exception ex) { LmmiLog.Error("CastleYardBouts.ChampionElsewhere threw", ex); }
+            return null;
+        }
+
+        // ---- Run progress: saved per castle per day (same _readyAtHours store; value = next midnight + count/10) ----
+
+        private void SaveProgress(Settlement castle)
+        {
+            int count = _ring.Count(f => f.Beaten);
+            string key = "prog:" + castle.StringId;
+            if (count <= 0) { _readyAtHours.Remove(key); return; }
+            _readyAtHours[key] = (Math.Floor(CampaignTime.Now.ToDays) + 1.0) * CampaignTime.HoursInDay + count / 10.0;
+        }
+
+        private void RestoreProgress(Settlement castle)
+        {
+            if (LmmiSettingsProvider.TestMode) return;
+            if (!_readyAtHours.TryGetValue("prog:" + castle.StringId, out var v)) return;
+            if (Math.Floor(v) <= CampaignTime.Now.ToHours) { _readyAtHours.Remove("prog:" + castle.StringId); return; }
+            int count = (int)Math.Round((v - Math.Floor(v)) * 10.0);
+            for (int i = 0; i < count && i < _ring.Count; i++) _ring[i].Beaten = true;
+            if (count > 0) LmmiLog.Info($"Castle: run progress restored at {castle.Name}: {count} beaten today.");
+        }
 
         // ---- Practice weapons ----
 
@@ -520,6 +560,7 @@ namespace LessMenusMoreImmersion.Behaviors
                 // Your run's over for today: next time you start again from the first of them.
                 UntilTomorrow("run:" + castle.StringId);
                 foreach (var f in _ring) f.Beaten = false;
+                SaveProgress(castle);
                 Hero.MainHero.AddSkillXp(DefaultSkills.Athletics, 20f + 10f * b.Index);
                 Hero.MainHero.AddSkillXp(skill, 10f + 10f * b.Index);
                 if (_master != null) StreetEventsBehavior.Bark(_master, Flavor.Pick("{=lmmi_castle_spar_lost}Down you go! Don't take it hard — he does this to everyone.",
@@ -544,6 +585,7 @@ namespace LessMenusMoreImmersion.Behaviors
             }
 
             fighter.Beaten = true;
+            SaveProgress(castle);
             SendBack(fighter, kneel: true);
             int payout = b.Wager > 0 ? (int)Math.Round(b.Wager * b.Odds) : 0;
             if (payout > 0) Hero.MainHero.ChangeHeroGold(payout);
@@ -625,10 +667,19 @@ namespace LessMenusMoreImmersion.Behaviors
                     var castle = _castle!;
                     bool resent = castle.Culture != Hero.MainHero.Culture
                                   && CultureRelations.Multiplier(castle.Culture?.StringId, Hero.MainHero.Culture?.StringId) > 0f;
+                    var heardAt = ChampionElsewhere();
                     var line = (LostToday
                         ? Flavor.Pick("{=lmmi_castle_master_beaten}Still standing? Good. No more bouts for you today — come back tomorrow and start from the bottom.",
                         "{=lmmi_castle_master_beaten_2}Back already? Your run's done for today. Rest those bruises.",
                         "{=lmmi_castle_master_beaten_3}No more for you today. Come back tomorrow, start with the green one.")
+                        : _masterGreeted && heardAt == null && Ready("champ:" + castle.StringId)
+                            ? Flavor.Pick("{=lmmi_castle_master_again}Back for more?",
+                        "{=lmmi_castle_master_again_2}Well? Another round, or have you had enough?",
+                        "{=lmmi_castle_master_again_3}Still here? The ring's yours, if you've the stomach for it.")
+                        : heardAt != null
+                            ? Flavor.Pick("{=lmmi_castle_master_heard}Ha — no. We heard what you did to the lads at {HEARD_CASTLE}. I'll not take your coin, but the ring's open if you want to practice.",
+                        "{=lmmi_castle_master_heard_2}You! Word came from {HEARD_CASTLE} about what you did to the garrison there. No wagers from you, friend.",
+                        "{=lmmi_castle_master_heard_3}So you're the one who cleared the yard at {HEARD_CASTLE}. No — I'll not bet against you. Spar for nothing, if you like.")
                         : WagersRefused
                             ? Flavor.Pick("{=lmmi_castle_master_champ}The champion of the yard! The lads are still rubbing their jaws.",
                         "{=lmmi_castle_master_champ_2}The champion graces us again! What can I do for you?",
@@ -645,10 +696,11 @@ namespace LessMenusMoreImmersion.Behaviors
                         "{=lmmi_castle_master_kin_ring_2}Master-at-arms. Want a bout? Three of my lads, one after another. Fists or wooden blades.",
                         "{=lmmi_castle_master_kin_ring_3}Three of my best, one at a time. Beat them all and you'll be the talk of the barracks."));
                     line.SetTextVariable("DEMONYM", CultureWords.Demonym(Hero.MainHero.Culture));
+                    if (heardAt != null) line.SetTextVariable("HEARD_CASTLE", heardAt.Name);
                     MBTextManager.SetTextVariable("LMMI_CASTLE_MASTER", line);
                     MBTextManager.SetTextVariable("LMMI_CASTLE_TRAIN_COST", TrainCost);
                     return true;
-                }, null, 1200);
+                }, () => _masterGreeted = true, 1200);
 
             // The ring: who's next, and how.
             starter.AddPlayerLine("lmmi_castle_master_ring", "lmmi_castle_master_resp", "lmmi_castle_master_next",

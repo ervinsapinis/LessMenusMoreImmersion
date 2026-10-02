@@ -59,6 +59,18 @@ namespace LessMenusMoreImmersion.Behaviors
         private bool KeeperReady(string what) =>
             !_keeperUntil.TryGetValue(Key(what), out var until) || until <= CampaignTime.Now.ToHours;
 
+        /// <summary>Dice wins in this town today: saved, so leaving and coming back doesn't reset it (value = next midnight + wins/10).</summary>
+        private int DiceWinsToday
+        {
+            get
+            {
+                if (!_keeperUntil.TryGetValue(Key("dicewins"), out var v)) return 0;
+                if (Math.Floor(v) <= CampaignTime.Now.ToHours) return 0;
+                return (int)Math.Round((v - Math.Floor(v)) * 10.0);
+            }
+            set => _keeperUntil[Key("dicewins")] = (Math.Floor(CampaignTime.Now.ToDays) + 1.0) * CampaignTime.HoursInDay + value / 10.0;
+        }
+
         private void KeeperHold(string what, float days) =>
             _keeperUntil[Key(what)] = CampaignTime.Now.ToHours + days * CampaignTime.HoursInDay;
 

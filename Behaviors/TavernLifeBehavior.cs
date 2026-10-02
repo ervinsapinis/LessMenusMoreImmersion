@@ -20,7 +20,7 @@ namespace LessMenusMoreImmersion.Behaviors
     /// </summary>
     public partial class TavernLifeBehavior : CampaignBehaviorBase
     {
-        private const int WinsPerVisit = 5;
+        private const int WinsPerDay = 5;
 
         [NonSerialized] private Mission? _mission;
         [NonSerialized] private int _wins;
@@ -94,7 +94,7 @@ namespace LessMenusMoreImmersion.Behaviors
             }
             bool won = mine > theirs;
             Hero.MainHero.ChangeHeroGold(won ? stake : -stake);
-            if (won) _wins++;
+            if (won) DiceWinsToday = DiceWinsToday + 1;
             _result = won
                 ? Flavor.Pick("{=lmmi_dice_won}{MINE} against {THEIRS}. ...Yours. Curse your luck.",
                     "{=lmmi_dice_won_2}Your {MINE} to my {THEIRS}. Take it — and choke on it.",
@@ -129,7 +129,7 @@ namespace LessMenusMoreImmersion.Behaviors
                 () =>
                 {
                     TextObject? line = null;
-                    if (_wins >= WinsPerVisit) line = Flavor.Pick("{=lmmi_dice_refuse_wins}Not with you. You've cleaned out half the room tonight.",
+                    if (DiceWinsToday >= WinsPerDay) line = Flavor.Pick("{=lmmi_dice_refuse_wins}Not with you. You've cleaned out half the room tonight.",
                         "{=lmmi_dice_refuse_wins_2}Play with you again? I'd sooner hand you my purse and save us both the time.",
                         "{=lmmi_dice_refuse_wins_3}No more. You've the gods' own luck tonight, and I've a family to feed.");
                     else if (Refuses())

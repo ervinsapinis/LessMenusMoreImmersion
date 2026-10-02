@@ -100,6 +100,7 @@ namespace LessMenusMoreImmersion.Behaviors
                     _staged = false;
                     _master = _castellan = null;
                     _masterBarked = _castellanBarked = false;
+                    _masterGreeted = false;
                     _vignette = null;
                     ResetYard();
                     _afterTalk.Clear();

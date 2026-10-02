@@ -79,8 +79,10 @@ namespace LessMenusMoreImmersion.Behaviors
                     if (!OldTeams.ContainsKey(lad)) OldTeams[lad] = lad.Team;
                     StripWeapons(lad, null);
                     lad.SetTeam(sides[i], true);
+                    // Youths are spared damage for their age; brawlers are 18 for the fight (they still look the part —
+                    // the body isn't rebuilt) and can be knocked out like anyone else.
+                    if (lad.Age < 18f) lad.Age = 18f;
                     lad.SetMortalityState(Agent.MortalityState.Mortal);
-                    HiredBeatDownPatch.AlsoGuarded.Add(lad);   // bruises, not knockouts, until someone steps in (Immortal would zero all damage)
                     ForceFight(lad);
                 }
                 On = true;
@@ -169,8 +171,9 @@ namespace LessMenusMoreImmersion.Behaviors
             public abstract void End();
         }
 
-        private const float SceneChance = 0.3f;
-        private const float CooldownDays = 1f;
+        private const float RerollMinSeconds = 180f;
+        private const float RerollMaxSeconds = 240f;
+        private const float CooldownDays = 0.5f;   // 12 hours: only guards re-entering after an event
         private const float AskTimeout = 60f;
         private const float GuideTimeout = 150f;
         private const float ChaseTimeout = 45f;
@@ -206,6 +209,7 @@ namespace LessMenusMoreImmersion.Behaviors
         [NonSerialized] private float _sceneTime;
         [NonSerialized] private float _rollAt;
         [NonSerialized] private bool _rolled;
+        [NonSerialized] private bool _eventThisVisit;
         [NonSerialized] private bool _forced;
         [NonSerialized] private Kind? _forcedKind;
         [NonSerialized] private Scene? _scene;
@@ -349,6 +353,7 @@ namespace LessMenusMoreImmersion.Behaviors
                     _mission = mission;
                     _sceneTime = 0f;
                     _rolled = false;
+                    _eventThisVisit = false;
                     _rollAt = 20f + MBRandom.RandomFloat * 30f;
                     _scene = null;
                     _aftermaths.Clear();
@@ -409,12 +414,17 @@ namespace LessMenusMoreImmersion.Behaviors
 
                 if (_scene != null)
                 {
+                    _rollAt = Math.Max(_rollAt, _sceneTime + RerollMinSeconds);
                     Update(_scene, mission);
                     return;
                 }
-                if (_aftermaths.Count > 0) return;
+                if (_aftermaths.Count > 0)
+                {
+                    _rollAt = Math.Max(_rollAt, _sceneTime + RerollMinSeconds);
+                    return;
+                }
 
-                if (!_forced && (_rolled || _sceneTime < _rollAt)) return;
+                if (!_forced && _sceneTime < _rollAt) return;
                 if (mission.Mode == MissionMode.Conversation || mission.Mode == MissionMode.Battle) return;
                 if (mission.GetMissionBehavior<MissionFightHandler>()?.IsThereActiveFight() == true) return;
                 if (ArrivalScenesBehavior.IsBusy || FeastBehavior.IsBusy || HiredSwordsBehavior.InScene) return;
@@ -428,11 +438,13 @@ namespace LessMenusMoreImmersion.Behaviors
                 _forced = false;
                 _forcedKind = null;
                 _rolled = true;
+                _rollAt = _sceneTime + RerollMinSeconds + MBRandom.RandomFloat * (RerollMaxSeconds - RerollMinSeconds);
                 if (!forced && (!LmmiSettingsProvider.EnableStreetEvents || !LmmiSettingsProvider.EnableNotableDisposition)) return;
                 if (!forced && !LmmiSettingsProvider.TestMode)
                 {
-                    if (_readyAtHours.TryGetValue(settlement.StringId, out var ready) && ready > CampaignTime.Now.ToHours) return;
-                    if (MBRandom.RandomFloat > SceneChance) return;
+                    // The cooldown only guards re-entering soon after an event; within one visit the re-roll timer paces things.
+                    if (!_eventThisVisit && _readyAtHours.TryGetValue(settlement.StringId, out var ready) && ready > CampaignTime.Now.ToHours) return;
+                    if (MBRandom.RandomFloat * 100f >= LmmiSettingsProvider.StreetEventChancePercent) return;
                 }
 
                 // Whether this one is a setup is decided before anything is staged — the plea is the same either way.
@@ -442,6 +454,7 @@ namespace LessMenusMoreImmersion.Behaviors
                     var scene = Setup(kind, mission, settlement, ambush);
                     if (scene == null) continue;
                     _scene = scene;
+                    _eventThisVisit = true;
                     _readyAtHours[settlement.StringId] = CampaignTime.Now.ToHours + CooldownDays * CampaignTime.HoursInDay;
                     return;
                 }

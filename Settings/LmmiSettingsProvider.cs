@@ -32,6 +32,7 @@ namespace LessMenusMoreImmersion.Settings
         public const bool DefaultEnableStreetEvents = true;
         public const int DefaultCrowdDensityPercent = 200;
         public const int DefaultStreetAmbushPercent = 15;
+        public const int DefaultStreetEventChancePercent = 50;
         public const bool DefaultEnableHiredSwords = true;
         public const bool DefaultAllowPlayerExecution = true;
         public const int DefaultGuardKillsForHeadsman = 2;
@@ -68,6 +69,7 @@ namespace LessMenusMoreImmersion.Settings
             _values["EnableStreetEvents"] = DefaultEnableStreetEvents;
             _values["CrowdDensityPercent"] = DefaultCrowdDensityPercent;
             _values["StreetAmbushPercent"] = DefaultStreetAmbushPercent;
+            _values["StreetEventChancePercent"] = DefaultStreetEventChancePercent;
             _values["EnableHiredSwords"] = DefaultEnableHiredSwords;
             _values["AllowPlayerExecution"] = DefaultAllowPlayerExecution;
             _values["GuardKillsForHeadsman"] = DefaultGuardKillsForHeadsman;
@@ -106,6 +108,7 @@ namespace LessMenusMoreImmersion.Settings
         public static bool EnableStreetEvents => Get<bool>("EnableStreetEvents");
         public static int CrowdDensityPercent => Get<int>("CrowdDensityPercent");
         public static int StreetAmbushPercent => Get<int>("StreetAmbushPercent");
+        public static int StreetEventChancePercent => Get<int>("StreetEventChancePercent");
         public static bool EnableHiredSwords => Get<bool>("EnableHiredSwords");
         public static bool AllowPlayerExecution => Get<bool>("AllowPlayerExecution");
         public static int GuardKillsForHeadsman => Get<int>("GuardKillsForHeadsman");
@@ -346,6 +349,17 @@ namespace LessMenusMoreImmersion.Settings
                         v => Set("StreetAmbushPercent", v)),
                     b => b.SetOrder(order++)
                         .SetHintText("The base chance that a plea for help is bait: the same plea and the same scene, until you get there and toughs close in. Higher for a foreigner where your people are resented and for a known soft touch; lower for a famous name, and for a while after a setup in that town. 0 = never."));
+
+                group.AddInteger(
+                    "StreetEventChancePercent",
+                    "Street event chance (%)",
+                    minValue: 0,
+                    maxValue: 100,
+                    new MCM.Common.ProxyRef<int>(
+                        () => Get<int>("StreetEventChancePercent"),
+                        v => Set("StreetEventChancePercent", v)),
+                    b => b.SetOrder(order++)
+                        .SetHintText("The chance that something happens on the street each time the town or village rolls for it (every three to four minutes you spend in the square). 0 = never."));
 
                 group.AddBool(
                     "EnableCastleLife",

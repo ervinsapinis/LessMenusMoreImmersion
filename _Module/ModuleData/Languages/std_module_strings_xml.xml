@@ -3745,5 +3745,14 @@
 		<string id="lmmi_vouch_rivals_3" text="Not {TARGET}. A word from me would only make it worse." />
 		<string id="lmmi_vouch_who_2" text="Whom do you have in mind?" />
 		<string id="lmmi_vouch_who_3" text="Who needs convincing?" />
+		<string id="lmmi_castle_master_again" text="Back for more?" />
+		<string id="lmmi_castle_master_again_2" text="Well? Another round, or have you had enough?" />
+		<string id="lmmi_castle_master_again_3" text="Still here? The ring's yours, if you've the stomach for it." />
+		<string id="lmmi_castle_master_heard" text="Ha — no. We heard what you did to the lads at {HEARD_CASTLE}. I'll not take your coin, but the ring's open if you want to practice." />
+		<string id="lmmi_castle_master_heard_2" text="You! Word came from {HEARD_CASTLE} about what you did to the garrison there. No wagers from you, friend." />
+		<string id="lmmi_castle_master_heard_3" text="So you're the one who cleared the yard at {HEARD_CASTLE}. No — I'll not bet against you. Spar for nothing, if you like." />
+		<string id="lmmi_standing_war_enter" text="They know whose banner you ride under." />
+		<string id="lmmi_standing_war_enter_2" text="Hard eyes follow your banner through {SETTLEMENT}. They know who you serve." />
+		<string id="lmmi_standing_war_enter_3" text="Word of the war has come before you. {SETTLEMENT} knows whose colors you wear." />
 	</strings>
 </base>

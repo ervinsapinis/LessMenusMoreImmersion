@@ -56,7 +56,25 @@ namespace LessMenusMoreImmersion.Behaviors
             var self = Instance;
             float stored = self != null && self._standing.TryGetValue(settlement.StringId, out var v) ? v : 0f;
             float crime = settlement.MapFaction?.MainHeroCrimeRating ?? 0f;
-            return stored - crime / 4f;
+            return stored - crime / 4f - WarPenalty(settlement);
+        }
+
+        private const float WarPenaltyAmount = 10f;
+
+        /// <summary>
+        /// Computed, never stored: while your clan sits in a kingdom (vassal or mercenary) at war with the settlement's
+        /// realm, its people think worse of you. Applied once, here, so every band/price/fine/dialog reading sees it.
+        /// </summary>
+        private static float WarPenalty(Settlement settlement)
+        {
+            try
+            {
+                var mine = Clan.PlayerClan?.Kingdom;
+                var theirs = settlement.MapFaction;
+                if (mine == null || theirs == null || theirs == mine || settlement.OwnerClan == Clan.PlayerClan) return 0f;
+                return mine.IsAtWarWith(theirs) ? WarPenaltyAmount : 0f;
+            }
+            catch { return 0f; }
         }
 
         public static StandingBand BandOf(float standing) =>
@@ -159,6 +177,36 @@ namespace LessMenusMoreImmersion.Behaviors
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, OnDailyTick);
             CampaignEvents.WeeklyTickEvent.AddNonSerializedListener(this, OnWeeklyTick);
             CampaignEvents.SettlementEntered.AddNonSerializedListener(this, OnSettlementEntered);
+            CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, OnSessionLaunched);
+        }
+
+        [NonSerialized] private bool _startRolled;
+
+        /// <summary>Once per save: every town and castle starts with a feel for you — kin warmer, rivals colder, the rest by chance.</summary>
+        private void OnSessionLaunched(CampaignGameStarter starter)
+        {
+            try
+            {
+                if (_startRolled) return;
+                var culture = Hero.MainHero?.Culture;
+                if (culture == null) return;
+                int set = 0, kin = 0, rival = 0;
+                foreach (var s in Settlement.All)
+                {
+                    if (!(s.IsTown || s.IsCastle)) continue;
+                    if (_standing.TryGetValue(s.StringId, out var cur) && Math.Abs(cur) > 0.001f) continue;
+                    float v = MBRandom.RandomInt(-4, 5);
+                    if (s.Culture == culture) { v += 3f; kin++; }
+                    else if (CultureRelations.Multiplier(s.Culture?.StringId, culture.StringId) >= 1.5f) { v -= 3f; rival++; }
+                    v = Math.Max(-24f, Math.Min(24f, v));
+                    if (Math.Abs(v) < 0.001f) continue;
+                    _standing[s.StringId] = v;
+                    set++;
+                }
+                _startRolled = true;
+                LmmiLog.Info($"Town standing: starting standing rolled for {set} towns and castles ({kin} kin, {rival} rival culture).");
+            }
+            catch (Exception ex) { LmmiLog.Error("TownStandingBehavior.OnSessionLaunched threw", ex); }
         }
 
         /// <summary>Walking in, you can tell how they speak of you here.</summary>
@@ -169,6 +217,12 @@ namespace LessMenusMoreImmersion.Behaviors
                 if (party != MobileParty.MainParty || settlement == null || settlement.IsHideout) return;
                 if (settlement.OwnerClan == Clan.PlayerClan) return;   // your own: they know you
                 var band = Band(settlement);
+                if (WarPenalty(settlement) > 0f && band < BandOf(Get(settlement) + WarPenaltyAmount))
+                    InformationManager.DisplayMessage(new InformationMessage(
+                        Flavor.Pick("{=lmmi_standing_war_enter}They know whose banner you ride under.",
+                            "{=lmmi_standing_war_enter_2}Hard eyes follow your banner through {SETTLEMENT}. They know who you serve.",
+                            "{=lmmi_standing_war_enter_3}Word of the war has come before you. {SETTLEMENT} knows whose colors you wear.")
+                            .SetTextVariable("SETTLEMENT", settlement.Name).ToString(), Colors.Red));
                 if (band == StandingBand.Unknown) return;
                 var line = (band switch
                 {
@@ -444,6 +498,7 @@ namespace LessMenusMoreImmersion.Behaviors
             parts.AddRange(_owesThanks.Select(id => "T;" + id));
             parts.AddRange(_steppedUp.Select(kv => "U;" + kv.Key + ";" + kv.Value.ToString("R", CultureInfo.InvariantCulture)));
             parts.AddRange(_remarked.Select(k => "K;" + k));
+            if (_startRolled) parts.Add("I;1");
             return string.Join("|", parts);
         }
 
@@ -454,6 +509,7 @@ namespace LessMenusMoreImmersion.Behaviors
             _owesThanks = new HashSet<string>();
             _steppedUp = new Dictionary<string, double>();
             _remarked = new HashSet<string>();
+            _startRolled = false;
             if (string.IsNullOrEmpty(data)) return;
             foreach (var entry in data.Split('|'))
             {
@@ -468,6 +524,8 @@ namespace LessMenusMoreImmersion.Behaviors
                     _steppedUp[p[1]] = at;
                 else if (p.Length == 2 && p[0] == "K")
                     _remarked.Add(p[1]);
+                else if (p.Length == 2 && p[0] == "I")
+                    _startRolled = true;
             }
         }
     }
