@@ -3,7 +3,7 @@
         xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/BUTR/Bannerlord.XmlSchemas/master/SubModule.xsd" >
   <Id value="LessMenusMoreImmersion" />
   <Name value="LessMenusMoreImmersion" />
-  <Version value="v1.6.0" />
+  <Version value="v1.7.0" />
   <DefaultModule value="false" />
   <ModuleCategory value="Singleplayer"/>
   <ModuleType value="Community" />

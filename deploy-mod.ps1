@@ -82,6 +82,13 @@ if (Test-Path $ModuleDataSrc) {
     Write-Host "  ModuleData -> $ModuleDataDst"
 }
 
+# Runtime UI artwork (including the camp map-bar icon).
+$GuiSrc = "$ProjectDir\_Module\GUI"
+if (Test-Path $GuiSrc) {
+    Copy-Item $GuiSrc -Destination $ModulePath -Recurse -Force
+    Write-Host "  GUI -> $ModulePath\GUI"
+}
+
 Write-Host ""
 Write-Host "[3/4] Deploy complete." -ForegroundColor Green
 Write-Host ""

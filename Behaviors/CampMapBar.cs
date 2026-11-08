@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using HarmonyLib;
 using LessMenusMoreImmersion.Logging;
@@ -11,6 +12,7 @@ using TaleWorlds.Engine.GauntletUI;
 using TaleWorlds.GauntletUI;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
+using TaleWorlds.ModuleManager;
 using TaleWorlds.TwoDimension;
 
 namespace LessMenusMoreImmersion.Behaviors
@@ -100,15 +102,18 @@ namespace LessMenusMoreImmersion.Behaviors
     /// <summary>
     /// The button's look: the vanilla backgrounds/icon brushes get a layer named after the element, copied from a regular
     /// middle slot (the Party background — the one the DLC's fleet button reuses — and the Inventory icon layer's
-    /// placement), with a vanilla game-menu sprite as the icon (from an always-loaded sprite category; nothing is created
-    /// natively at runtime). Idempotent; cheap enough to call every frame on the map.
+    /// placement). A shaded tent replaces the game-menu hourglass; the native generic icon brush still supplies all
+    /// interaction states. The standalone texture is loaded once on the map UI thread and retained with its sprite.
     /// </summary>
     internal static class CampMapBarIcon
     {
         private const string BackgroundTemplate = "party";
         private const string IconTemplate = "inventory";
-        private const string IconSprite = @"SPGeneral\GameMenu\wait_icon";
+        private const string IconFile = "lmmi_camp_icon.png";
+        private const string NativeIconSprite = @"SPGeneral\GameMenu\wait_icon";
         private const string FallbackSprite = @"General\Icons\Morale@2x";
+        private static Sprite? _sprite;
+        private static bool _loadAttempted;
         private static bool _loggedFailure;
 
         public static void Ensure()
@@ -117,8 +122,11 @@ namespace LessMenusMoreImmersion.Behaviors
             {
                 var brushes = UIResourceManager.BrushFactory;
                 if (brushes == null) return;
-                Layer(brushes.GetBrush("MapBar.Left.Button.Backgrounds"), BackgroundTemplate, null);
-                Layer(brushes.GetBrush("MapBar.Left.Icons"), IconTemplate, IconSprite);
+                Layer(brushes.GetBrush("MapBar.Left.Button.Backgrounds"), BackgroundTemplate);
+                var icon = Layer(brushes.GetBrush("MapBar.Left.Icons"), IconTemplate);
+                if (icon == null) return;
+                var sprite = GetIconSprite();
+                if (sprite != null && icon.Sprite != sprite) icon.Sprite = sprite;
             }
             catch (Exception ex)
             {
@@ -128,20 +136,75 @@ namespace LessMenusMoreImmersion.Behaviors
             }
         }
 
-        private static void Layer(Brush? brush, string template, string? spriteName)
+        private static BrushLayer? Layer(Brush? brush, string template)
         {
-            if (brush == null || brush.GetLayer(CampNavigationElement.Id) != null) return;
+            if (brush == null) return null;
+            var existing = brush.GetLayer(CampNavigationElement.Id);
+            if (existing != null) return existing;
             var source = brush.GetLayer(template);
-            if (source == null) return;
+            if (source == null) return null;
             var layer = new BrushLayer();
             layer.FillFrom(source);
             layer.Name = CampNavigationElement.Id;
-            if (spriteName != null)
-            {
-                var sprite = UIResourceManager.SpriteData?.GetSprite(spriteName) ?? UIResourceManager.SpriteData?.GetSprite(FallbackSprite);
-                if (sprite != null) layer.Sprite = sprite;
-            }
             brush.AddLayer(layer);
+            return layer;
+        }
+
+        private static Sprite? GetIconSprite()
+        {
+            if (_sprite != null) return _sprite;
+            try
+            {
+                if (!_loadAttempted)
+                {
+                    _loadAttempted = true;
+                    var folder = Path.Combine(ModuleHelper.GetModuleFullPath("LessMenusMoreImmersion"), "GUI", "Camp");
+                    if (!File.Exists(Path.Combine(folder, IconFile)))
+                        throw new FileNotFoundException("The camp button artwork is missing.", Path.Combine(folder, IconFile));
+
+                    var engine = TaleWorlds.Engine.Texture.LoadTextureFromPath(IconFile, folder);
+                    if (engine == null || !engine.IsValid || engine.IsReleased)
+                        throw new InvalidOperationException("The camp button texture could not be loaded.");
+                    engine.PreloadTexture(true);
+                    if (!engine.IsLoaded() || engine.Width <= 0 || engine.Height <= 0)
+                        throw new InvalidOperationException("The camp button texture did not finish loading.");
+                    // UI brushes outlive individual campaigns; retain the sprite and texture for the application lifetime.
+                    engine.SetTextureAsAlwaysValid();
+                    var texture = new TaleWorlds.TwoDimension.Texture(new EngineTexture(engine));
+                    _sprite = new CampIconSprite(texture);
+                    LmmiLog.Info("Camp: shaded tent icon loaded for the map bar.");
+                    return _sprite;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (!_loggedFailure)
+                {
+                    _loggedFailure = true;
+                    LmmiLog.Error("Camp: could not load the tent icon; using the native fallback", ex);
+                }
+            }
+            return UIResourceManager.SpriteData?.GetSprite(NativeIconSprite)
+                ?? UIResourceManager.SpriteData?.GetSprite(FallbackSprite);
+        }
+
+        private sealed class CampIconSprite : Sprite
+        {
+            // Tight bounds of the supplied 1254px artwork, with an 8px transparent gutter.
+            // Crop in UVs so Contain fits the tent itself, as it does the native atlas icons.
+            private static readonly Vec2 MinUvs = new Vec2(46f / 1254f, 200f / 1254f);
+            private static readonly Vec2 MaxUvs = new Vec2(1232f / 1254f, 1069f / 1254f);
+            private readonly TaleWorlds.TwoDimension.Texture _texture;
+
+            public CampIconSprite(TaleWorlds.TwoDimension.Texture texture)
+                : base("lmmi_camp_icon", 1186, 869, SpriteNinePatchParameters.Empty)
+            {
+                _texture = texture;
+            }
+
+            public override TaleWorlds.TwoDimension.Texture Texture => _texture;
+            public override Vec2 GetMinUvs() => MinUvs;
+            public override Vec2 GetMaxUvs() => MaxUvs;
         }
     }
 }
