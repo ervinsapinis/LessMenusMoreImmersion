@@ -5,6 +5,16 @@ All notable changes to **Less Menus, More Immersion** are documented in this fil
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the
 project loosely adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.1] - 2026-11-09
+
+### Added
+- **Compatibility with Procedural Scenes** (BlocTheWorker, Nexus 14407). When it is installed, making camp (map-bar
+  button or Ctrl+T) pitches the camp on terrain generated from the exact spot you stand on the campaign map instead of
+  the vanilla battle scene for that map patch. A loading screen shows for the few seconds generation takes. Optional:
+  detected at runtime by reflection, no dependency; if it's absent, fails, or its in-mission "taleworlds" terrain
+  backend is selected, the camp uses the vanilla scene as before. (`Behaviors/ProceduralScenesBridge.cs`)
+- The camp button on the map bar has its own tent icon.
+
 ## [1.7.0] - 2026-10-01 — "Being Known"
 
 The second layer of the mod: after *knowing the way* around a settlement, *being known* by its people.

@@ -96,7 +96,8 @@ namespace LessMenusMoreImmersion.Behaviors
             try
             {
                 if (!LmmiSettingsProvider.EnableCamp) return;
-                if (!(Game.Current?.GameStateManager?.ActiveState is MapState map)) return;
+                if (!(Game.Current?.GameStateManager?.ActiveState is MapState map)) { CancelGeneration(); return; }
+                if (TickGeneration()) return;
                 CampMapBarIcon.Ensure();
                 if (map.AtMenu) return;
                 Hint();
@@ -119,6 +120,7 @@ namespace LessMenusMoreImmersion.Behaviors
         /// <summary>Ctrl+T and the map bar's button.</summary>
         internal static void TryMakeCamp()
         {
+            if (_generatingFrames >= 0) return;
             if (!CanCampNow(out var why))
             {
                 InformationManager.DisplayMessage(new InformationMessage(why.ToString()));
@@ -157,6 +159,55 @@ namespace LessMenusMoreImmersion.Behaviors
                 LmmiLog.Warning("Camp: no battle scene for this spot.");
                 return;
             }
+            if (ProceduralScenesBridge.Available)
+            {
+                // Procedural Scenes: generate terrain for this exact spot. It blocks for a few seconds, so put the
+                // loading screen up first and generate a few frames later, once it has been drawn.
+                _vanillaScene = scene;
+                _generatingFrames = 3;
+                Campaign.Current.TimeControlMode = CampaignTimeControlMode.Stop;
+                try { TaleWorlds.Engine.LoadingWindow.EnableGlobalLoadingWindow(); }
+                catch (Exception ex) { LmmiLog.Error("Camp: showing the loading window threw", ex); }
+                return;
+            }
+            OpenCampOn(scene);
+        }
+
+        // Procedural Scenes: frames left before generating (-1 = idle), and the vanilla scene to fall back on.
+        private static int _generatingFrames = -1;
+        private static string _vanillaScene = string.Empty;
+
+        /// <summary>True while a generated camp is pending (the map tick does nothing else).</summary>
+        private static bool TickGeneration()
+        {
+            if (_generatingFrames < 0) return false;
+            if (_generatingFrames-- > 0) return true;
+            string scene = _vanillaScene;
+            try
+            {
+                var main = MobileParty.MainParty;
+                if (main != null && ProceduralScenesBridge.TryGenerate(main.Position.ToVec2(), main.Bearing, out var generated))
+                    scene = generated;
+            }
+            catch (Exception ex) { LmmiLog.Error("Camp: generating the terrain threw", ex); }
+            _generatingFrames = -1;
+            try { TaleWorlds.Engine.LoadingWindow.DisableGlobalLoadingWindow(); }
+            catch (Exception ex) { LmmiLog.Error("Camp: hiding the loading window threw", ex); }
+            if (CanCampNow(out _)) OpenCampOn(scene);
+            return true;
+        }
+
+        private static void CancelGeneration()
+        {
+            if (_generatingFrames < 0) return;
+            _generatingFrames = -1;
+            try { TaleWorlds.Engine.LoadingWindow.DisableGlobalLoadingWindow(); } catch { }
+        }
+
+        private static void OpenCampOn(string scene)
+        {
+            var self = Instance;
+            if (self == null || Campaign.Current == null) return;
             LmmiLog.Info($"Camp: making camp on '{scene}'.");
             self._lastCampDay = Today;
             self._bouts = 0;
